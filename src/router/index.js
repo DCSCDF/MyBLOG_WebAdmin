@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 // 导入页面组件
 import Login from '../pages/Login.vue'
-import Dashboard from '../pages/Dashboard.vue'
+import Dashboard from '../pages/Dashboard/Dashboard.vue'
 import Layout from '../layout/Layout.vue'
 
 const routes = [
@@ -23,31 +23,32 @@ const routes = [
         path: '/user',
         component: Layout,
         meta: { requiresAuth: true },
+        redirect: '/user/dashboard',
         children: [
             {
                 path: 'dashboard',
                 name: 'Dashboard',
-                component: Dashboard,
+                component: () => import('../pages/Dashboard/Dashboard.vue'),
                 meta: {
                     title: '仪表盘'
                 }
             },
-            {
-                path: 'profile',
-                name: 'Profile',
-                component: () => import('../pages/Profile.vue'),
-                meta: {
-                    title: '个人资料'
-                }
-            },
-            {
-                path: 'settings',
-                name: 'Settings',
-                component: () => import('../pages/Settings.vue'),
-                meta: {
-                    title: '系统设置'
-                }
-            }
+            // {
+            //     path: 'profile',
+            //     name: 'Profile',
+            //     component: () => import('../pages/Profile.vue'),
+            //     meta: {
+            //         title: '个人资料'
+            //     }
+            // },
+            // {
+            //     path: 'settings',
+            //     name: 'Settings',
+            //     component: () => import('../pages/Settings.vue'),
+            //     meta: {
+            //         title: '系统设置'
+            //     }
+            // }
         ]
     }
 ]

@@ -14,7 +14,7 @@ h4,
 h5,
 h6 {
   margin-top: 0;
-  margin-bottom: 0.0em;
+  margin-bottom: 0.0em !important;
   font-weight: 500;
 }
 </style>
