@@ -1,13 +1,13 @@
 /**
- * 日志工具类 - 统一管理前端日志输出
+ * 日志
  * 根据环境变量控制日志输出行为，实现环境适配和安全控制
  *
- * 环境变量说明：
+ * 环境变量：
  * - VITE_SHOW_CONSOLE_LOGS: 控制是否显示控制台日志 ('true'/'false')
  * - VITE_DEBUG_MODE: 控制是否显示调试日志 ('true'/'false')
  * - import.meta.env.MODE: 当前运行环境 (development/production/test)
  *
- * 使用方式：
+ * 使用：
  * import logger from '@/utils/logger';
  * logger.log('普通日志');
  * logger.warn('警告信息');

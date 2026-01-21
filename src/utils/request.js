@@ -1,21 +1,16 @@
 /**
- * HTTP请求工具类 - 基于axios封装的API请求服务
+ * HTTP请求
  *
- * 功能特性：
- * - 支持环境变量配置基础URL
- * - 集成请求/响应拦截器
- * - 统一错误处理机制
- * - 自动转换请求/响应数据
- *
- * 环境变量配置：
+ * 环境变量：
  * - VITE_API_BASE_URL: API请求的基础URL地址
  *
- * 使用方式：
+ * 使用：
  * import request from '@/utils/request';
  * request.get('/api/user/info').then(res => {...});
  * request.post('/api/user/login', data).then(res => {...});
  */
 import axios from 'axios';
+import {handleAjCaptchaResponse} from './captchaHandler'; // 导入验证码响应处理函数
 
 // 使用环境变量设置请求的基础URL，支持不同环境下的API地址配置
 /* eslint-disable no-undef */
@@ -54,18 +49,23 @@ service.interceptors.request.use(
 service.interceptors.response.use(
     response => {
         // 提取响应中的data部分并返回
-        return response.data
+        const {repCode} = response.data || {};
+
+        // 使用验证码处理工具处理AJ-Captcha响应码
+        handleAjCaptchaResponse(repCode);
+
+        return response.data;
     },
     error => {
         // 响应错误时的处理
         // 这里可以添加统一的错误处理逻辑
-        return Promise.reject(error)
+        return Promise.reject(error);
     }
 )
 
 /**
  * 导出配置好的axios实例
- * 提供预设的请求配置、拦截器和错误处理机制
+ * 提供请求配置、拦截器和错误处理机制
  * 作为模块默认导出，供其他组件或页面导入使用
  */
 export default service

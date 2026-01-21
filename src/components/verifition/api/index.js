@@ -3,8 +3,7 @@
  */
 
 
-import request from "../../../utils/request.js" //组件内部封装的axios
-// import request from "@/api/request.js"       //调用项目封装的axios
+import request from "../../../utils/request.js" //axios
 
 //获取验证图片  以及token
 export function reqGet(data) {
