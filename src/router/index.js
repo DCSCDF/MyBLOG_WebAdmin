@@ -1,8 +1,7 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import {createRouter, createWebHistory} from 'vue-router'
 
 // 导入页面组件
 import Login from '../pages/Login.vue'
-import Dashboard from '../pages/Dashboard/Dashboard.vue'
 import Layout from '../layout/Layout.vue'
 
 const routes = [
@@ -22,7 +21,7 @@ const routes = [
     {
         path: '/user',
         component: Layout,
-        meta: { requiresAuth: true },
+        meta: {requiresAuth: true},
         redirect: '/user/dashboard',
         children: [
             {
@@ -74,6 +73,7 @@ const router = createRouter({
 // })
 
 // 设置页面标题
+
 router.afterEach((to) => {
     document.title = `${to.meta.title || '页面'} - MyBlog 管理系统`
 })
