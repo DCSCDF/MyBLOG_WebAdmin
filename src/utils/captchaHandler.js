@@ -1,6 +1,6 @@
 /**
- * AJ-Captcha响应处理
- * 用于处理AJ-Captcha返回的各种响应码
+ * Captcha响应处理
+ * 用于处理Captcha返回的各种响应码
  *
  * 使用：
  * import { handleAjCaptchaResponse } from '@/utils/captchaHandler';
@@ -10,7 +10,7 @@
 import logger from './logger';
 
 /**
- * 处理AJ-Captcha响应码
+ * 处理Captcha响应码
  * 根据不同的响应码进行相应的日志记录和处理
  * @param {string} repCode - 响应码
  * @returns {void}
