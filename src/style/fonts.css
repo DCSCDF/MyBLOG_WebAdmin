@@ -1,0 +1,13 @@
+/* 字体定义*/
+@font-face {
+    font-family: 'MyFont';
+    src: url('../assets/fonts/ZhiyiMaru-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+
+body {
+    font-family: 'MyFont', sans-serif;
+}
