@@ -10,7 +10,8 @@
  * request.post('/api/user/login', data).then(res => {...});
  */
 import axios from 'axios';
-import {handleAjCaptchaResponse} from './captchaHandler'; // 导入验证码响应处理函数
+import {handleAjCaptchaResponse} from './captchaInterceptor.js'; // 导入验证码响应处理函数
+import {handleApi} from './apiInterceptor.js'; // 导入API响应处理函数
 
 // 使用环境变量设置请求的基础URL，支持不同环境下的API地址配置
 /* eslint-disable no-undef */
@@ -49,10 +50,15 @@ service.interceptors.request.use(
 service.interceptors.response.use(
     response => {
         // 提取响应中的data部分并返回
-        const {repCode} = response.data || {};
+        const {repCode, code} = response.data;
 
-        // 使用验证码处理工具处理AJ-Captcha响应码
+        // 使用验证码处理工具处理Captcha响应码
         handleAjCaptchaResponse(repCode);
+
+        // 使用API响应处理工具处理后端响应码
+        if (code !== undefined) {
+            handleApi(code);
+        }
 
         return response.data;
     },

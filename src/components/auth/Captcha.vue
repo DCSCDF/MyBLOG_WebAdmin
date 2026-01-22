@@ -41,6 +41,9 @@ verify.value = undefined;
 const isVerified = ref(false)
 const captchaVerification = ref(null)
 
+// 导入 emit 函数
+const emit = defineEmits(['status-change'])
+
 // 验证成功回调
 const handleVerifySuccess = (params) => {
   // params 是验证码返回的二次验证参数
@@ -48,7 +51,9 @@ const handleVerifySuccess = (params) => {
   logger.log('验证码验证成功:', params)
   isVerified.value = true
   captchaVerification.value = params
-  // 例如：loginForm.value.captchaVerification = params
+  
+  // 发送状态变化通知给父组件
+  emit('status-change', true)
 }
 
 // 显示验证码弹窗
@@ -65,8 +70,14 @@ const getVerifyStatus = () => {
 
 // 重置验证状态
 const resetVerifyStatus = () => {
+  const wasVerified = isVerified.value;
   isVerified.value = false
   captchaVerification.value = null
+  
+  // 如果之前是已验证状态，则发送状态变化通知
+  if (wasVerified) {
+    emit('status-change', false)
+  }
 }
 
 // 获取验证参数

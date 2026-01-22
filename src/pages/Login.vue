@@ -28,7 +28,7 @@
     </div>
   </div>
 </template>
- 
+
 <script setup>
 import {ref} from 'vue'
 import LoginForm from '../components/auth/LoginForm.vue'
@@ -37,6 +37,3 @@ import RegisterForm from '../components/auth/RegisterForm.vue'
 const activeTab = ref('login')
 </script>
 
-<style scoped>
-
-</style>

@@ -57,23 +57,24 @@ const router = createRouter({
     routes
 })
 
-// // 路由守卫
-// router.beforeEach((to, from, next) => {
-//     const isAuthenticated = localStorage.getItem('token')
 
-//     if (to.meta.requiresAuth && !isAuthenticated) {
-//         // 需要认证但未登录
-//         next('/login')
-//     } else if (to.path === '/login' && isAuthenticated) {
-//         // 已登录但访问登录页
-//         next('/user/dashboard')
-//     } else {
-//         next()
-//     }
-// })
+// 路由守卫
+router.beforeEach((to, from, next) => {
+    // 检查localStorage是否有token
+    const isAuthenticated = localStorage.getItem('token')
+
+    if (to.meta.requiresAuth && !isAuthenticated) {
+        // 需要认证但未登录
+        next('/login')
+    } else if (to.path === '/login' && isAuthenticated) {
+        // 已登录但访问登录页
+        next('/user/dashboard')
+    } else {
+        next()
+    }
+})
 
 // 设置页面标题
-
 router.afterEach((to) => {
     document.title = `${to.meta.title || '页面'} - MyBlog 管理系统`
 })
