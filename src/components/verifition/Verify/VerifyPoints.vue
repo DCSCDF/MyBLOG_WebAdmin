@@ -14,7 +14,7 @@
              ref="canvas"
              alt="" style="width:100%;height:100%;display:block"
              @click="bindingClick?canvasClick($event):undefined">
- 
+
         <div v-for="(tempPoint, index) in tempPoints" :key="index" class="point-area"
              :style="{
                         'background-color':'#1abd6c',
@@ -50,7 +50,7 @@
  * */
 import {resetSize} from './../utils/util'
 import {aesEncrypt} from "./../utils/ase"
-import {reqCheck, reqGet} from "./../api/index"
+import {reqCheck, reqGet} from "../../../api/user/auth/captchaApi.js"
 import {getCurrentInstance, nextTick, onMounted, reactive, ref, toRefs} from 'vue';
 
 export default {

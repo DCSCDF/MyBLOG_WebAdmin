@@ -7,39 +7,44 @@ import logger from './logger';
 
 // 定义API响应码处理映射对象
 const apiResponseMap = {
-    '200': () => {
-        // 请求成功，正常返回数据
-    },
-    '400': () => {
-        logger.error('请求参数错误');
-    },
-    '401': () => {
-        logger.error('未授权，请重新登录');
-    },
-    '403': () => {
-        logger.error('拒绝访问');
-    },
-    '404': () => {
-        logger.error('请求的资源不存在');
-    },
-    '408': () => {
-        logger.error('请求超时');
-    },
-    '429': () => {
-        logger.error('请求过于频繁');
-    },
-    '500': () => {
-        logger.error('服务器内部错误');
-    },
-    '502': () => {
-        logger.error('网关错误');
-    },
-    '503': () => {
-        logger.error('服务不可用');
-    },
-    '504': () => {
-        logger.error('网关超时');
-    }
+	'200': () => {
+		// 请求成功，正常返回数据
+	},
+	'400': () => {
+		logger.error('请求参数错误');
+	},
+	'401': () => {
+		logger.error('未授权，请重新登录');
+		localStorage.removeItem('token');
+		sessionStorage.removeItem('token');
+
+		// 使用window.location
+		window.location.href = '/';
+	},
+	'403': () => {
+		logger.error('拒绝访问');
+	},
+	'404': () => {
+		logger.error('请求的资源不存在');
+	},
+	'408': () => {
+		logger.error('请求超时');
+	},
+	'429': () => {
+		logger.error('请求过于频繁');
+	},
+	'500': () => {
+		logger.error('服务器内部错误');
+	},
+	'502': () => {
+		logger.error('网关错误');
+	},
+	'503': () => {
+		logger.error('服务不可用');
+	},
+	'504': () => {
+		logger.error('网关超时');
+	}
 };
 
 /**
@@ -49,9 +54,9 @@ const apiResponseMap = {
  * @returns {void}
  */
 export const handleApi = (code) => {
-    const handler = apiResponseMap[code];
-    if (handler) {
-        handler();
-    }
-    // 如果没有找到对应的处理函数，则不做任何操作
+	const handler = apiResponseMap[code];
+	if (handler) {
+		handler();
+	}
+	// 如果没有找到对应的处理函数，则不做任何操作
 };

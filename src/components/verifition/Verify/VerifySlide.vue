@@ -48,7 +48,7 @@
  * */
 import {aesEncrypt} from "./../utils/ase"
 import {resetSize} from './../utils/util'
-import {reqCheck, reqGet} from "./../api/index"
+import {reqCheck, reqGet} from "../../../api/user/auth/captchaApi.js"
 import {computed, getCurrentInstance, nextTick, onMounted, reactive, ref, toRefs, watch} from 'vue';
 //  "captchaType":"blockPuzzle",
 export default {

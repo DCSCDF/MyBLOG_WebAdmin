@@ -1,0 +1,36 @@
+/* 验证码弹窗响应式样式 */
+@media screen and (max-width: 768px) {
+  .verifybox {
+    max-width: 90% !important;
+    min-width: 280px;
+    transform: scale(0.9);
+    transform-origin: top center;
+  }
+
+  .verifybox-top {
+    font-size: 14px !important;
+    padding: 10px !important;
+  }
+
+  .verifybox-bottom {
+    padding: 15px 10px !important;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .verifybox {
+    max-width: 95% !important;
+    min-width: 250px;
+    transform: scale(0.8);
+    transform-origin: top center;
+  }
+
+  .verifybox-top {
+    font-size: 12px !important;
+    padding: 8px !important;
+  }
+
+  .verifybox-bottom {
+    padding: 10px 8px !important;
+  }
+}

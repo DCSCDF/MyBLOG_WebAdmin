@@ -1,114 +1,186 @@
 <template>
-  <!-- 左侧菜单容器 -->
-  <div class="relative flex flex-col transition-all duration-300 ease-in-out backdrop-blur-sm w-60">
-    <!-- 菜单区域 -->
-    <div class="relative flex-1 overflow-hidden">
-      <a-menu v-model:openKeys="state.openKeys" v-model:selectedKeys="state.selectedKeys" mode="inline"
-              theme="light" :inline-collapsed="state.collapsed" :items="items"
-              class="h-full overflow-y-auto bg-transparent border-0 pt-2"/>
-    </div>
-  </div>
+        <!-- 左侧菜单容器 -->
+
+        <div
+            :class="['relative flex flex-col transition-all duration-300 ease-in-out h-full border-r border-gray-200', collapsed ? 'w-20' : 'w-60']">
+                <!-- 菜单区域 -->
+                <div class="relative flex-1 overflow-hidden">
+                        <div
+                            class="h-16 w-auto flex flex-row  items-center  mx-auto justify-center border-b border-gray-200">
+                                <svg v-if="collapsed" class="icon" viewBox="0 0 1024 1024"
+                                     xmlns="http://www.w3.org/2000/svg" width="33" height="33">
+                                        <path
+                                            d="M857.00739476 935.7671032H167.10911369c-43.53532208 0-78.82443536-35.28911328-78.82443538-78.82443535V167.05733215c0-43.53532208 35.28911328-78.82443536 78.82443538-78.82443535h689.89828107c43.53532208 0 78.82443536 35.28911328 78.82443537 78.82443535v689.89828109c0 43.52237669-35.28911328 78.81148997-78.82443537 78.81148996z"
+                                            fill="#0E8CFB"></path>
+                                        <path
+                                            d="M279.09961955 390.48169245c-53.78806518 0-97.58229491-43.78128435-97.58229491-97.58229492 0-53.81395595 43.78128435-97.5952403 97.58229491-97.59524029 53.81395595 0 97.5952403 43.78128435 97.5952403 97.59524029 0 53.80101057-43.78128435 97.58229491-97.5952403 97.58229492z m0-135.99124543c-21.17864613 0-38.39600514 17.24324978-38.39600513 38.42189589s17.21735902 38.39600514 38.39600513 38.39600514 38.4218959-17.21735902 38.42189592-38.39600514-17.24324978-38.4218959-38.42189592-38.42189589z"
+                                            fill="#FFFFFF"></path>
+                                        <path
+                                            d="M857.00739476 935.7671032H167.10911369c-43.53532208 0-78.82443536-35.28911328-78.82443538-78.82443535V561.71026963c0-40.19541333 32.5835283-72.77894163 72.77894164-72.77894163h701.98926855c40.19541333 0 72.77894163 32.5835283 72.77894163 72.77894163v295.23239822c0 43.53532208-35.28911328 78.82443536-78.82443537 78.82443535z"
+                                            fill="#4AB2FB"></path>
+                                        <path
+                                            d="M776.70718578 812.941312H211.11046953c-16.33707298 0-29.59314489-13.24312652-29.59314489-29.59314489s13.24312652-29.59314489 29.59314489-29.59314489h565.59671625c16.33707298 0 29.59314489 13.24312652 29.59314489 29.59314489s-13.24312652 29.59314489-29.59314489 29.59314489zM776.70718578 670.91751822H211.11046953c-16.33707298 0-29.59314489-13.24312652-29.59314489-29.59314489s13.24312652-29.59314489 29.59314489-29.59314488h565.59671625c16.33707298 0 29.59314489 13.24312652 29.59314489 29.59314488s-13.24312652 29.59314489-29.59314489 29.59314489z"
+                                            fill="#FFFFFF"></path>
+                                        <path
+                                            d="M655.90087427 331.7873272H461.69424276c-16.33707298 0-29.59314489-13.24312652-29.59314489-29.59314489s13.24312652-29.59314489 29.59314489-29.59314488h194.20663151c16.33707298 0 29.59314489 13.24312652 29.5931449 29.59314488s-13.24312652 29.59314489-29.5931449 29.59314489z"
+                                            fill="#FFFFFF"></path>
+                                </svg>
+                                <svg v-if="!collapsed" class="icon" viewBox="0 0 1024 1024"
+                                     xmlns="http://www.w3.org/2000/svg" width="33" height="33">
+                                        <path
+                                            d="M857.00739476 935.7671032H167.10911369c-43.53532208 0-78.82443536-35.28911328-78.82443538-78.82443535V167.05733215c0-43.53532208 35.28911328-78.82443536 78.82443538-78.82443535h689.89828107c43.53532208 0 78.82443536 35.28911328 78.82443537 78.82443535v689.89828109c0 43.52237669-35.28911328 78.81148997-78.82443537 78.81148996z"
+                                            fill="#0E8CFB"></path>
+                                        <path
+                                            d="M279.09961955 390.48169245c-53.78806518 0-97.58229491-43.78128435-97.58229491-97.58229492 0-53.81395595 43.78128435-97.5952403 97.58229491-97.59524029 53.81395595 0 97.5952403 43.78128435 97.5952403 97.59524029 0 53.80101057-43.78128435 97.58229491-97.5952403 97.58229492z m0-135.99124543c-21.17864613 0-38.39600514 17.24324978-38.39600513 38.42189589s17.21735902 38.39600514 38.39600513 38.39600514 38.4218959-17.21735902 38.42189592-38.39600514-17.24324978-38.4218959-38.42189592-38.42189589z"
+                                            fill="#FFFFFF"></path>
+                                        <path
+                                            d="M857.00739476 935.7671032H167.10911369c-43.53532208 0-78.82443536-35.28911328-78.82443538-78.82443535V561.71026963c0-40.19541333 32.5835283-72.77894163 72.77894164-72.77894163h701.98926855c40.19541333 0 72.77894163 32.5835283 72.77894163 72.77894163v295.23239822c0 43.53532208-35.28911328 78.82443536-78.82443537 78.82443535z"
+                                            fill="#4AB2FB"></path>
+                                        <path
+                                            d="M776.70718578 812.941312H211.11046953c-16.33707298 0-29.59314489-13.24312652-29.59314489-29.59314489s13.24312652-29.59314489 29.59314489-29.59314489h565.59671625c16.33707298 0 29.59314489 13.24312652 29.59314489 29.59314489s-13.24312652 29.59314489-29.59314489 29.59314489zM776.70718578 670.91751822H211.11046953c-16.33707298 0-29.59314489-13.24312652-29.59314489-29.59314489s13.24312652-29.59314489 29.59314489-29.59314488h565.59671625c16.33707298 0 29.59314489 13.24312652 29.59314489 29.59314488s-13.24312652 29.59314489-29.59314489 29.59314489z"
+                                            fill="#FFFFFF"></path>
+                                        <path
+                                            d="M655.90087427 331.7873272H461.69424276c-16.33707298 0-29.59314489-13.24312652-29.59314489-29.59314489s13.24312652-29.59314489 29.59314489-29.59314488h194.20663151c16.33707298 0 29.59314489 13.24312652 29.5931449 29.59314488s-13.24312652 29.59314489-29.5931449 29.59314489z"
+                                            fill="#FFFFFF"></path>
+                                </svg>
+                                <h1 v-if="!collapsed"
+                                    class="text-xl font-semibold mx-1 text-gray-800 dark:text-white text-nowrap">
+                                        MyBlog
+                                </h1>
+
+                        </div>
+                        <a-menu v-model:openKeys="state.openKeys" v-model:selectedKeys="state.selectedKeys"
+                                mode="inline"
+                                theme="light"
+                                :inline-collapsed="collapsed"
+                                :items="items"
+                                class="h-full !overflow-y-auto !bg-transparent  !p-1 !backdrop-blur-md !border-0">
+
+                        </a-menu>
+                </div>
+        </div>
 </template>
 
 <script setup>
 import {h, reactive, watch} from 'vue';
 import {AppstoreOutlined, DesktopOutlined, InboxOutlined, MailOutlined, PieChartOutlined,} from '@ant-design/icons-vue';
 
+const props = defineProps({
+        collapsed: {
+                type: Boolean,
+                default: false
+        },
+        toggleCollapsed: {
+                type: Function,
+                default: () => {
+                }
+        }
+});
+
 const state = reactive({
-  collapsed: false,
-  selectedKeys: ['1'],
-  openKeys: ['sub1'],
-  preOpenKeys: ['sub1'],
+        selectedKeys: ['1'],
+        openKeys: ['sub1'],
+        preOpenKeys: ['sub1'],
+});
+
+// 监听props中的collapsed变化，更新openKeys状态
+watch(() => props.collapsed, (newCollapsed) => {
+        if (newCollapsed) {
+                state.openKeys = [];
+        } else {
+                state.openKeys = state.preOpenKeys;
+        }
 });
 
 const items = reactive([
-  {
-    key: '1',
-    icon: () => h(PieChartOutlined),
-    label: 'Option 1',
-    title: 'Option 1',
-  },
-  {
-    key: '2',
-    icon: () => h(DesktopOutlined),
-    label: 'Option 2',
-    title: 'Option 2',
-  },
-  {
-    key: '3',
-    icon: () => h(InboxOutlined),
-    label: 'Option 3',
-    title: 'Option 3',
-  },
-  {
-    key: 'sub1',
-    icon: () => h(MailOutlined),
-    label: 'Navigation One11111111111111111111111111111111',
-    title: 'Navigation One',
-    children: [
-      {
-        key: '5',
-        label: 'Option 5',
-        title: 'Option 5',
-      },
-      {
-        key: '6',
-        label: 'Option 6',
-        title: 'Option 6',
-      },
-      {
-        key: '7',
-        label: 'Option 7',
-        title: 'Option 7',
-      },
-      {
-        key: '8',
-        label: 'Option 8',
-        title: 'Option 8',
-      },
-    ],
-  },
-  {
-    key: 'sub2',
-    icon: () => h(AppstoreOutlined),
-    label: 'Navigation Two',
-    title: 'Navigation Two',
-    children: [
-      {
-        key: '9',
-        label: 'Option 9',
-        title: 'Option 9',
-      },
-      {
-        key: '10',
-        label: 'Option 10',
-        title: 'Option 10',
-      },
-      {
-        key: 'sub3',
-        label: 'Submenu',
-        title: 'Submenu',
-        children: [
-          {
-            key: '11',
-            label: 'Option 11',
-            title: 'Option 11',
-          },
-          {
-            key: '12',
-            label: 'Option 12',
-            title: 'Option 12',
-          },
-        ],
-      },
-    ],
-  },
+        {
+                key: '1',
+                icon: () => h(PieChartOutlined),
+                label: 'Option 1',
+                title: 'Option 1',
+        },
+        {
+                key: '2',
+                icon: () => h(DesktopOutlined),
+                label: 'Option 2',
+                title: 'Option 2',
+        },
+        {
+                key: '3',
+                icon: () => h(InboxOutlined),
+                label: 'Option 3',
+                title: 'Option 3',
+        },
+        {
+                key: 'sub1',
+                icon: () => h(MailOutlined),
+                label: 'Navigation One',
+                title: 'Navigation One',
+                children: [
+                        {
+                                key: '5',
+                                label: 'Option 5',
+                                title: 'Option 5',
+                        },
+                        {
+                                key: '6',
+                                label: 'Option 6',
+                                title: 'Option 6',
+                        },
+                        {
+                                key: '7',
+                                label: 'Option 7',
+                                title: 'Option 7',
+                        },
+                        {
+                                key: '8',
+                                label: 'Option 8',
+                                title: 'Option 8',
+                        },
+                ],
+        },
+        {
+                key: 'sub2',
+                icon: () => h(AppstoreOutlined),
+                label: 'Navigation Two',
+                title: 'Navigation Two',
+                children: [
+                        {
+                                key: '9',
+                                label: 'Option 9',
+                                title: 'Option 9',
+                        },
+                        {
+                                key: '10',
+                                label: 'Option 10',
+                                title: 'Option 10',
+                        },
+                        {
+                                key: 'sub3',
+                                label: 'Submenu',
+                                title: 'Submenu',
+                                children: [
+                                        {
+                                                key: '11',
+                                                label: 'Option 11',
+                                                title: 'Option 11',
+                                        },
+                                        {
+                                                key: '12',
+                                                label: 'Option 12',
+                                                title: 'Option 12',
+                                        },
+                                ],
+                        },
+                ],
+        },
+
 ]);
 
 watch(
     () => state.openKeys,
     (_val, oldVal) => {
-      state.preOpenKeys = oldVal;
+            state.preOpenKeys = oldVal;
     },
 );
 
