@@ -34,6 +34,14 @@ const routes = [
 					title: '仪表盘'
 				}
 			},
+			{
+				path: 'usersetting',
+				name: 'usersetting',
+				component: () => import('../pages/Dashboard/UserSetting.vue'),
+				meta: {
+					title: '用户设置'
+				}
+			},
 			// {
 			//     path: 'profile',
 			//     name: 'Profile',

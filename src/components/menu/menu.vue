@@ -54,7 +54,9 @@
                                 theme="light"
                                 :inline-collapsed="collapsed"
                                 :items="items"
+                                @click="handleMenuClick"
                                 class="h-full !overflow-y-auto !bg-transparent  !p-1 !backdrop-blur-md !border-0">
+
 
                         </a-menu>
                 </div>
@@ -62,8 +64,11 @@
 </template>
 
 <script setup>
-import {h, reactive, watch} from 'vue';
-import {AppstoreOutlined, DesktopOutlined, InboxOutlined, MailOutlined, PieChartOutlined,} from '@ant-design/icons-vue';
+import {h, reactive, watch,} from 'vue';
+import {DesktopOutlined, PieChartOutlined,} from '@ant-design/icons-vue';
+import {useRouter} from 'vue-router';
+
+const router = useRouter();
 
 const props = defineProps({
         collapsed: {
@@ -77,10 +82,11 @@ const props = defineProps({
         }
 });
 
+
 const state = reactive({
         selectedKeys: ['1'],
-        openKeys: ['sub1'],
-        preOpenKeys: ['sub1'],
+        openKeys: [''],
+        preOpenKeys: [''],
 });
 
 // 监听props中的collapsed变化，更新openKeys状态
@@ -96,84 +102,87 @@ const items = reactive([
         {
                 key: '1',
                 icon: () => h(PieChartOutlined),
-                label: 'Option 1',
-                title: 'Option 1',
+                label: '仪表盘',
+                title: '仪表盘',
+                route: '/user/dashboard'
         },
         {
                 key: '2',
                 icon: () => h(DesktopOutlined),
-                label: 'Option 2',
-                title: 'Option 2',
+                label: '用户设置',
+                title: '用户设置',
+                route: '/user/usersetting'
         },
-        {
-                key: '3',
-                icon: () => h(InboxOutlined),
-                label: 'Option 3',
-                title: 'Option 3',
-        },
-        {
-                key: 'sub1',
-                icon: () => h(MailOutlined),
-                label: 'Navigation One',
-                title: 'Navigation One',
-                children: [
-                        {
-                                key: '5',
-                                label: 'Option 5',
-                                title: 'Option 5',
-                        },
-                        {
-                                key: '6',
-                                label: 'Option 6',
-                                title: 'Option 6',
-                        },
-                        {
-                                key: '7',
-                                label: 'Option 7',
-                                title: 'Option 7',
-                        },
-                        {
-                                key: '8',
-                                label: 'Option 8',
-                                title: 'Option 8',
-                        },
-                ],
-        },
-        {
-                key: 'sub2',
-                icon: () => h(AppstoreOutlined),
-                label: 'Navigation Two',
-                title: 'Navigation Two',
-                children: [
-                        {
-                                key: '9',
-                                label: 'Option 9',
-                                title: 'Option 9',
-                        },
-                        {
-                                key: '10',
-                                label: 'Option 10',
-                                title: 'Option 10',
-                        },
-                        {
-                                key: 'sub3',
-                                label: 'Submenu',
-                                title: 'Submenu',
-                                children: [
-                                        {
-                                                key: '11',
-                                                label: 'Option 11',
-                                                title: 'Option 11',
-                                        },
-                                        {
-                                                key: '12',
-                                                label: 'Option 12',
-                                                title: 'Option 12',
-                                        },
-                                ],
-                        },
-                ],
-        },
+        // {
+        //         key: '3',
+        //         icon: () => h(InboxOutlined),
+        //         label: 'Option 3',
+        //         title: 'Option 3',
+        //         route: '/user/usersettin1g'
+        // },
+        // {
+        //         key: 'sub1',
+        //         icon: () => h(MailOutlined),
+        //         label: 'Navigation One',
+        //         title: 'Navigation One',
+        //         children: [
+        //                 {
+        //                         key: '5',
+        //                         label: 'Option 5',
+        //                         title: 'Option 5',
+        //                 },
+        //                 {
+        //                         key: '6',
+        //                         label: 'Option 6',
+        //                         title: 'Option 6',
+        //                 },
+        //                 {
+        //                         key: '7',
+        //                         label: 'Option 7',
+        //                         title: 'Option 7',
+        //                 },
+        //                 {
+        //                         key: '8',
+        //                         label: 'Option 8',
+        //                         title: 'Option 8',
+        //                 },
+        //         ],
+        // },
+        // {
+        //         key: 'sub2',
+        //         icon: () => h(AppstoreOutlined),
+        //         label: 'Navigation Two',
+        //         title: 'Navigation Two',
+        //         children: [
+        //                 {
+        //                         key: '9',
+        //                         label: 'Option 9',
+        //                         title: 'Option 9',
+        //                 },
+        //                 {
+        //                         key: '10',
+        //                         label: 'Option 10',
+        //                         title: 'Option 10',
+        //                 },
+        //                 {
+        //                         key: 'sub3',
+        //                         label: 'Submenu',
+        //                         title: 'Submenu',
+        //                         children: [
+        //                                 {
+        //                                         key: '11',
+        //                                         label: 'Option 11',
+        //                                         title: 'Option 11',
+        //                                 },
+        //                                 {
+        //                                         key: '12',
+        //                                         label: 'Option 12',
+        //                                         title: 'Option 12',
+        //                                 },
+        //                         ],
+        //                 },
+        //         ],
+        // },
 
 ]);
 
@@ -184,5 +193,12 @@ watch(
     },
 );
 
+// 处理菜单点击事件
+const handleMenuClick = (e) => {
+        const selectedItem = items.find(item => item.key === e.key);
+        if (selectedItem && selectedItem.route) {
+                router.push(selectedItem.route); // 跳转到对应路由
+        }
+};
 
 </script>
