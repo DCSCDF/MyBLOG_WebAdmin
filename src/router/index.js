@@ -87,6 +87,7 @@ router.beforeEach((to, from, next) => {
 	} catch (error) {
 		logger.error('路由守卫错误:', error);
 		// 发生错误时，重定向到登录页
+
 		next('/login');
 	}
 })

@@ -14,12 +14,12 @@ const apiResponseMap = {
 		logger.error('请求参数错误');
 	},
 	'401': () => {
-		logger.error('未授权，请重新登录');
+		logger.error('未授权，401');
 		localStorage.removeItem('token');
 		sessionStorage.removeItem('token');
 
-		// 使用window.location
-		window.location.href = '/';
+		// 使用window.location 跳转
+		// window.location.href = '/';
 	},
 	'403': () => {
 		logger.error('拒绝访问');

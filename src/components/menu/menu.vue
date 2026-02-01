@@ -61,11 +61,19 @@
                         </a-menu>
                 </div>
         </div>
+
 </template>
 
 <script setup>
 import {h, reactive, watch,} from 'vue';
-import {DesktopOutlined, PieChartOutlined,} from '@ant-design/icons-vue';
+import {
+        DesktopOutlined,
+        FileTextOutlined,
+        MessageOutlined,
+        PieChartOutlined,
+        SettingOutlined,
+        TagsOutlined,
+} from '@ant-design/icons-vue';
 import {useRouter} from 'vue-router';
 
 const router = useRouter();
@@ -106,83 +114,115 @@ const items = reactive([
                 title: '仪表盘',
                 route: '/user/dashboard'
         },
+
+
         {
-                key: '2',
-                icon: () => h(DesktopOutlined),
-                label: '用户设置',
-                title: '用户设置',
-                route: '/user/usersetting'
+                key: 'sub1',
+                icon: () => h(FileTextOutlined),
+                label: '文章',
+                title: '文章',
+                route: '/user/',
+                children: [
+                        {
+                                key: 'sub1_1',
+                                // icon: () => h(FormOutlined),
+                                label: '新建文章',
+                                title: '新建文章',
+                        },
+                        {
+                                key: 'sub1_2',
+                                // icon: () => h(FileTextOutlined),
+                                label: '管理文章',
+                                title: '管理文章',
+                        },
+                ],
         },
-        // {
-        //         key: '3',
-        //         icon: () => h(InboxOutlined),
-        //         label: 'Option 3',
-        //         title: 'Option 3',
-        //         route: '/user/usersettin1g'
-        // },
-        // {
-        //         key: 'sub1',
-        //         icon: () => h(MailOutlined),
-        //         label: 'Navigation One',
-        //         title: 'Navigation One',
-        //         children: [
-        //                 {
-        //                         key: '5',
-        //                         label: 'Option 5',
-        //                         title: 'Option 5',
-        //                 },
-        //                 {
-        //                         key: '6',
-        //                         label: 'Option 6',
-        //                         title: 'Option 6',
-        //                 },
-        //                 {
-        //                         key: '7',
-        //                         label: 'Option 7',
-        //                         title: 'Option 7',
-        //                 },
-        //                 {
-        //                         key: '8',
-        //                         label: 'Option 8',
-        //                         title: 'Option 8',
-        //                 },
-        //         ],
-        // },
-        // {
-        //         key: 'sub2',
-        //         icon: () => h(AppstoreOutlined),
-        //         label: 'Navigation Two',
-        //         title: 'Navigation Two',
-        //         children: [
-        //                 {
-        //                         key: '9',
-        //                         label: 'Option 9',
-        //                         title: 'Option 9',
-        //                 },
-        //                 {
-        //                         key: '10',
-        //                         label: 'Option 10',
-        //                         title: 'Option 10',
-        //                 },
-        //                 {
-        //                         key: 'sub3',
-        //                         label: 'Submenu',
-        //                         title: 'Submenu',
-        //                         children: [
-        //                                 {
-        //                                         key: '11',
-        //                                         label: 'Option 11',
-        //                                         title: 'Option 11',
-        //                                 },
-        //                                 {
-        //                                         key: '12',
-        //                                         label: 'Option 12',
-        //                                         title: 'Option 12',
-        //                                 },
-        //                         ],
-        //                 },
-        //         ],
-        // },
+
+        {
+                key: '3',
+                icon: () => h(TagsOutlined),
+                label: '分类',
+                title: '分类',
+                route: '/user/'
+        },
+
+        {
+                key: '4',
+                icon: () => h(MessageOutlined),
+                label: '留言',
+                title: '留言',
+                route: '/user/'
+        },
+
+        {
+                key: 'sub2',
+                icon: () => h(SettingOutlined),
+                label: '设置',
+                title: '设置',
+                children: [
+                        {
+                                key: 'sub2_1',
+                                // icon: () => h(UserOutlined),
+                                label: '我的账户',
+                                title: '我的账户',
+                                route: '/user/'
+                        },
+
+                        {
+                                key: 'sub4',
+                                // icon: () => h(ControlOutlined),
+                                label: '系统管理',
+                                title: '系统管理',
+                                children: [
+                                        {
+                                                key: 'sub2_2',
+                                                // icon: () => h(UserOutlined),
+                                                label: '账号管理',
+                                                title: '账号管理',
+                                        },
+                                        {
+                                                key: 'sub2_3',
+                                                // icon: () => h(TeamOutlined),
+                                                label: '角色管理',
+                                                title: '角色管理',
+                                        },
+                                        {
+                                                key: 'sub2_4',
+                                                // icon: () => h(SafetyOutlined),
+                                                label: '权限管理',
+                                                title: '权限管理',
+                                        },
+                                ],
+                        },
+                ],
+        },
+        {
+                key: 'sub3',
+                icon: () => h(DesktopOutlined),
+                label: '网站管理',
+                title: '网站管理',
+                children: [
+                        {
+                                key: 'sub3_1',
+                                // icon: () => h(FileTextOutlined),
+                                label: '页面',
+                                title: '页面',
+                        },
+                        {
+                                key: 'sub3_2',
+                                // icon: () => h(SettingOutlined),
+                                label: 'SEO',
+                                title: 'SEO',
+                        },
+                        {
+                                key: 'sub3_3',
+                                // icon: () => h(FormOutlined),
+                                label: '站点信息',
+                                title: '站点信息',
+                        },
+
+                ],
+        },
 
 ]);
 
