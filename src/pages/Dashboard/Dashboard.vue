@@ -17,7 +17,7 @@
                 </div>
         </div>
 
-        <a-card title="Frequently Asked Questions 问答" :bordered="false">
+        <a-card :bordered="false" title="Frequently Asked Questions 问答">
                 <a-collapse ghost>
                         <a-collapse-panel key="1" header="我要如何获得发布文章等的权限">
                                 <p>获得相对应的权限可以练习网站管理员，向您的账户添加对应的角色。</p>

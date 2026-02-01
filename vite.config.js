@@ -2,8 +2,10 @@ import {defineConfig} from 'vite'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 
+
 // https://vite.dev/config/
 export default defineConfig(({mode}) => {
+
 	// 加载对应模式的环境变量
 	const env = {}
 	Object.keys(process.env).forEach(key => {
