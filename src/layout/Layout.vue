@@ -2,9 +2,8 @@
         <div class="flex flex-col h-screen">
                 <div class="flex flex-1 bg-gradient-to-br from-blue-50/20 to-gray-50/30">
                         <!-- 侧边栏菜单  -->
-                        <div
-                            class="fixed h-full z-40 top-0 left-0 bottom-0 transition-all duration-300 ease-in-out"
-                        >
+                        <div class="fixed h-full top-0 left-0 bottom-0 transition-all duration-300 ease-in-out z-10"
+                             :class="windowWidth >= 768 ? (collapsed ? 'left-0 translate-x-0 w-20' : 'left-0 translate-x-0 w-50') : 'hidden -translate-x-full fixed left-0'">
                                 <Menu :collapsed="collapsed"
                                       :toggleCollapsed="toggleCollapsed"></Menu>
                         </div>
@@ -12,15 +11,15 @@
                         <!-- 主内容区域 -->
                         <div
                             :class="[
-                                'flex-1 transition-all duration-300 ease-in-out',
-                                collapsed ? 'ml-20' : 'ml-60'
+                                'flex-1 transition-all duration-300 ease-in-out z-0',
+                                windowWidth >= 768 ? (collapsed ? 'ml-20' : 'ml-50') : 'ml-0 transform-none'
                             ]"
                         >
                                 <Header
                                     :collapsed="collapsed"
                                     @toggle-collapsed="toggleCollapsed"
-                                    class="fixed top-0 z-30 transition-all duration-300 ease-in-out"
-                                    :class="collapsed ? 'left-20 right-0' : 'left-60 right-0'"
+                                    class="fixed top-0 transition-all duration-300 ease-in-out z-20"
+                                    :class="windowWidth >= 768 ? (collapsed ? 'left-20 right-0' : 'left-50 right-0') : 'left-0 right-0 transform-none'"
                                 />
 
                                 <!-- 右侧内容区域 -->
@@ -40,10 +39,24 @@
 <script setup>
 import {RouterView} from 'vue-router'
 import Header from '../components/header/header.vue';
-import {ref} from 'vue';
+import {onMounted, onUnmounted, ref} from 'vue';
 import Menu from "../components/menu/menu.vue";
 
 const collapsed = ref(false);
+const windowWidth = ref(window.innerWidth);
+
+// 监听窗口大小变化
+const handleResize = () => {
+        windowWidth.value = window.innerWidth;
+};
+
+onMounted(() => {
+        window.addEventListener('resize', handleResize);
+});
+
+onUnmounted(() => {
+        window.removeEventListener('resize', handleResize);
+});
 
 const toggleCollapsed = () => {
         collapsed.value = !collapsed.value;
