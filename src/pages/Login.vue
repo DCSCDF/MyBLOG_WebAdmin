@@ -10,7 +10,7 @@
                 <div class="w-full max-w-md">
                         <div class="rounded-xl overflow-hidden shadow-2xl bg-white/80 backdrop-blur-md">
                                 <!-- 表单内容 -->
-                                <div class="md:px-8 px-6 xl:px-12  py-6 pb-10">
+                                <div class="md:px-8 px-6   py-4 pb-10">
                                         <!-- 标签页切换 -->
                                         <a-tabs v-model:activeKey="activeTab" class="form-tabs">
                                                 <!-- 登陆标签页 -->

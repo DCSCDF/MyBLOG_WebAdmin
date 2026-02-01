@@ -3,12 +3,14 @@
              :class="isVerified ? 'bg-gradient-to-r from-green-50 to-emerald-50' : 'bg-gradient-to-r from-blue-50 to-indigo-50'">
                 <div class="flex justify-between items-center">
                         <div class="flex items-center gap-2">
-                                <div class="w-2 mt-[2.5px] h-2 rounded-full flex-shrink-0"
-                                     :class="isVerified ? 'bg-green-500' : 'bg-blue-500'"></div>
+                                <div class="w-2 mt-[2.5px] h-2 mb-[3px] rounded-full flex-shrink-0"
+                                     :class="isVerified ? 'bg-green-500' : 'bg-blue-500'">
+
+                                </div>
                                 <span class="text-sm font-medium flex items-center"
                                       :class="isVerified ? 'text-green-700' : 'text-blue-700'">
-          {{ isVerified ? '已验证' : '验证码' }}
-        </span>
+                                                  {{ isVerified ? '已验证' : '验证码' }}
+                                </span>
                         </div>
                         <div v-if="isVerified" class="flex items-center gap-1 text-green-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
