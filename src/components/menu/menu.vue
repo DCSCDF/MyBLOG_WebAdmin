@@ -2,7 +2,7 @@
         <!-- 左侧菜单容器 -->
 
         <div
-            :class="['relative flex flex-col transition-all duration-300 ease-in-out h-full border-r border-gray-200', collapsed ? 'w-20' : 'w-50']">
+            :class="['relative  !backdrop-blur-md  bg-white/80 flex flex-col transition-all duration-300 ease-in-out h-full border-r border-gray-200', collapsed ? 'w-20' : 'w-50']">
                 <!-- 菜单区域 -->
                 <div class="relative flex-1 overflow-hidden">
                         <div
@@ -55,7 +55,7 @@
                                 :inline-collapsed="collapsed"
                                 :items="items"
                                 @click="handleMenuClick"
-                                class="h-full !overflow-y-auto !bg-transparent  !p-1 !backdrop-blur-md !border-0">
+                                class="h-full !overflow-y-auto !bg-transparent  !p-1 !border-0">
 
 
                         </a-menu>
