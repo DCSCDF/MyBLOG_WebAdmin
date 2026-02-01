@@ -37,6 +37,8 @@
                                                 <a-input/>
                                         </a-form-item>
 
+                                        <p>用户名： <span class="text-gray-400      ">admin</span></p>
+
                                         <Captcha ref="captchaRef"></Captcha>
 
                                         <!--                                        <a-form-item label="创建日期">-->
