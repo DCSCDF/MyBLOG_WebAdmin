@@ -90,15 +90,8 @@ onUnmounted(() => {
 const showExpandIcon = computed(() => {
         // 在移动端（屏幕宽度 < 768px）时，如果侧边栏已打开则显示收起图标，否则显示展开图标
         // 在桌面端（屏幕宽度 >= 768px）时，使用原来的 collapsed 状态
-        if (windowWidth.value < 768) {
-                return !props.mobileSidebarOpen;
-        }
-        return props.collapsed;
+        return windowWidth.value < 768 ? !props.mobileSidebarOpen : props.collapsed;
 });
-
-const toggleCollapsed = () => {
-        emit('toggle-collapsed');
-};
 
 const handleMenuToggle = () => {
         // 如果在移动端，则触发移动端侧边栏切换
