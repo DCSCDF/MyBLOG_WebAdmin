@@ -7,8 +7,9 @@
                                 (mobileSidebarOpen ? 'left-0 translate-x-0 w-50 z-50' : '-translate-x-full w-50 z-50')"
                              class="fixed h-full top-0 bottom-0 transition-all duration-300 ease-in-out z-10">
                                 <div class="relative h-full">
-                                        <Menu :collapsed="windowWidth >= 768 ? collapsed : (mobileSidebarOpen ? false : true)"
-                                              :toggleCollapsed="toggleCollapsed"></Menu>
+                                        <Menu
+                                            :collapsed="windowWidth >= 768 ? collapsed : (mobileSidebarOpen ? false : true)"
+                                            :toggleCollapsed="toggleCollapsed"></Menu>
                                         <!-- 移动端关闭按钮 -->
                                         <button
                                             v-if="windowWidth < 768 && mobileSidebarOpen"
@@ -42,9 +43,9 @@ windowWidth >= 768 ? (collapsed ? 'ml-20' : 'ml-50') : 'ml-0'
 
                                 <!-- 右侧内容区域 -->
                                 <main
-                                    class=" flex flex-col h-[calc(100vh-4rem)] mt-16 overflow-y-auto p-0 sm:px-2 md:px-6  px-auto">
+                                    class=" flex flex-col h-[calc(100vh-4rem)] mt-16 overflow-y-auto p-0  md:px-6  px-auto">
 
-                                        <div class="mx-4">
+                                        <div class="mx-2 space-y-6 my-6">
                                                 <RouterView/>
                                         </div>
 

@@ -1,6 +1,6 @@
 <template>
 
-        <div class="relative h-30 rounded-lg  my-6">
+        <div class="relative h-30 rounded-lg ">
                 <img
                     :src="cardBgImg"
                     alt="Dashboard Background"
@@ -31,7 +31,7 @@
                 </a-collapse>
         </a-card>
 
-
+        <!--        <a-empty :description="null"/>-->
 </template>
 
 <script setup>

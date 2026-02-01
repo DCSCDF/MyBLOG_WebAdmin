@@ -1,6 +1,6 @@
 <template>
         <div class="flex items-center ">
-                <a-button type="text" danger class="!m-0" @click="handleLogout">登出</a-button>
+                <a-button class="!m-0" danger type="text" @click="handleLogout">登出</a-button>
         </div>
 </template>
 
@@ -27,7 +27,7 @@ const handleLogout = async () => {
                         localStorage.removeItem('token');
                         sessionStorage.removeItem('token');
                         localStorage.removeItem('remember');
-
+                        localStorage.removeItem('user_profile');
                         logger.log('登出成功')
 
                         await router.push('/login');

@@ -172,6 +172,7 @@ const handleLogin = async () => {
                                 localStorage.setItem('token', loginResponse.data.token);
                                 sessionStorage.removeItem('token');
                                 localStorage.setItem('remember', true);
+                                localStorage.removeItem('user_profile');
 
                                 logger.log("长期token")
                                 router.push('/user')
@@ -179,7 +180,8 @@ const handleLogin = async () => {
                                 sessionStorage.setItem('token', loginResponse.data.token);
                                 localStorage.removeItem('token');
                                 localStorage.setItem('remember', false);
-
+                                localStorage.removeItem('user_profile');
+                                
                                 logger.log("会话token")
                                 router.push('/user')
                         }

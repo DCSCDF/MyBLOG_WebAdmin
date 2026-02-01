@@ -1,5 +1,5 @@
 <template>
-  <RouterView/>
+        <RouterView/>
 </template>
 
 <script setup>
@@ -13,9 +13,28 @@ h3,
 h4,
 h5,
 h6 {
-  margin-top: 0;
-  margin-bottom: 0.0em !important;
-  font-weight: 500;
+        margin-top: 0;
+        margin-bottom: 0.0em !important;
+        font-weight: 500;
+}
+
+/* 全局滚动条样式 */
+::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+}
+
+::-webkit-scrollbar-track {
+        background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+        background: rgba(155, 155, 155, 0.5);
+        border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+        background: rgba(155, 155, 155, 0.7);
 }
 </style>
  

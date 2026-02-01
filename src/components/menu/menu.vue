@@ -4,11 +4,11 @@
         <div
             :class="['relative  !backdrop-blur-md  bg-white/80 md:bg-transparent flex flex-col transition-all duration-300 ease-in-out h-full border-r border-gray-200', collapsed ? 'w-20' : 'w-50']">
                 <!-- 菜单区域 -->
-                <div class="relative flex-1 overflow-hidden">
+                <div class="flex-1 flex flex-col overflow-y-auto">
                         <div
-                            class="h-16 w-auto flex flex-row  items-center  mx-auto justify-center border-b border-gray-200">
-                                <svg v-if="collapsed" class="icon" viewBox="0 0 1024 1024"
-                                     xmlns="http://www.w3.org/2000/svg" width="33" height="33">
+                            class="h-16 w-auto flex flex-row  items-center  px-auto justify-center border-b border-gray-200">
+                                <svg v-if="collapsed" class="icon" height="33"
+                                     viewBox="0 0 1024 1024" width="33" xmlns="http://www.w3.org/2000/svg">
                                         <path
                                             d="M857.00739476 935.7671032H167.10911369c-43.53532208 0-78.82443536-35.28911328-78.82443538-78.82443535V167.05733215c0-43.53532208 35.28911328-78.82443536 78.82443538-78.82443535h689.89828107c43.53532208 0 78.82443536 35.28911328 78.82443537 78.82443535v689.89828109c0 43.52237669-35.28911328 78.81148997-78.82443537 78.81148996z"
                                             fill="#0E8CFB"></path>
@@ -25,8 +25,8 @@
                                             d="M655.90087427 331.7873272H461.69424276c-16.33707298 0-29.59314489-13.24312652-29.59314489-29.59314489s13.24312652-29.59314489 29.59314489-29.59314488h194.20663151c16.33707298 0 29.59314489 13.24312652 29.5931449 29.59314488s-13.24312652 29.59314489-29.5931449 29.59314489z"
                                             fill="#FFFFFF"></path>
                                 </svg>
-                                <svg v-if="!collapsed" class="icon" viewBox="0 0 1024 1024"
-                                     xmlns="http://www.w3.org/2000/svg" width="33" height="33">
+                                <svg v-if="!collapsed" class="icon" height="33"
+                                     viewBox="0 0 1024 1024" width="33" xmlns="http://www.w3.org/2000/svg">
                                         <path
                                             d="M857.00739476 935.7671032H167.10911369c-43.53532208 0-78.82443536-35.28911328-78.82443538-78.82443535V167.05733215c0-43.53532208 35.28911328-78.82443536 78.82443538-78.82443535h689.89828107c43.53532208 0 78.82443536 35.28911328 78.82443537 78.82443535v689.89828109c0 43.52237669-35.28911328 78.81148997-78.82443537 78.81148996z"
                                             fill="#0E8CFB"></path>
@@ -50,12 +50,12 @@
 
                         </div>
                         <a-menu v-model:openKeys="state.openKeys" v-model:selectedKeys="state.selectedKeys"
-                                mode="inline"
-                                theme="light"
                                 :inline-collapsed="collapsed"
                                 :items="items"
-                                @click="handleMenuClick"
-                                class="h-full !overflow-y-auto !bg-transparent  !p-1 !border-0">
+                                class="flex-1 !overflow-y-auto !bg-transparent  !p-1 !border-0"
+                                mode="inline"
+                                theme="light"
+                                @click="handleMenuClick">
 
 
                         </a-menu>
@@ -120,7 +120,6 @@ const items = reactive([
                 icon: () => h(FileTextOutlined),
                 label: '文章',
                 title: '文章',
-                route: '/user/',
                 children: [
                         {
                                 key: 'sub1_1',
@@ -142,7 +141,7 @@ const items = reactive([
                 icon: () => h(TagsOutlined),
                 label: '分类',
                 title: '分类',
-                route: '/user/'
+                route: '/user/123'
         },
 
         {
@@ -164,7 +163,7 @@ const items = reactive([
                                 // icon: () => h(UserOutlined),
                                 label: '我的账户',
                                 title: '我的账户',
-                                route: '/user/'
+                                route: '/user/UserSetting'
                         },
 
                         {
@@ -178,6 +177,7 @@ const items = reactive([
                                                 // icon: () => h(UserOutlined),
                                                 label: '账号管理',
                                                 title: '账号管理',
+
                                         },
                                         {
                                                 key: 'sub2_3',
@@ -232,9 +232,31 @@ watch(
     },
 );
 
+// 递归查找菜单项
+const findMenuItem = (items, key) => {
+        let result = null;
+
+        for (let item of items) {
+                if (item.key === key) {
+                        result = item;
+                        break;
+                }
+                if (item.children) {
+                        const found = findMenuItem(item.children, key);
+                        if (found) {
+                                result = found;
+                                break;
+                        }
+                }
+
+        }
+
+        return result;
+};
+
 // 处理菜单点击事件
 const handleMenuClick = (e) => {
-        const selectedItem = items.find(item => item.key === e.key);
+        const selectedItem = findMenuItem(items, e.key);
         if (selectedItem && selectedItem.route) {
                 router.push(selectedItem.route); // 跳转到对应路由
         }
