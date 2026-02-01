@@ -1,6 +1,6 @@
 <template>
         <header
-            class="bg-white/30  !backdrop-blur-md h-16 flex justify-between items-center border-b border-gray-200 px-4 fixed top-0 left-0 right-0 z-50">
+            class="  !backdrop-blur-md h-16 flex justify-between items-center border-b border-gray-200 px-4 fixed top-0 left-0 right-0 z-50">
                 <div class="flex items-center">
 
                         <button @click="handleMenuToggle"

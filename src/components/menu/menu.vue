@@ -2,7 +2,7 @@
         <!-- 左侧菜单容器 -->
 
         <div
-            :class="['relative  !backdrop-blur-md  bg-white/80 flex flex-col transition-all duration-300 ease-in-out h-full border-r border-gray-200', collapsed ? 'w-20' : 'w-50']">
+            :class="['relative  !backdrop-blur-md  bg-white/80 md:bg-transparent flex flex-col transition-all duration-300 ease-in-out h-full border-r border-gray-200', collapsed ? 'w-20' : 'w-50']">
                 <!-- 菜单区域 -->
                 <div class="relative flex-1 overflow-hidden">
                         <div
