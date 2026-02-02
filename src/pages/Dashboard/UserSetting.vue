@@ -8,53 +8,86 @@
             @tabChange="key => onTabChange(key, 'noTitleKey')"
         >
                 <div v-if="noTitleKey === '我的信息'">
-                        <div class="py-3 ">
+                        <div class="py-3 flex md:mx-6  ">
 
-                                <!--                                        <a-form-item class="" label="用户名">-->
-                                <!--                                                <span class="text-gray-500">username</span>-->
-                                <!--                                        </a-form-item>-->
-                                <a-form
+                                <a-form class="w-full">
+                                        <a-form-item class="!my-4">
+                                                <div class="md:flex items-start text-gray-500 ">
+                                                        <div class="mb-1 py-1 md:mb-0 md:mx-4 w-26">
+                                                                用户名
+                                                        </div>
+                                                        <div class="w-full">
+                                                                <a-input-group
+                                                                    class="max-w-md !px-0 !flex flex-col "
+                                                                    compact>
+                                                                        <a-input disabled
+                                                                                 value="username"/>
+                                                                </a-input-group>
+                                                                <div
+                                                                    class="text-xs text-gray-400 mt-1"
+                                                                    style="border-inline-end-width: 0 !important;">
+                                                                        这是您的唯一标识符，无法更改
+                                                                </div>
+                                                        </div>
+                                                </div>
 
-                                    layout="vertical"
-                                    style="max-width: 400px;margin: auto"
-                                >
-
-                                        <a-form-item label="昵称">
-                                                <a-input placeholder="username">
-                                                        <template #prefix>
-                                                                <user-outlined/>
-                                                        </template>
-                                                        <template #suffix>
-                                                                <a-tooltip title="Extra information">
-                                                                        <info-circle-outlined
-                                                                            style="color: rgba(0, 0, 0, 0.45)"/>
-                                                                </a-tooltip>
-                                                        </template>
-                                                </a-input>
+                                        </a-form-item>
+                                        <a-form-item class="!my-4">
+                                                <div class="md:flex items-start text-gray-500 ">
+                                                        <div class="mb-1 py-1 md:mb-0 md:mx-4 w-26">
+                                                                昵称
+                                                        </div>
+                                                        <div class="w-full">
+                                                                <a-input-group class="max-w-md !px-0 !flex" compact>
+                                                                        <a-input disabled value="用户名"/>
+                                                                        <a-button>设置</a-button>
+                                                                </a-input-group>
+                                                        </div>
+                                                </div>
+                                        </a-form-item>
+                                        <a-form-item class="!my-4">
+                                                <div class="md:flex items-start text-gray-500 ">
+                                                        <div class="mb-1 py-1 md:mb-0 md:mx-4 w-26">
+                                                                邮箱
+                                                        </div>
+                                                        <div class="w-full">
+                                                                <a-input-group class="max-w-md !px-0 !flex" compact>
+                                                                        <a-input disabled value="username@email.com"/>
+                                                                        <a-button>设置</a-button>
+                                                                </a-input-group>
+                                                        </div>
+                                                </div>
+                                        </a-form-item>
+                                        <a-form-item>
+                                                <div class="md:flex items-start text-gray-500 ">
+                                                        <div class="mb-1 py-1 md:mb-0 md:mx-4 w-26">
+                                                                注册日期
+                                                        </div>
+                                                        <div class="w-full">
+                                                                <a-input-group class="max-w-md !px-0 !flex" compact>
+                                                                        <a-date-picker disabled picker="month"
+                                                                        />
+                                                                </a-input-group>
+                                                        </div>
+                                                </div>
                                         </a-form-item>
 
-                                        <a-form-item label="邮箱">
-                                                <a-input/>
+                                        <a-form-item>
+                                                <div class="md:flex items-start text-gray-500 ">
+                                                        <div class="mb-1 py-1 md:mb-0 md:mx-4 w-26">
+                                                                注册日期
+                                                        </div>
+                                                        <a-button :size="size" type="primary">
+                                                                <template #icon>
+                                                                        <DownloadOutlined/>
+                                                                </template>
+                                                                Download
+                                                        </a-button>
+                                                </div>
                                         </a-form-item>
-
-                                        <p>用户名： <span class="text-gray-400      ">admin</span></p>
-
-                                        <Captcha ref="captchaRef"></Captcha>
-
-                                        <!--                                        <a-form-item label="创建日期">-->
-                                        <!--                                                <a-input style="max-width: 300px;"/>-->
-                                        <!--                                        </a-form-item>-->
                                 </a-form>
                         </div>
 
-                        <a-divider/>
-
-                        <div class="flex justify-center gap-3.75">
-                                <a-button
-                                    type="primary">保存更改
-                                </a-button>
-
-                        </div>
                 </div>
                 <div v-else-if="noTitleKey === '我的头像'">
                         <div class="flex flex-col items-center justify-center">
@@ -76,43 +109,6 @@
 
                         </div>
                 </div>
-                <div v-else-if="noTitleKey === '修改密码'">
-                        <div class="py-3">
-                                <a-form
-
-
-                                    layout="vertical"
-                                    style="max-width: 400px;margin: auto"
-                                >
-                                        <a-form-item class="mb-4" label="当前密码">
-                                                <a-input-password
-                                                    class="rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"/>
-                                        </a-form-item>
-                                        <a-form-item class="mb-4" label="新密码">
-                                                <a-input-password
-                                                    class="rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"/>
-                                        </a-form-item>
-                                        <a-form-item class="mb-4" label="确认新密码">
-                                                <a-input-password
-                                                    class="rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"/>
-                                        </a-form-item>
-                                        <Captcha ref="captchaRef"></Captcha>
-                                </a-form>
-
-                        </div>
-
-                        <a-divider/>
-
-                        <div class="flex  justify-center">
-                                <a-button
-
-                                    type="primary">
-                                        更新密码
-                                </a-button>
-                        </div>
-
-
-                </div>
                 <!--                <template #tabBarExtraContent>-->
                 <!--                        <a href="#">More</a>-->
                 <!--                </template>-->
@@ -121,8 +117,8 @@
 
 <script setup>
 import {ref} from 'vue';
-import {InfoCircleOutlined, UserOutlined} from '@ant-design/icons-vue';
-import Captcha from "../../components/auth/Captcha.vue";
+
+import {DownloadOutlined} from '@ant-design/icons-vue';
 
 const tabListNoTitle = [
         {
@@ -132,10 +128,6 @@ const tabListNoTitle = [
         {
                 key: '我的头像',
                 tab: '我的头像',
-        },
-        {
-                key: '修改密码',
-                tab: '修改密码',
         },
 ];
 const key = ref('tab1');

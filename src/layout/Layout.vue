@@ -8,19 +8,14 @@
                              class="fixed h-full top-0 bottom-0 transition-all duration-300 ease-in-out z-10">
                                 <div class="relative h-full">
                                         <Menu
-                                            :collapsed="windowWidth >= 768 ? collapsed : (mobileSidebarOpen ? false : true)"
+                                            :collapsed="windowWidth >= 768 ? collapsed : (!mobileSidebarOpen)"
                                             :toggleCollapsed="toggleCollapsed"></Menu>
                                         <!-- 移动端关闭按钮 -->
                                         <button
                                             v-if="windowWidth < 768 && mobileSidebarOpen"
                                             class="absolute top-4 -right-10 z-50 bg-white rounded-full p-2 shadow-lg w-8 h-8 flex items-center justify-center md:hidden"
                                             @click="toggleMobileSidebar">
-                                                <svg class="h-5 w-5" fill="currentColor"
-                                                     viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                                        <path clip-rule="evenodd"
-                                                              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                                              fill-rule="evenodd"/>
-                                                </svg>
+                                                <CloseOutlined/>
                                         </button>
                                 </div>
                         </div>
@@ -60,6 +55,7 @@ import {RouterView} from 'vue-router'
 import Header from '../components/header/header.vue';
 import {onMounted, onUnmounted, ref} from 'vue';
 import Menu from "../components/menu/menu.vue";
+import {CloseOutlined} from '@ant-design/icons-vue';
 
 const collapsed = ref(false); // 默认为展开状态，意味着显示图标和文字
 const mobileSidebarOpen = ref(false); // 控制移动端侧边栏的展开/收起

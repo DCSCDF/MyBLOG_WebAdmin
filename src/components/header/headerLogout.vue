@@ -34,6 +34,14 @@ const handleLogout = async () => {
                 } else {
                         //响应拦截器会马上跳转login
                         logger.error('code不是200')
+
+                        localStorage.removeItem('token');
+                        sessionStorage.removeItem('token');
+                        localStorage.removeItem('remember');
+                        localStorage.removeItem('user_profile');
+
+                        await router.push('/login');
+                        message.error("错误：未登录，跳转到登陆");
                 }
 
 

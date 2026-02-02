@@ -35,6 +35,7 @@
                                   class="w-full h-10 rounded-lg text-base font-semibold flex items-center justify-center"
                                   html-type="submit" size="large"
                                   type="primary">
+
                                 登陆
                         </a-button>
                 </a-form>
@@ -181,7 +182,7 @@ const handleLogin = async () => {
                                 localStorage.removeItem('token');
                                 localStorage.setItem('remember', false);
                                 localStorage.removeItem('user_profile');
-                                
+
                                 logger.log("会话token")
                                 router.push('/user')
                         }
