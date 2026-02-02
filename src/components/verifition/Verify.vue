@@ -1,20 +1,36 @@
+<!--
+  - [Verify.vue]
+  - -------------------------------------------------------------------------------
+  - This software is licensed under the MIT License.
+  - However, any distribution or modification must retain this copyright notice.
+  - See LICENSE for full terms.
+  - -------------------------------------------------------------------------------
+  - author: "Jiu Liu"
+  - author_contact: "QQ:3209174373, GitHub：https://github.com/DCSCDF"
+  - license: "MIT"
+  - license_exception: "Mandatory attribution retention"
+  - UpdateTime: 2026/2/2 18:13
+  -
+  -->
+
 <template>
-        <div :class="mode == 'pop' ? 'mask' : ''" v-show="showBox">
+        <div v-show="showBox" :class="mode == 'pop' ? 'mask' : ''">
                 <div :class="mode == 'pop' ? 'verifybox' : ''"
                      :style="{ 'max-width': parseInt(imgSize.width) + 30 + 'px' }">
-                        <div class="verifybox-top" v-if="mode == 'pop'">
+                        <div v-if="mode == 'pop'" class="verifybox-top">
                                 请完成安全验证
                                 <span class="verifybox-close" @click="closeBox">
                     <i class="iconfont icon-close"></i>
                 </span>
                         </div>
-                        <div class="verifybox-bottom" :style="{ padding: mode == 'pop' ? '15px' : '0' }">
+                        <div :style="{ padding: mode == 'pop' ? '15px' : '0' }" class="verifybox-bottom">
                                 <!-- 验证码容器 -->
-                                <component v-if="componentType" :is="componentType" :captchaType="captchaType"
-                                           :type="verifyType"
-                                           :figure="figure" :arith="arith" :mode="mode" :vSpace="vSpace"
-                                           :explain="explain" :imgSize="imgSize"
-                                           :blockSize="blockSize" :barSize="barSize" ref="instance"></component>
+                                <component :is="componentType" v-if="componentType" ref="instance"
+                                           :arith="arith"
+                                           :barSize="barSize" :blockSize="blockSize" :captchaType="captchaType"
+                                           :explain="explain"
+                                           :figure="figure" :imgSize="imgSize"
+                                           :mode="mode" :type="verifyType" :vSpace="vSpace"></component>
                         </div>
                 </div>
         </div>

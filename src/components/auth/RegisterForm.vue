@@ -1,3 +1,18 @@
+<!--
+  - [RegisterForm.vue]
+  - -------------------------------------------------------------------------------
+  - This software is licensed under the MIT License.
+  - However, any distribution or modification must retain this copyright notice.
+  - See LICENSE for full terms.
+  - -------------------------------------------------------------------------------
+  - author: "Jiu Liu"
+  - author_contact: "QQ:3209174373, GitHub：https://github.com/DCSCDF"
+  - license: "MIT"
+  - license_exception: "Mandatory attribution retention"
+  - UpdateTime: 2026/2/2 18:13
+  -
+  -->
+
 <template>
         <div class="pt-6">
                 <h3 class="text-2xl font-bold text-gray-800 mb-2">创建账户</h3>
@@ -6,8 +21,9 @@
                 <a-form :model="registerForm" :rules="registerRules" layout="vertical" @finish="handleRegister"
                         @validate="onValidate">
                         <a-form-item label="用户名" name="username" @change="onFieldChange">
-                                <a-input v-model:value="registerForm.username" placeholder="输入用户名" size="large"
-                                         class="rounded-lg">
+                                <a-input v-model:value="registerForm.username" class="rounded-lg"
+                                         placeholder="输入用户名"
+                                         size="large">
                                         <template #prefix>
                                                 <UserOutlined/>
                                         </template>
@@ -15,9 +31,10 @@
                         </a-form-item>
 
                         <a-form-item label="邮箱" name="email" @change="onFieldChange">
-                                <a-input v-model:value="registerForm.email" type="email" placeholder="输入邮箱地址"
+                                <a-input v-model:value="registerForm.email" class="rounded-lg"
+                                         placeholder="输入邮箱地址"
                                          size="large"
-                                         class="rounded-lg">
+                                         type="email">
                                         <template #prefix>
                                                 <MailOutlined/>
                                         </template>
@@ -25,9 +42,9 @@
                         </a-form-item>
 
                         <a-form-item label="密码" name="password" @change="onFieldChange">
-                                <a-input-password v-model:value="registerForm.password" placeholder="设置密码"
-                                                  size="large"
-                                                  class="rounded-lg">
+                                <a-input-password v-model:value="registerForm.password" class="rounded-lg"
+                                                  placeholder="设置密码"
+                                                  size="large">
 
                                         <LockOutlined/>
 
@@ -35,9 +52,9 @@
                         </a-form-item>
 
                         <a-form-item label="确认密码" name="confirmPassword" @change="onFieldChange">
-                                <a-input-password v-model:value="registerForm.confirmPassword" placeholder="确认密码"
-                                                  size="large"
-                                                  class="rounded-lg">
+                                <a-input-password v-model:value="registerForm.confirmPassword" class="rounded-lg"
+                                                  placeholder="确认密码"
+                                                  size="large">
 
                                         <LockOutlined/>
 
@@ -48,20 +65,22 @@
                                 <a-checkbox v-model:checked="registerForm.agreement" @change="onFieldChange">
                     <span class="text-sm text-gray-700">
                         我同意
-                        <a href="#" class="text-blue-600 hover:text-blue-700">
+                        <a class="text-blue-600 hover:text-blue-700" href="#">
                             服务条款
                         </a>
                         和
-                        <a href="#" class="text-blue-600 hover:text-blue-700">
+                        <a class="text-blue-600 hover:text-blue-700" href="#">
                             隐私政策
                         </a>
                     </span>
                                 </a-checkbox>
                         </a-form-item>
 
-                        <a-button type="primary" size="large" html-type="submit" :loading="registerLoading"
-                                  :disabled="!isVerified || !isFormValid"
-                                  class="w-full h-10 rounded-lg text-base font-semibold flex items-center justify-center">
+                        <a-button :disabled="!isVerified || !isFormValid" :loading="registerLoading"
+                                  class="w-full h-10 rounded-lg text-base font-semibold flex items-center justify-center"
+                                  html-type="submit"
+                                  size="large"
+                                  type="primary">
                                 创建账户
                         </a-button>
                 </a-form>
@@ -179,13 +198,13 @@ const registerRules = {
                 {
                         validator: (_, value) => {
                                 let error = null;
-                                
+
                                 if (!value) {
                                         error = new Error('请确认密码');
                                 } else if (value !== registerForm.value.password) {
                                         error = new Error('两次输入密码不一致');
                                 }
-                                
+
                                 return error ? Promise.reject(error) : Promise.resolve();
                         },
                         trigger: 'change'

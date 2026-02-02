@@ -1,3 +1,18 @@
+<!--
+  - [Layout.vue]
+  - -------------------------------------------------------------------------------
+  - This software is licensed under the MIT License.
+  - However, any distribution or modification must retain this copyright notice.
+  - See LICENSE for full terms.
+  - -------------------------------------------------------------------------------
+  - author: "Jiu Liu"
+  - author_contact: "QQ:3209174373, GitHub：https://github.com/DCSCDF"
+  - license: "MIT"
+  - license_exception: "Mandatory attribution retention"
+  - UpdateTime: 2026/2/2 18:13
+  -
+  -->
+
 <template>
         <div class="flex flex-col h-screen bg-[#f4f7fb]  ">
                 <div class="flex flex-1 bg-gradient-to-br from-blue-50/20 to-gray-50/30">
@@ -24,7 +39,7 @@
                         <div
                             :class="[
                                 'flex-1 transition-all duration-300 ease-in-out z-0',
-windowWidth >= 768 ? (collapsed ? 'ml-20' : 'ml-50') : 'ml-0'
+                                windowWidth >= 768 ? (collapsed ? 'ml-20' : 'ml-50') : 'ml-0'
                             ]"
                         >
                                 <Header

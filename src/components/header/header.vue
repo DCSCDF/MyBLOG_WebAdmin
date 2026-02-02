@@ -1,11 +1,27 @@
+<!--
+  - [header.vue]
+  - -------------------------------------------------------------------------------
+  - This software is licensed under the MIT License.
+  - However, any distribution or modification must retain this copyright notice.
+  - See LICENSE for full terms.
+  - -------------------------------------------------------------------------------
+  - author: "Jiu Liu"
+  - author_contact: "QQ:3209174373, GitHub：https://github.com/DCSCDF"
+  - license: "MIT"
+  - license_exception: "Mandatory attribution retention"
+  - UpdateTime: 2026/2/2 18:13
+  -
+  -->
+
 <template>
         <header
             class="  !backdrop-blur-md h-16 flex justify-between items-center border-b border-gray-200 px-4 fixed top-0 left-0 right-0 z-50">
                 <div class="flex items-center">
 
-                        <button @click="handleMenuToggle"
-                                class="flex items-center  justify-center text-black bg-transparent border-0 shadow-none outline-0 p-2 hover:bg-transparent focus:outline-none focus:ring-0"
-                                style="cursor: pointer;">
+                        <button
+                            class="flex items-center  justify-center text-black bg-transparent border-0 shadow-none outline-0 p-2 hover:bg-transparent focus:outline-none focus:ring-0"
+                            style="cursor: pointer;"
+                            @click="handleMenuToggle">
                                 <MenuUnfoldOutlined v-if="showExpandIcon" class="!leading-none !m-0"
                                                     style="width: 2em; height: 2em; display: flex; align-items: center; justify-content: center; color: black;"/>
                                 <MenuFoldOutlined v-else class="!leading-none !m-0"
@@ -22,7 +38,7 @@
                             class="flex rounded-lg transition-colors py-1.5 px-2 ">
 
                                 <div class="flex-shrink-0">
-                                        <a-avatar :src="profile.avatarUrl " :size="36">
+                                        <a-avatar :size="36" :src="profile.avatarUrl ">
                                                 {{ (profile.nickname || '昵称').charAt(0) }}
                                         </a-avatar>
                                 </div>

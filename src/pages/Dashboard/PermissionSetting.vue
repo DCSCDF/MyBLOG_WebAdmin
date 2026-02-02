@@ -1,5 +1,5 @@
 <!--
-  - [UserSetting.vue]
+  - [PermissionSetting.vue]
   - -------------------------------------------------------------------------------
   - This software is licensed under the MIT License.
   - However, any distribution or modification must retain this copyright notice.
@@ -20,33 +20,36 @@
             style="width: 100%"
             @tabChange="onTabChange($event, 'noTitleKey')"
         >
-                <div v-if="noTitleKey === '我的信息'">
-                        <profile-info></profile-info>
+                <div v-if="noTitleKey === '权限列表'">
+
+                        1
+
                 </div>
-                <div v-else-if="noTitleKey === '我的头像'">
-                        <avatar></avatar>
+                <div v-else-if="noTitleKey === '权限组'">
+
+                        2
+
                 </div>
+
         </a-card>
 </template>
 
 <script setup>
 import {ref} from 'vue';
-import Avatar from "../../components/UserSetting/avatar.vue";
-import ProfileInfo from "../../components/UserSetting/profileInfo.vue";
 
 const tabListNoTitle = [
         {
-                key: '我的信息',
-                tab: '我的信息',
+                key: '权限列表',
+                tab: '权限列表',
         },
         {
-                key: '我的头像',
-                tab: '我的头像',
+                key: '权限组',
+                tab: '权限组',
         },
 ];
 
 const key = ref('tab1');
-const noTitleKey = ref('我的信息');
+const noTitleKey = ref('权限列表');
 
 const onTabChange = (value, type) => {
         console.log(value, type);

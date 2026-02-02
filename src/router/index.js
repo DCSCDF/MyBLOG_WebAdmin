@@ -1,3 +1,18 @@
+/*
+ * [index.js]
+ * --------------------------------------------------------------------------------
+ * This software is licensed under the MIT License.
+ * However, any distribution or modification must retain this copyright notice.
+ * See LICENSE for full terms.
+ * --------------------------------------------------------------------------------
+ * author: "Jiu Liu"
+ * author_contact: "QQ:3209174373, GitHub：https://github.com/DCSCDF"
+ * license: "MIT"
+ * license_exception: "Mandatory attribution retention"
+ * UpdateTime: 2026/2/2 18:13
+ *
+ */
+
 import {createRouter, createWebHistory} from 'vue-router'
 
 // 导入页面组件
@@ -42,22 +57,15 @@ const routes = [
 					title: '用户设置'
 				}
 			},
-			// {
-			//     path: 'profile',
-			//     name: 'Profile',
-			//     component: () => import('../pages/Profile.vue'),
-			//     meta: {
-			//         title: '个人资料'
-			//     }
-			// },
-			// {
-			//     path: 'settings',
-			//     name: 'Settings',
-			//     component: () => import('../pages/Settings.vue'),
-			//     meta: {
-			//         title: '系统设置'
-			//     }
-			// }
+			{
+				path: 'PermissionSetting',
+				name: 'PermissionSetting',
+				component: () => import('../pages/Dashboard/PermissionSetting.vue'),
+				meta: {
+					title: '权限设置'
+				}
+			},
+
 		]
 	}
 ]
