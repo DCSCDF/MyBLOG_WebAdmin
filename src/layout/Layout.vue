@@ -38,7 +38,7 @@
                         <!-- 主内容区域 -->
                         <div
                             :class="[
-                                'flex-1 transition-all duration-300 ease-in-out z-0',
+                                'flex-1 transition-all duration-300 ease-in-out z-0 max-w-full',
                                 windowWidth >= 768 ? (collapsed ? 'ml-20' : 'ml-60') : 'ml-0',
                                 windowWidth >= 768 ? (collapsed ? 'collapsed' : 'expanded') : 'mobile'
                             ]"
@@ -53,13 +53,15 @@
                                 />
 
                                 <!-- 右侧内容区域 -->
-                                <main class="flex flex-col mt-16 p-0 md:px-6 px-2 ">
+                                <main class="flex flex-col mt-16 p-0 md:px-6 px-2 max-w-full overflow-x-hidden">
 
-                                        <div class="space-y-6 my-6 ">
+                                        <div class="space-y-6 my-6 w-full max-w-full overflow-x-hidden">
                                                 <breadcrumb></breadcrumb>
 
-
-                                                <RouterView/>
+                                                <!-- 限制内容宽度防止撑开 -->
+                                                <div class="max-w-full overflow-x-auto w-full">
+                                                        <RouterView/>
+                                                </div>
 
                                         </div>
 
@@ -111,5 +113,21 @@ const toggleMobileSidebar = () => {
 </script>
 
 <style scoped>
+/* 使用Tailwind类无法完全覆盖的特殊情况 */
+@media (min-width: 768px) {
+    .expanded main {
+        max-width: calc(100vw - 15rem) !important;
+    }
+    
+    .collapsed main {
+        max-width: calc(100vw - 5rem) !important;
+    }
+}
 
+/* 确保移动端全宽显示 */
+@media (max-width: 767px) {
+    main {
+        max-width: 100vw !important;
+    }
+}
 </style>

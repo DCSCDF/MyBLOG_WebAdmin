@@ -47,21 +47,6 @@ h6 {
     background: rgba(155, 155, 155, 0.7);
 }
 
-/* 全局隐藏 Surely Table 水印 */
-.surely-table-watermark,
-[class*='watermark'],
-canvas[data-watermark] {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-}
-
-
-/* 隐藏所有可能的水印元素 */
-div[class*='watermark'],
-span[class*='watermark'] {
-    display: none !important;
-}
 
 /* 表格横向滚动优化 */
 .ant-table-wrapper {
@@ -82,3 +67,4 @@ span[class*='watermark'] {
 .table-responsive .ant-table {
     min-width: 600px;
 }
+
