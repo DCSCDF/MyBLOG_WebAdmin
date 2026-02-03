@@ -14,70 +14,67 @@
   -->
 
 <template>
-        <div class="flex flex-col h-screen">
-                <div class="flex flex-1 bg-gradient-to-br from-blue-50/20 to-gray-50/30">
-                        <!-- 遮罩层 -->
-                        <div
-                            v-show="windowWidth < 768"
-                            :class="{
-                                'opacity-0 pointer-events-none': !mobileSidebarOpen,
-                                'opacity-50': mobileSidebarOpen
-                            }"
-                            class="fixed inset-0 bg-black/30 z-50 transition-all duration-300 ease-in-out"
-                            @click="toggleMobileSidebar">
-                        </div>
+        <div class="flex flex-col h-screen overflow-hidden">
+                <!-- 遮罩层 -->
+                <div
+                    v-show="windowWidth < 768"
+                    :class="{
+                        'opacity-0 pointer-events-none': !mobileSidebarOpen,
+                        'opacity-50': mobileSidebarOpen
+                    }"
+                    class="fixed inset-0 bg-black/30 z-50 transition-all duration-300 ease-in-out"
+                    @click="toggleMobileSidebar">
+                </div>
 
-                        <!-- 侧边栏菜单  -->
-                        <div :class="windowWidth >= 768 ?
+                <!-- 侧边栏菜单  -->
+                <div :class="windowWidth >= 768 ?
                                (collapsed ? 'left-0 translate-x-0 w-20' : 'left-0 translate-x-0 w-60') :
                                 (mobileSidebarOpen ? 'left-0 translate-x-0 w-70 z-60' : '-translate-x-full w-70 z-60')"
-                             class="fixed h-full top-0 bottom-0 transition-all duration-300 ease-in-out z-10">
-                                <div class="relative h-full">
-                                        <Menu
-                                            :collapsed="windowWidth >= 768 ? collapsed : (!mobileSidebarOpen)"
-                                            :toggleCollapsed="toggleCollapsed"></Menu>
-                                        <!-- 移动端关闭按钮 -->
-                                        <button
-                                            v-if="windowWidth < 768 && mobileSidebarOpen"
-                                            class="absolute top-3 right-6 z-50 bg-white rounded-full border border-gray-200 p-3  w-8 h-8 flex items-center justify-center md:hidden"
-                                            @click="toggleMobileSidebar">
-                                                <CloseOutlined/>
-                                        </button>
-                                </div>
+                     class="fixed h-full top-0 bottom-0 transition-all duration-300 ease-in-out z-10">
+                        <div class="relative h-full">
+                                <Menu
+                                    :collapsed="windowWidth >= 768 ? collapsed : (!mobileSidebarOpen)"
+                                    :toggleCollapsed="toggleCollapsed"></Menu>
+                                <!-- 移动端关闭按钮 -->
+                                <button
+                                    v-if="windowWidth < 768 && mobileSidebarOpen"
+                                    class="absolute top-3 right-6 z-50 bg-white rounded-full border border-gray-200 p-3  w-8 h-8 flex items-center justify-center md:hidden"
+                                    @click="toggleMobileSidebar">
+                                        <CloseOutlined/>
+                                </button>
                         </div>
+                </div>
 
-                        <!-- 主内容区域 -->
-                        <div
-                            :class="[
-                                'flex-1 transition-all duration-300 ease-in-out z-0 max-w-full',
-                                windowWidth >= 768 ? (collapsed ? 'ml-20' : 'ml-60') : 'ml-0',
-                                windowWidth >= 768 ? (collapsed ? 'collapsed' : 'expanded') : 'mobile'
-                            ]"
-                        >
-                                <Header
-                                    :class="windowWidth >= 768 ? (collapsed ? 'left-20 right-0' : 'left-60 right-0') : 'left-0 right-0'"
-                                    :collapsed="collapsed"
-                                    :mobile-sidebar-open="mobileSidebarOpen"
-                                    class="fixed top-0 transition-all duration-300 ease-in-out z-20"
-                                    @toggle-collapsed="toggleCollapsed"
-                                    @toggle-mobile-sidebar="toggleMobileSidebar"
-                                />
+                <!-- 主内容区域 -->
+                <div
+                    :class="[
+                        'flex-1 transition-all duration-300 ease-in-out z-0 overflow-hidden',
+                        windowWidth >= 768 ? (collapsed ? 'ml-20' : 'ml-60') : 'ml-0'
+                    ]"
+                >
+                        <Header
+                            :class="windowWidth >= 768 ? (collapsed ? 'left-20 right-0' : 'left-60 right-0') : 'left-0 right-0'"
+                            :collapsed="collapsed"
+                            :mobile-sidebar-open="mobileSidebarOpen"
+                            class="fixed top-0 transition-all duration-300 ease-in-out z-20"
+                            @toggle-collapsed="toggleCollapsed"
+                            @toggle-mobile-sidebar="toggleMobileSidebar"
+                        />
 
-                                <!-- 右侧内容区域 -->
-                                <main class="flex flex-col mt-16 p-0 md:px-6 px-2 max-w-full overflow-x-hidden">
+                        <!-- 右侧内容区域 -->
+                        <main class="flex flex-col pt-14 h-full w-full">
 
-                                        <div class="space-y-6 my-6 w-full max-w-full overflow-x-hidden">
-                                                <breadcrumb></breadcrumb>
+                                <div class="flex-1 overflow-y-auto p-0 md:px-6 px-2 space-y-6 pt-6 pb-12">
+                                        <breadcrumb></breadcrumb>
 
-                                                <!-- 限制内容宽度防止撑开 -->
-                                                <div class="max-w-full overflow-x-auto w-full">
-                                                        <RouterView/>
-                                                </div>
-
+                                        <!-- 限制内容宽度防止撑开 -->
+                                        <div class="w-full">
+                                                <RouterView/>
                                         </div>
 
-                                </main>
-                        </div>
+                                </div>
+
+                        </main>
                 </div>
         </div>
 </template>
@@ -122,23 +119,3 @@ const toggleMobileSidebar = () => {
 
 
 </script>
-
-<style scoped>
-/* 使用Tailwind类无法完全覆盖的特殊情况 */
-@media (min-width: 768px) {
-        .expanded main {
-                max-width: calc(100vw - 15rem) !important;
-        }
-
-        .collapsed main {
-                max-width: calc(100vw - 5rem) !important;
-        }
-}
-
-/* 确保移动端全宽显示 */
-@media (max-width: 767px) {
-        main {
-                max-width: 100vw !important;
-        }
-}
-</style>
