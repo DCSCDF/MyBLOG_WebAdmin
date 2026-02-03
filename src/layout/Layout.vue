@@ -28,7 +28,7 @@
                                         <!-- 移动端关闭按钮 -->
                                         <button
                                             v-if="windowWidth < 768 && mobileSidebarOpen"
-                                            class="absolute top-3 right-6 z-50 bg-white rounded-full border border-gray-200 p-2  w-8 h-8 flex items-center justify-center md:hidden"
+                                            class="absolute top-3 right-6 z-50 bg-white rounded-full border border-gray-200 p-3  w-8 h-8 flex items-center justify-center md:hidden"
                                             @click="toggleMobileSidebar">
                                                 <CloseOutlined/>
                                         </button>
@@ -115,19 +115,19 @@ const toggleMobileSidebar = () => {
 <style scoped>
 /* 使用Tailwind类无法完全覆盖的特殊情况 */
 @media (min-width: 768px) {
-    .expanded main {
-        max-width: calc(100vw - 15rem) !important;
-    }
-    
-    .collapsed main {
-        max-width: calc(100vw - 5rem) !important;
-    }
+        .expanded main {
+                max-width: calc(100vw - 15rem) !important;
+        }
+
+        .collapsed main {
+                max-width: calc(100vw - 5rem) !important;
+        }
 }
 
 /* 确保移动端全宽显示 */
 @media (max-width: 767px) {
-    main {
-        max-width: 100vw !important;
-    }
+        main {
+                max-width: 100vw !important;
+        }
 }
 </style>

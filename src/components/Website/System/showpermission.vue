@@ -16,9 +16,9 @@
         <a-card>
                 <div class="flex justify-between items-start mb-4">
                         <div class="flex items-center">
-                                <h2 class="font-bold text-lg mb-0">权限列表</h2>
+                                <h2 class="font-bold text-lg whitespace-nowrap">权限列表</h2>
                                 <span
-                                    class="text-sm text-gray-600 whitespace-nowrap ml-2">( 当前仅作为查看权限用，无法修改。 )</span>
+                                    class="text-sm text-gray-600 ml-2">( 当前仅作为查看权限用，无法修改。 )</span>
                         </div>
 
                 </div>
