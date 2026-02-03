@@ -25,8 +25,8 @@
  * request.post('/api/user/login', data).then(res => {...});
  */
 import axios from 'axios';
-import {handleAjCaptchaResponse} from './captchaInterceptor.js'; // 导入验证码响应处理函数
-import {handleApi} from './apiInterceptor.js';
+import {handleAjCaptchaResponse} from '../config/captchaInterceptor.js'; // 导入验证码响应处理函数
+import {handleApi} from '../config/apiInterceptor.js';
 import {tools} from "./tools.js";
 // 使用环境变量设置请求的基础URL，支持不同环境下的API地址配置
 /* eslint-disable no-undef */

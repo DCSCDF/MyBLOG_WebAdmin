@@ -81,7 +81,7 @@
 <script setup>
 import {reactive, watch} from 'vue';
 import {useRouter} from 'vue-router';
-import {childRoutes} from "../../router/childRoutes.js"
+import {childRoutes} from "../../config/childRoutes.js"
 import logger from "../../utils/logger.js";
 
 const cleanMenuItem = (routeItem) => {

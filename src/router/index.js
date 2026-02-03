@@ -21,7 +21,7 @@ import Layout from '../layout/Layout.vue'
 import {tools} from "../utils/tools.js";
 import logger from "../utils/logger.js";
 
-import {childRoutes} from "./childRoutes.js"
+import {childRoutes} from "../config/childRoutes.js"
 
 const routes = [
 	{
