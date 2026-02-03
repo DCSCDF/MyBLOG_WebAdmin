@@ -17,7 +17,7 @@
         <!-- 左侧菜单容器 -->
 
         <div
-            :class="['relative  !backdrop-blur-md  bg-white/80 md:bg-transparent flex flex-col transition-all duration-300 ease-in-out h-full border-r border-gray-200', collapsed ? 'w-20' : 'w-60']">
+            :class="['relative !backdrop-blur-md bg-white/80 md:bg-transparent flex flex-col transition-all duration-300 ease-in-out h-full border-r border-gray-200', collapsed ? 'w-20' : 'w-60']">
                 <!-- 菜单区域 -->
                 <div class="flex-1 flex flex-col overflow-y-auto">
                         <div
@@ -67,7 +67,7 @@
                         <a-menu v-model:openKeys="state.openKeys" v-model:selectedKeys="state.selectedKeys"
                                 :inline-collapsed="collapsed"
                                 :items="items"
-                                class="flex-1 !overflow-y-auto !bg-transparent  !p-1 !border-0"
+                                class="flex-1 !overflow-y-auto !bg-transparent  !p-1 !border-0 "
                                 mode="inline"
                                 theme="light"
                                 @click="handleMenuClick">
@@ -79,8 +79,8 @@
 </template>
 
 <script setup>
-import {reactive, watch, onMounted} from 'vue';
-import {useRouter, useRoute} from 'vue-router';
+import {onMounted, reactive, watch} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
 import {childRoutes} from "../../../config/childRoutes.js"
 
 const cleanMenuItem = (routeItem) => {
@@ -168,7 +168,7 @@ const findMenuItem = (items, key) => {
 // 根据路由路径查找对应的菜单项
 const findMenuItemByRoute = (items, routePath) => {
         let result = null;
-        
+
         for (let item of items) {
                 if (item.route === routePath) {
                         result = item;
@@ -182,7 +182,7 @@ const findMenuItemByRoute = (items, routePath) => {
                         }
                 }
         }
-        
+
         return result;
 };
 
@@ -190,22 +190,22 @@ const findMenuItemByRoute = (items, routePath) => {
 const updateSelectedKeys = () => {
         const currentRoute = route.path;
         const matchedItem = findMenuItemByRoute(items, currentRoute);
-        
+
         if (matchedItem) {
                 state.selectedKeys = [matchedItem.key];
-                
+
                 // 展开父级菜单
                 const getParentKeys = (items, targetKey, parentKeys = []) => {
                         let result = [];
-                        
+
                         for (let item of items) {
                                 const newParentKeys = [...parentKeys, item.key];
-                                
+
                                 if (item.key === targetKey) {
                                         result = newParentKeys.slice(0, -1); // 排除自身
                                         break;
                                 }
-                                
+
                                 if (item.children) {
                                         const childResult = getParentKeys(item.children, targetKey, newParentKeys);
                                         if (childResult.length > 0) {
@@ -214,10 +214,10 @@ const updateSelectedKeys = () => {
                                         }
                                 }
                         }
-                        
+
                         return result;
                 };
-                
+
                 const parentKeys = getParentKeys(items, matchedItem.key);
                 state.openKeys = parentKeys;
                 state.preOpenKeys = parentKeys;

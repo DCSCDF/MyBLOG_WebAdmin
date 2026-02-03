@@ -16,6 +16,17 @@
 <template>
         <div class="flex flex-col h-screen">
                 <div class="flex flex-1 bg-gradient-to-br from-blue-50/20 to-gray-50/30">
+                        <!-- 遮罩层 -->
+                        <div
+                            v-show="windowWidth < 768"
+                            :class="{
+                                'opacity-0 pointer-events-none': !mobileSidebarOpen,
+                                'opacity-50': mobileSidebarOpen
+                            }"
+                            class="fixed inset-0 bg-black/30 z-50 transition-all duration-300 ease-in-out"
+                            @click="toggleMobileSidebar">
+                        </div>
+
                         <!-- 侧边栏菜单  -->
                         <div :class="windowWidth >= 768 ?
                                (collapsed ? 'left-0 translate-x-0 w-20' : 'left-0 translate-x-0 w-60') :
