@@ -40,7 +40,6 @@ const segmentOptions = ['权限列表', '权限组'];
 const currentSegment = ref('权限列表');
 
 const onSegmentChange = (value) => {
-        console.log('切换到:', value);
         currentSegment.value = value;
 };
 </script>
