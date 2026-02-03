@@ -17,11 +17,11 @@
         <!-- 左侧菜单容器 -->
 
         <div
-            :class="['relative  !backdrop-blur-md  bg-white/80 md:bg-transparent flex flex-col transition-all duration-300 ease-in-out h-full border-r border-gray-200', collapsed ? 'w-20' : 'w-50']">
+            :class="['relative  !backdrop-blur-md  bg-white/80 md:bg-transparent flex flex-col transition-all duration-300 ease-in-out h-full border-r border-gray-200', collapsed ? 'w-20' : 'w-60']">
                 <!-- 菜单区域 -->
                 <div class="flex-1 flex flex-col overflow-y-auto">
                         <div
-                            class="h-16 w-auto flex flex-row  items-center  px-auto justify-center border-b border-gray-200">
+                            class="h-14 w-auto flex flex-row  items-center  px-auto justify-center border-b border-gray-200">
                                 <svg v-if="collapsed" class="icon" height="33"
                                      viewBox="0 0 1024 1024" width="33" xmlns="http://www.w3.org/2000/svg">
                                         <path
@@ -79,16 +79,31 @@
 </template>
 
 <script setup>
-import {h, reactive, watch,} from 'vue';
-import {
-        DesktopOutlined,
-        FileTextOutlined,
-        MessageOutlined,
-        PieChartOutlined,
-        SettingOutlined,
-        TagsOutlined,
-} from '@ant-design/icons-vue';
+import {reactive, watch} from 'vue';
 import {useRouter} from 'vue-router';
+import {childRoutes} from "../../router/childRoutes.js"
+import logger from "../../utils/logger.js";
+
+const cleanMenuItem = (routeItem) => {
+        const {key, label, title, route, icon, children} = routeItem;
+
+        const item = {
+                key,
+                label: typeof label === 'string' ? label : '[未知标签]',
+                title: typeof title === 'string' ? title : '[未知标题]',
+                route,
+                icon,
+        };
+
+        if (children?.length) {
+                item.children = children.map(cleanMenuItem);
+        }
+
+        return item;
+};
+
+const items = childRoutes.map(cleanMenuItem);
+logger.log(items)
 
 const router = useRouter();
 
@@ -120,126 +135,6 @@ watch(() => props.collapsed, (newCollapsed) => {
         }
 });
 
-const items = reactive([
-        {
-                key: '1',
-                icon: () => h(PieChartOutlined),
-                label: '仪表盘',
-                title: '仪表盘',
-                route: '/user/dashboard'
-        },
-
-
-        {
-                key: 'sub1',
-                icon: () => h(FileTextOutlined),
-                label: '文章',
-                title: '文章',
-                children: [
-                        {
-                                key: 'sub1_1',
-                                // icon: () => h(FormOutlined),
-                                label: '新建文章',
-                                title: '新建文章',
-                        },
-                        {
-                                key: 'sub1_2',
-                                // icon: () => h(FileTextOutlined),
-                                label: '管理文章',
-                                title: '管理文章',
-                        },
-                ],
-        },
-
-        {
-                key: '3',
-                icon: () => h(TagsOutlined),
-                label: '分类',
-                title: '分类',
-                route: '/user/123'
-        },
-
-        {
-                key: '4',
-                icon: () => h(MessageOutlined),
-                label: '留言',
-                title: '留言',
-                route: '/user/'
-        },
-
-        {
-                key: 'sub2',
-                icon: () => h(SettingOutlined),
-                label: '设置',
-                title: '设置',
-                children: [
-                        {
-                                key: 'sub2_1',
-                                // icon: () => h(UserOutlined),
-                                label: '我的账户',
-                                title: '我的账户',
-                                route: '/user/UserSetting'
-                        },
-
-                        {
-                                key: 'sub4',
-                                // icon: () => h(ControlOutlined),
-                                label: '系统管理',
-                                title: '系统管理',
-                                children: [
-                                        {
-                                                key: 'sub2_2',
-                                                // icon: () => h(UserOutlined),
-                                                label: '账号管理',
-                                                title: '账号管理',
-
-                                        },
-                                        {
-                                                key: 'sub2_3',
-                                                // icon: () => h(TeamOutlined),
-                                                label: '角色管理',
-                                                title: '角色管理',
-                                        },
-                                        {
-                                                key: 'sub2_4',
-                                                // icon: () => h(SafetyOutlined),
-                                                label: '权限管理',
-                                                title: '权限管理',
-                                                route: '/user/PermissionSetting'
-                                        },
-                                ],
-                        },
-                ],
-        },
-        {
-                key: 'sub3',
-                icon: () => h(DesktopOutlined),
-                label: '网站管理',
-                title: '网站管理',
-                children: [
-                        {
-                                key: 'sub3_1',
-                                // icon: () => h(FileTextOutlined),
-                                label: '页面',
-                                title: '页面',
-                        },
-                        {
-                                key: 'sub3_2',
-                                // icon: () => h(SettingOutlined),
-                                label: 'SEO',
-                                title: 'SEO',
-                        },
-                        {
-                                key: 'sub3_3',
-                                // icon: () => h(FormOutlined),
-                                label: '站点信息',
-                                title: '站点信息',
-                        },
-
-                ],
-        },
-
-]);
 
 watch(
     () => state.openKeys,

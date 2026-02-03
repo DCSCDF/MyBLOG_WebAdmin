@@ -15,7 +15,7 @@
 
 <template>
         <header
-            class="  !backdrop-blur-md h-16 flex justify-between items-center border-b border-gray-200 px-4 fixed top-0 left-0 right-0 z-50">
+            class="  !backdrop-blur-md h-14 flex justify-between items-center border-b border-gray-200 px-4 fixed top-0 left-0 right-0 z-50">
                 <div class="flex items-center">
 
                         <button
@@ -46,10 +46,10 @@
                                         <p class="text-sm h-4  !m-0 font-medium text-gray-900 truncate">
                                                 {{ profile.nickname || '昵称' }}
                                         </p>
-                                        <div class="my-[1.5px]"></div>
-                                        <p class="text-xs text-gray-500 truncate !m-0 ">
-                                                {{ profile.email || 'user@example.com' }}
-                                        </p>
+                                        <!--                                        <div class="my-[1.5px]"></div>-->
+                                        <!--                                        <p class="text-xs text-gray-500 truncate !m-0 ">-->
+                                        <!--                                                {{ profile.email || 'user@example.com' }}-->
+                                        <!--                                        </p>-->
                                 </div>
                         </div>
 

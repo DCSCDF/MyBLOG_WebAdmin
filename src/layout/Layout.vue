@@ -14,12 +14,12 @@
   -->
 
 <template>
-        <div class="flex flex-col h-screen bg-[#f4f7fb]  ">
+        <div class="flex flex-col h-screen bg-[#fafafa]">
                 <div class="flex flex-1 bg-gradient-to-br from-blue-50/20 to-gray-50/30">
                         <!-- 侧边栏菜单  -->
                         <div :class="windowWidth >= 768 ?
-                               (collapsed ? 'left-0 translate-x-0 w-20' : 'left-0 translate-x-0 w-50') :
-                                (mobileSidebarOpen ? 'left-0 translate-x-0 w-50 z-50' : '-translate-x-full w-50 z-50')"
+                               (collapsed ? 'left-0 translate-x-0 w-20' : 'left-0 translate-x-0 w-60') :
+                                (mobileSidebarOpen ? 'left-0 translate-x-0 w-70 z-60' : '-translate-x-full w-70 z-60')"
                              class="fixed h-full top-0 bottom-0 transition-all duration-300 ease-in-out z-10">
                                 <div class="relative h-full">
                                         <Menu
@@ -39,11 +39,11 @@
                         <div
                             :class="[
                                 'flex-1 transition-all duration-300 ease-in-out z-0',
-                                windowWidth >= 768 ? (collapsed ? 'ml-20' : 'ml-50') : 'ml-0'
+                                windowWidth >= 768 ? (collapsed ? 'ml-20' : 'ml-60') : 'ml-0'
                             ]"
                         >
                                 <Header
-                                    :class="windowWidth >= 768 ? (collapsed ? 'left-20 right-0' : 'left-50 right-0') : 'left-0 right-0'"
+                                    :class="windowWidth >= 768 ? (collapsed ? 'left-20 right-0' : 'left-60 right-0') : 'left-0 right-0'"
                                     :collapsed="collapsed"
                                     :mobile-sidebar-open="mobileSidebarOpen"
                                     class="fixed top-0 transition-all duration-300 ease-in-out z-20"
@@ -56,6 +56,21 @@
                                     class=" flex flex-col h-[calc(100vh-4rem)] mt-16 overflow-y-auto p-0  md:px-6  px-auto">
 
                                         <div class="mx-2 space-y-6 my-6">
+
+
+                                                <div class="mb-6">
+                                                        <a-breadcrumb>
+                                                                <a-breadcrumb-item>Home</a-breadcrumb-item>
+                                                                <a-breadcrumb-item>An Application</a-breadcrumb-item>
+                                                                <a-breadcrumb-item>An Application2</a-breadcrumb-item>
+                                                        </a-breadcrumb>
+                                                </div>
+                                                <div>
+                                                        <h1 class="text-2xl !font-black !mb-2">测试</h1>
+                                                        <p class="text-gray-500 mb-6">测试1111111111</p>
+                                                </div>
+
+
                                                 <RouterView/>
                                         </div>
 
@@ -72,9 +87,11 @@ import {onMounted, onUnmounted, ref} from 'vue';
 import Menu from "../components/menu/menu.vue";
 import {CloseOutlined} from '@ant-design/icons-vue';
 
+
 const collapsed = ref(false); // 默认为展开状态，意味着显示图标和文字
 const mobileSidebarOpen = ref(false); // 控制移动端侧边栏的展开/收起
 const windowWidth = ref(window.innerWidth);
+
 
 // 监听窗口大小变化
 const handleResize = () => {

@@ -37,7 +37,6 @@ export default defineConfig(({mode}) => {
 			tailwindcss(), //加载 tailwindcss 插件
 			vue()
 		],
-
 		// 根据模式动态设置基础路径等配置
 		mode
 	}

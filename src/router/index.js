@@ -21,6 +21,8 @@ import Layout from '../layout/Layout.vue'
 import {tools} from "../utils/tools.js";
 import logger from "../utils/logger.js";
 
+import {childRoutes} from "./childRoutes.js"
+
 const routes = [
 	{
 		path: '/',
@@ -40,35 +42,10 @@ const routes = [
 		component: Layout,
 		meta: {requiresAuth: true},
 		redirect: '/user/dashboard',
-		children: [
-			{
-				path: 'dashboard',
-				name: 'Dashboard',
-				component: () => import('../pages/Dashboard/Dashboard.vue'),
-				meta: {
-					title: '仪表盘'
-				}
-			},
-			{
-				path: 'usersetting',
-				name: 'usersetting',
-				component: () => import('../pages/Dashboard/UserSetting.vue'),
-				meta: {
-					title: '用户设置'
-				}
-			},
-			{
-				path: 'PermissionSetting',
-				name: 'PermissionSetting',
-				component: () => import('../pages/Dashboard/PermissionSetting.vue'),
-				meta: {
-					title: '权限设置'
-				}
-			},
-
-		]
+		children: childRoutes,
 	}
 ]
+
 
 const router = createRouter({
 	history: createWebHistory(),
