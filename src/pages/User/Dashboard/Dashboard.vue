@@ -9,7 +9,7 @@
   - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
   - license: "MIT"
   - license_exception: "Mandatory attribution retention"
-  - UpdateTime: 2026/2/2 18:17
+  - UpdateTime: 2026/2/2 18:23
   -
   -->
 
@@ -50,7 +50,7 @@
 </template>
 
 <script setup>
-import cardBgImg from '../../assets/img/card_bg.png';
+import cardBgImg from '../../../assets/img/card_bg.png';
 </script>
 
 <style scoped>

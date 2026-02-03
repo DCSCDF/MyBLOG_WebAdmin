@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
-    "@surely-vue/table": "^5.0.15",
     "@tailwindcss/vite": "^4.1.18",
     "aj-captcha": "^1.0.0",
     "ant-design-vue": "^4.2.6",
@@ -26,6 +25,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",
+    "less": "^4.5.1",
     "vite": "^7.2.4"
   }
 }

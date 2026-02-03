@@ -79,10 +79,9 @@
 </template>
 
 <script setup>
-import {reactive, watch} from 'vue';
-import {useRouter} from 'vue-router';
-import {childRoutes} from "../../config/childRoutes.js"
-import logger from "../../utils/logger.js";
+import {reactive, watch, onMounted} from 'vue';
+import {useRouter, useRoute} from 'vue-router';
+import {childRoutes} from "../../../config/childRoutes.js"
 
 const cleanMenuItem = (routeItem) => {
         const {key, label, title, route, icon, children} = routeItem;
@@ -103,9 +102,10 @@ const cleanMenuItem = (routeItem) => {
 };
 
 const items = childRoutes.map(cleanMenuItem);
-logger.log(items)
+// logger.log(items)
 
 const router = useRouter();
+const route = useRoute();
 
 const props = defineProps({
         collapsed: {
@@ -121,7 +121,7 @@ const props = defineProps({
 
 
 const state = reactive({
-        selectedKeys: ['1'],
+        selectedKeys: [],
         openKeys: [''],
         preOpenKeys: [''],
 });
@@ -165,6 +165,68 @@ const findMenuItem = (items, key) => {
         return result;
 };
 
+// 根据路由路径查找对应的菜单项
+const findMenuItemByRoute = (items, routePath) => {
+        let result = null;
+        
+        for (let item of items) {
+                if (item.route === routePath) {
+                        result = item;
+                        break;
+                }
+                if (item.children) {
+                        const found = findMenuItemByRoute(item.children, routePath);
+                        if (found) {
+                                result = found;
+                                break;
+                        }
+                }
+        }
+        
+        return result;
+};
+
+// 更新选中状态
+const updateSelectedKeys = () => {
+        const currentRoute = route.path;
+        const matchedItem = findMenuItemByRoute(items, currentRoute);
+        
+        if (matchedItem) {
+                state.selectedKeys = [matchedItem.key];
+                
+                // 展开父级菜单
+                const getParentKeys = (items, targetKey, parentKeys = []) => {
+                        let result = [];
+                        
+                        for (let item of items) {
+                                const newParentKeys = [...parentKeys, item.key];
+                                
+                                if (item.key === targetKey) {
+                                        result = newParentKeys.slice(0, -1); // 排除自身
+                                        break;
+                                }
+                                
+                                if (item.children) {
+                                        const childResult = getParentKeys(item.children, targetKey, newParentKeys);
+                                        if (childResult.length > 0) {
+                                                result = childResult;
+                                                break;
+                                        }
+                                }
+                        }
+                        
+                        return result;
+                };
+                
+                const parentKeys = getParentKeys(items, matchedItem.key);
+                state.openKeys = parentKeys;
+                state.preOpenKeys = parentKeys;
+        } else {
+                // 如果没有匹配到，默认选中第一个菜单
+                state.selectedKeys = ['1'];
+        }
+};
+
 // 处理菜单点击事件
 const handleMenuClick = (e) => {
         const selectedItem = findMenuItem(items, e.key);
@@ -172,5 +234,16 @@ const handleMenuClick = (e) => {
                 router.push(selectedItem.route); // 跳转到对应路由
         }
 };
+
+// 组件挂载时初始化选中状态
+onMounted(() => {
+        updateSelectedKeys();
+});
+
+// 监听路由变化，更新选中状态
+watch(() => route.path, () => {
+        updateSelectedKeys();
+});
+
 
 </script>

@@ -14,16 +14,22 @@
   -->
 
 <template>
-        <div class="flex items-center ">
-                <a-button class="!m-0" danger type="text" @click="handleLogout">登出</a-button>
-        </div>
+
+        <a-menu-item key="1" class="text-center" style="padding: 5px 12px;" @click="handleLogout">
+                <div class="flex items-center justify-center w-full">
+                        <LogoutOutlined class="mr-1"/>
+                        <span>退出登陆</span>
+                </div>
+        </a-menu-item>
+
 </template>
 
 <script setup>
 import {useRouter} from 'vue-router';
 import {message} from 'ant-design-vue';
-import {authApi} from "../../api/user/auth/authApi.js";
-import logger from "../../utils/logger.js";
+import {authApi} from "../../../api/user/auth/authApi.js";
+import logger from "../../../utils/logger.js";
+import {LogoutOutlined} from '@ant-design/icons-vue';
 
 const router = useRouter();
 

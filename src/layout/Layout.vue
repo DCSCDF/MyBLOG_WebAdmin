@@ -14,7 +14,7 @@
   -->
 
 <template>
-        <div class="flex flex-col h-screen bg-[#fafafa]">
+        <div class="flex flex-col h-screen">
                 <div class="flex flex-1 bg-gradient-to-br from-blue-50/20 to-gray-50/30">
                         <!-- 侧边栏菜单  -->
                         <div :class="windowWidth >= 768 ?
@@ -28,7 +28,7 @@
                                         <!-- 移动端关闭按钮 -->
                                         <button
                                             v-if="windowWidth < 768 && mobileSidebarOpen"
-                                            class="absolute top-4 -right-10 z-50 bg-white rounded-full p-2 shadow-lg w-8 h-8 flex items-center justify-center md:hidden"
+                                            class="absolute top-3 right-6 z-50 bg-white rounded-full border border-gray-200 p-2  w-8 h-8 flex items-center justify-center md:hidden"
                                             @click="toggleMobileSidebar">
                                                 <CloseOutlined/>
                                         </button>
@@ -39,7 +39,8 @@
                         <div
                             :class="[
                                 'flex-1 transition-all duration-300 ease-in-out z-0',
-                                windowWidth >= 768 ? (collapsed ? 'ml-20' : 'ml-60') : 'ml-0'
+                                windowWidth >= 768 ? (collapsed ? 'ml-20' : 'ml-60') : 'ml-0',
+                                windowWidth >= 768 ? (collapsed ? 'collapsed' : 'expanded') : 'mobile'
                             ]"
                         >
                                 <Header
@@ -52,26 +53,14 @@
                                 />
 
                                 <!-- 右侧内容区域 -->
-                                <main
-                                    class=" flex flex-col h-[calc(100vh-4rem)] mt-16 overflow-y-auto p-0  md:px-6  px-auto">
+                                <main class="flex flex-col mt-16 p-0 md:px-6 px-2 ">
 
-                                        <div class="mx-2 space-y-6 my-6">
-
-
-                                                <div class="mb-6">
-                                                        <a-breadcrumb>
-                                                                <a-breadcrumb-item>Home</a-breadcrumb-item>
-                                                                <a-breadcrumb-item>An Application</a-breadcrumb-item>
-                                                                <a-breadcrumb-item>An Application2</a-breadcrumb-item>
-                                                        </a-breadcrumb>
-                                                </div>
-                                                <div>
-                                                        <h1 class="text-2xl !font-black !mb-2">测试</h1>
-                                                        <p class="text-gray-500 mb-6">测试1111111111</p>
-                                                </div>
+                                        <div class="space-y-6 my-6 ">
+                                                <breadcrumb></breadcrumb>
 
 
                                                 <RouterView/>
+
                                         </div>
 
                                 </main>
@@ -82,10 +71,11 @@
 
 <script setup>
 import {RouterView} from 'vue-router'
-import Header from '../components/header/header.vue';
+import Header from '../components/Layout/header/header.vue';
 import {onMounted, onUnmounted, ref} from 'vue';
-import Menu from "../components/menu/menu.vue";
+import Menu from "../components/Layout/menu/menu.vue";
 import {CloseOutlined} from '@ant-design/icons-vue';
+import Breadcrumb from "../components/Layout/header/breadcrumb.vue";
 
 
 const collapsed = ref(false); // 默认为展开状态，意味着显示图标和文字
@@ -120,4 +110,6 @@ const toggleMobileSidebar = () => {
 
 </script>
 
-<style scoped></style>
+<style scoped>
+
+</style>

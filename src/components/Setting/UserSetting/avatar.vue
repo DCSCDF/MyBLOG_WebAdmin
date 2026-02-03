@@ -13,18 +13,15 @@
   -
   -->
 
-<script setup>
-
-</script>
-
 <template>
-        <div class="flex flex-col items-center justify-center">
-                <a-image
-                    :height="150"
-                    :preview="false"
-                    :width="150"
-                    class="rounded-md border-4 border-gray-200 transition-all duration-300 hover:border-blue-400 hover:scale-105"
-                    fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ
+        <a-card>
+                <div class="flex flex-col items-center justify-center">
+                        <a-image
+                            :height="150"
+                            :preview="false"
+                            :width="150"
+                            class="rounded-md border-4 border-gray-200 transition-all duration-300 hover:border-blue-400 hover:scale-105"
+                            fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ
                                     1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLs
                                     is7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB
                                     5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgH
@@ -50,18 +47,24 @@
                                     MNNSdAhJyNSiECRCjUbEPNCRAhZ6NSiAARCjXbUHMCRMjZqBQiQIRCzTbUnAARcjYqhQgQoVCzDTUnQIScjUohAkQo1GxDzQkQIWejUogAEQo121
                                     BzAkTI2agUIkCEQs021JwAEXI2KoUIEKFQsw01J0CEnI1KIQJEKNRsQ80JECFno1KIABEKNdtQcwJEyNmoFCJAhELNNtScABFyNiqFCBChULMNNSdAhJyNSi
                                     EC/wGgKKC4YMA4TAAAAABJRU5ErkJggg=="
-                    src="https://avatars.githubusercontent.com/u/75759503?v=4"
+                            src="https://avatars.githubusercontent.com/u/75759503?v=4"
 
-                />
-                <a-divider/>
-                <a-button
+                        />
+                        <a-divider/>
+                        <a-button
 
-                    type="primary">
-                        上传头像
-                </a-button>
+                            type="primary">
+                                上传头像
+                        </a-button>
 
-        </div>
+                </div>
+        </a-card>
 </template>
+
+<script setup>
+
+</script>
+
 
 <style scoped>
 

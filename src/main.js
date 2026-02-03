@@ -21,7 +21,6 @@ import 'ant-design-vue/dist/reset.css'
 import './style/style.css'
 import './style/fonts.css'
 
-
 const app = createApp(App)
 
 app.use(router)
