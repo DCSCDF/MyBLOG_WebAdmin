@@ -236,4 +236,6 @@ const viewPermission = (record) => {
 onMounted(() => {
         loadTableData();
 });
+
+
 </script>

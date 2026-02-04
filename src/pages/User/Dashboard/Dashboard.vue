@@ -15,7 +15,7 @@
 
 <template>
 
-        <div class="relative h-30 rounded-lg ">
+        <div class="relative h-30 rounded-lg mb-6">
                 <img
                     :src="cardBgImg"
                     alt="Dashboard Background"

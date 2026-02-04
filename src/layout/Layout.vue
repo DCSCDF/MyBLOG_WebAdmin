@@ -64,11 +64,11 @@
                         <!-- 右侧内容区域 -->
                         <main class="flex flex-col pt-14 h-full w-full">
 
-                                <div class="flex-1 overflow-y-auto p-0 md:px-6 px-2 space-y-6 pt-6 pb-12">
+                                <div class="flex-1 overflow-y-auto p-0 md:px-6 px-2  pt-6 pb-12">
                                         <breadcrumb></breadcrumb>
 
                                         <!-- 限制内容宽度防止撑开 -->
-                                        <div class="w-full">
+                                        <div class="w-full mt-12">
                                                 <RouterView/>
                                         </div>
 

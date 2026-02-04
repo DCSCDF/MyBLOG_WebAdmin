@@ -16,6 +16,9 @@
 @import "tailwindcss";
 @import "../styles/captcha-responsive.css";
 
+body {
+    background: #fafafa;
+}
 
 h1,
 h2,
