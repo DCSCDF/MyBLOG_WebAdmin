@@ -41,7 +41,7 @@
                         </template>
                 </a-table>
 
-                
+
                 <!-- 查看权限详情抽屉 -->
                 <a-drawer
                     v-model:open="viewDrawerVisible"
@@ -74,9 +74,9 @@
                                 <a-divider/>
                                 <div class="flex flex-col gap-1">
                                         <span class="font-medium text-gray-900 text-sm">权限描述：</span>
-                                        <span class="text-gray-600 text-sm break-all">{{
-                                                        currentPermission.description
-                                                }}</span>
+                                        <span class="text-gray-600 text-sm break-all">
+                                                {{ currentPermission.description }}
+                                        </span>
                                 </div>
                                 <div v-if="currentPermission.status" class="flex flex-col gap-1">
                                         <span class="font-medium text-gray-900 text-sm">状态：</span>
