@@ -54,7 +54,7 @@ import {onMounted, onUnmounted, ref} from 'vue'
 import logger from '../../utils/logger.js'
 import Verify from "../verifition/Verify.vue"
 // 引入验证码响应式样式
-import '../../styles/captcha-responsive.css'
+import '../../style/captcha-responsive.css'
 
 // 验证码相关配置
 const pop = ref('pop')

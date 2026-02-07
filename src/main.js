@@ -20,6 +20,7 @@ import Antd from 'ant-design-vue'
 import 'ant-design-vue/dist/reset.css'
 import './style/style.css'
 import './style/fonts.css'
+import './style/captcha-responsive.css'
 
 const app = createApp(App)
 
