@@ -80,6 +80,8 @@
 </template>
 <script setup>
 import {onMounted, reactive, ref} from 'vue';
+import {permissionApi} from "../../../api/user/auth/permission.js";
+import logger from "../../../utils/logger.js";
 
 // 表格列配置
 const columns = [
@@ -173,7 +175,7 @@ const loadTableData = async () => {
         loading.value = true;
         try {
                 // 模拟API调用延迟
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await new Promise(resolve => setTimeout(resolve, 300));
 
                 const {data, total} = generateMockData(
                     paginationConfig.current,
@@ -183,7 +185,9 @@ const loadTableData = async () => {
                 tableData.value = data;
                 paginationConfig.total = total;
         } catch (error) {
-                console.error('加载数据失败:', error);
+                logger.error('加载数据失败:', error);
+                tableData.value = [];
+                paginationConfig.total = 0;
         } finally {
                 loading.value = false;
         }

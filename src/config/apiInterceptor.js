@@ -34,7 +34,7 @@ const apiResponseMap = {
 		sessionStorage.removeItem('token');
 
 		// 使用window.location 跳转
-		// window.location.href = '/';
+		window.location.href = '/';
 	},
 	'403': () => {
 		logger.error('拒绝访问');

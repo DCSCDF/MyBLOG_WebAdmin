@@ -57,32 +57,33 @@
                                 <div class="flex flex-col gap-1">
                                         <span class="font-medium text-gray-900 text-sm">排序顺序：</span>
                                         <span
-                                            class="text-gray-600 text-sm break-all">{{ currentPermission.order }}</span>
+                                            class="text-gray-600 text-sm break-all">{{ currentPermission?.sortOrder || 'N/A' }}</span>
                                 </div>
                                 <a-divider/>
                                 <div class="flex flex-col gap-1">
                                         <span class="font-medium text-gray-900 text-sm">权限编码：</span>
                                         <span
-                                            class="text-gray-600 text-sm break-all">{{ currentPermission.code }}</span>
+                                            class="text-gray-600 text-sm break-all">{{ currentPermission?.code || 'N/A' }}</span>
                                 </div>
                                 <a-divider/>
                                 <div class="flex flex-col gap-1">
                                         <span class="font-medium text-gray-900 text-sm">权限名称：</span>
                                         <span
-                                            class="text-gray-600 text-sm break-all">{{ currentPermission.name }}</span>
+                                            class="text-gray-600 text-sm break-all">{{ currentPermission?.name || 'N/A' }}</span>
                                 </div>
                                 <a-divider/>
                                 <div class="flex flex-col gap-1">
                                         <span class="font-medium text-gray-900 text-sm">权限描述：</span>
                                         <span class="text-gray-600 text-sm break-all">
-                                                {{ currentPermission.description }}
+                                                {{ currentPermission?.description || '暂无描述' }}
                                         </span>
                                 </div>
-                                <div v-if="currentPermission.status" class="flex flex-col gap-1">
-                                        <span class="font-medium text-gray-900 text-sm">状态：</span>
-                                        <a-tag :color="currentPermission.status === '启用' ? 'green' : 'red'">
-                                                {{ currentPermission.status }}
-                                        </a-tag>
+                                <a-divider/>
+                                <div class="flex flex-col gap-1">
+                                        <span class="font-medium text-gray-900 text-sm">创建时间：</span>
+                                        <span class="text-gray-600 text-sm break-all">
+                                                {{ formatDate(currentPermission?.createTime) || 'N/A' }}
+                                        </span>
                                 </div>
                         </div>
 
@@ -91,15 +92,18 @@
 </template>
 <script setup>
 import {onMounted, reactive, ref} from 'vue';
+import {permissionApi} from "../../../api/user/auth/permission.js";
+import logger from "../../../utils/logger.js";
+
 
 // 表格列配置
 const columns = [
-        {
-                title: '排序顺序',
-                dataIndex: 'order',
-                key: 'order',
-                width: 120,
-        },
+        // {
+        //         title: '排序顺序',
+        //         dataIndex: 'order',
+        //         key: 'order',
+        //         width: 70,
+        // },
         {
                 title: '权限编码',
                 dataIndex: 'code',
@@ -110,7 +114,7 @@ const columns = [
                 title: '权限名称',
                 dataIndex: 'name',
                 key: 'name',
-                width: 200,
+                width: 120,
         },
         {
                 title: '权限描述',
@@ -122,7 +126,7 @@ const columns = [
                 title: '操作',
                 key: 'operation',
                 fixed: 'right',
-                width: 100,
+                width: 60,
         },
 ];
 
@@ -155,43 +159,81 @@ const queryParams = reactive({
         filters: {},
 });
 
-// 模拟数据生成
-const generateMockData = (page = 1, pageSize = 10) => {
-        const data = [];
-        const total = 234; // 模拟总数据量
-        const startIndex = (page - 1) * pageSize;
-        const endIndex = Math.min(startIndex + pageSize, total);
+// 获取权限列表数据（分页查询）
+const fetchPermissionList = async (currentPage = 1, pageSize = 10) => {
+        let result = {data: [], total: 0};
 
-        for (let i = startIndex; i < endIndex; i++) {
-                data.push({
-                        key: i,
-                        order: i + 1,
-                        code: `PERMISSION_${String(i + 1).padStart(4, '0')}`,
-                        name: `权限名称 ${i + 1}`,
-                        description: `这是第${i + 1}个权限的详细描述信息，用于说明该权限的具体作用和使用范围。`,
+        try {
+                // 确保参数不为空
+                const current = currentPage || 1;
+                const size = pageSize || 10;
 
-                });
+                // 构造请求参数，包含分页信息
+                const requestData = {
+                        currentPage: current,
+                        pageSize: size
+                };
+                logger.log("获取权限数据请求参数:", requestData);
+                logger.log("原始传入参数 - currentPage:", currentPage, "pageSize:", pageSize);
+
+                const response = await permissionApi.permissionList(requestData);
+
+                logger.log("权限列表响应:", response);
+
+                // 检查API响应格式
+                if (response.code === 200 && response.data) {
+                        // 成功获取权限数据 - 处理分页响应格式
+                        const paginationData = response.data;
+                        const permissionData = paginationData.records || [];
+                        const total = paginationData.total || 0;
+
+                        // 为每个权限项添加序号（用于表格显示）
+                        const formattedData = permissionData.map((item, index) => ({
+                                ...item,
+                                key: item.id, // 使用id作为唯一键
+                                order: item.sortOrder || (index + 1)
+                        }));
+
+                        logger.log("格式化后的权限数据:", formattedData);
+                        logger.log("总记录数:", total);
+
+                        result = {
+                                data: formattedData,
+                                total: total
+                        };
+                } else {
+                        logger.error("API返回错误:", response.msg || '未知错误');
+                }
+
+        } catch (error) {
+                logger.error('获取权限列表失败:', error);
         }
 
-        return {data, total};
+        return result;
 };
 
 // 加载表格数据
 const loadTableData = async () => {
         loading.value = true;
         try {
-                // 模拟API调用延迟
-                await new Promise(resolve => setTimeout(resolve, 500));
+                // 确保分页参数有效
+                const current = paginationConfig.current || 1;
+                const size = paginationConfig.pageSize || 10;
 
-                const {data, total} = generateMockData(
-                    paginationConfig.current,
-                    paginationConfig.pageSize
-                );
+                const result = await fetchPermissionList(current, size);
 
-                tableData.value = data;
-                paginationConfig.total = total;
+                if (result && result.data) {
+                        tableData.value = result.data;
+                        paginationConfig.total = result.total;
+                } else {
+                        tableData.value = [];
+                        paginationConfig.total = 0;
+                }
+
         } catch (error) {
-                console.error('加载数据失败:', error);
+                logger.error('加载数据失败:', error);
+                tableData.value = [];
+                paginationConfig.total = 0;
         } finally {
                 loading.value = false;
         }
@@ -233,8 +275,34 @@ const viewPermission = (record) => {
         viewDrawerVisible.value = true;
 };
 
+
+// 格式化日期显示
+const formatDate = (dateString) => {
+        let result = '';
+
+        if (dateString) {
+                try {
+                        const date = new Date(dateString);
+                        result = date.toLocaleString('zh-CN', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit'
+                        });
+                } catch (error) {
+                        logger.error('日期格式化失败:', error);
+                        result = dateString;
+                }
+        }
+
+        return result;
+};
+
 // 组件挂载时加载数据
 onMounted(() => {
+        logger.log("组件挂载，分页配置:", paginationConfig);
         loadTableData();
 });
 

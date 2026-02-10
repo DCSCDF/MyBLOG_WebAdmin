@@ -194,36 +194,48 @@ const updateSelectedKeys = () => {
         if (matchedItem) {
                 state.selectedKeys = [matchedItem.key];
 
-                // 展开父级菜单
-                const getParentKeys = (items, targetKey, parentKeys = []) => {
-                        let result = [];
+                // 仅在非移动端展开父级菜单
+                if (window.innerWidth >= 768) {
+                        // 展开父级菜单
+                        const getParentKeys = (items, targetKey, parentKeys = []) => {
+                                let result = [];
 
-                        for (let item of items) {
-                                const newParentKeys = [...parentKeys, item.key];
+                                for (let item of items) {
+                                        const newParentKeys = [...parentKeys, item.key];
 
-                                if (item.key === targetKey) {
-                                        result = newParentKeys.slice(0, -1); // 排除自身
-                                        break;
-                                }
-
-                                if (item.children) {
-                                        const childResult = getParentKeys(item.children, targetKey, newParentKeys);
-                                        if (childResult.length > 0) {
-                                                result = childResult;
+                                        if (item.key === targetKey) {
+                                                result = newParentKeys.slice(0, -1); // 排除自身
                                                 break;
                                         }
+
+                                        if (item.children) {
+                                                const childResult = getParentKeys(item.children, targetKey, newParentKeys);
+                                                if (childResult.length > 0) {
+                                                        result = childResult;
+                                                        break;
+                                                }
+                                        }
                                 }
-                        }
 
-                        return result;
-                };
+                                return result;
+                        };
 
-                const parentKeys = getParentKeys(items, matchedItem.key);
-                state.openKeys = parentKeys;
-                state.preOpenKeys = parentKeys;
+                        const parentKeys = getParentKeys(items, matchedItem.key);
+                        state.openKeys = parentKeys;
+                        state.preOpenKeys = parentKeys;
+                } else {
+                        // 移动端不展开任何子菜单
+                        state.openKeys = [];
+                        state.preOpenKeys = [];
+                }
         } else {
                 // 如果没有匹配到，默认选中第一个菜单
                 state.selectedKeys = ['1'];
+                // 移动端清空展开状态
+                if (window.innerWidth < 768) {
+                        state.openKeys = [];
+                        state.preOpenKeys = [];
+                }
         }
 };
 
