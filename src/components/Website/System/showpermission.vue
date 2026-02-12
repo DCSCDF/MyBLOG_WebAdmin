@@ -57,32 +57,32 @@
                                 <div class="flex flex-col gap-1">
                                         <span class="font-medium text-gray-900 text-sm">排序顺序：</span>
                                         <span
-                                            class="text-gray-600 text-sm break-all">{{ currentPermission?.sortOrder || 'N/A' }}</span>
+                                            class="text-gray-600 text-sm break-all">{{ currentPermission?.sortOrder }}</span>
                                 </div>
                                 <a-divider/>
                                 <div class="flex flex-col gap-1">
                                         <span class="font-medium text-gray-900 text-sm">权限编码：</span>
                                         <span
-                                            class="text-gray-600 text-sm break-all">{{ currentPermission?.code || 'N/A' }}</span>
+                                            class="text-gray-600 text-sm break-all">{{ currentPermission?.code }}</span>
                                 </div>
                                 <a-divider/>
                                 <div class="flex flex-col gap-1">
                                         <span class="font-medium text-gray-900 text-sm">权限名称：</span>
                                         <span
-                                            class="text-gray-600 text-sm break-all">{{ currentPermission?.name || 'N/A' }}</span>
+                                            class="text-gray-600 text-sm break-all">{{ currentPermission?.name }}</span>
                                 </div>
                                 <a-divider/>
                                 <div class="flex flex-col gap-1">
                                         <span class="font-medium text-gray-900 text-sm">权限描述：</span>
                                         <span class="text-gray-600 text-sm break-all">
-                                                {{ currentPermission?.description || '暂无描述' }}
+                                                {{ currentPermission?.description }}
                                         </span>
                                 </div>
                                 <a-divider/>
                                 <div class="flex flex-col gap-1">
                                         <span class="font-medium text-gray-900 text-sm">创建时间：</span>
                                         <span class="text-gray-600 text-sm break-all">
-                                                {{ formatDate(currentPermission?.createTime) || 'N/A' }}
+                                                {{ formatDate(currentPermission?.createTime) }}
                                         </span>
                                 </div>
                         </div>
@@ -108,7 +108,7 @@ const columns = [
                 title: '权限编码',
                 dataIndex: 'code',
                 key: 'code',
-                width: 180,
+                width: 160,
         },
         {
                 title: '权限名称',
@@ -120,7 +120,7 @@ const columns = [
                 title: '权限描述',
                 dataIndex: 'description',
                 key: 'description',
-                width: 300,
+                width: 200,
         },
         {
                 title: '操作',
@@ -142,15 +142,8 @@ const paginationConfig = reactive({
         pageSize: 10,
         total: 0,
         showSizeChanger: true,
-
         showTotal: (total) => `共 ${total} 条记录`,
-        pageSizeOptions: ['10', '20', '50', '100'],
-        onChange: (page, pageSize) => {
-                handlePageChange(page, pageSize);
-        },
-        onShowSizeChange: (current, size) => {
-                handlePageSizeChange(current, size);
-        },
+        pageSizeOptions: ['10', '20', '50', '100']
 });
 
 // 排序和筛选参数
@@ -239,7 +232,7 @@ const loadTableData = async () => {
         }
 };
 
-// 处理表格变化（排序、筛选）
+// 处理表格变化（排序、筛选、分页）
 const handleTableChange = (pagination, filters, sorter) => {
         // 更新分页信息
         paginationConfig.current = pagination.current;
@@ -252,20 +245,6 @@ const handleTableChange = (pagination, filters, sorter) => {
         queryParams.filters = filters;
 
         // 重新加载数据
-        loadTableData();
-};
-
-// 处理页码变化
-const handlePageChange = (page, pageSize) => {
-        paginationConfig.current = page;
-        paginationConfig.pageSize = pageSize;
-        loadTableData();
-};
-
-// 处理页面大小变化
-const handlePageSizeChange = (_current, size) => {
-        paginationConfig.current = 1; // 重置到第一页
-        paginationConfig.pageSize = size;
         loadTableData();
 };
 
