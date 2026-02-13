@@ -17,7 +17,6 @@
         <header
             class="  !backdrop-blur-lg  h-14 flex justify-between items-center border-b border-gray-200 px-4 fixed top-0 left-0 right-0 z-50">
                 <div class="flex items-center">
-
                         <button
                             class="flex items-center  justify-center text-black bg-transparent border-0 shadow-none outline-0 p-2 hover:bg-transparent focus:outline-none focus:ring-0"
                             style="cursor: pointer;"
@@ -27,17 +26,11 @@
                                 <MenuFoldOutlined v-else class="!leading-none !m-0"
                                                   style="width: 2em; height: 2em; display: flex; align-items: center; justify-content: center; color: black;"/>
                         </button>
-
                 </div>
 
-
                 <div class="flex items-center gap-3 mx-0 md:mx-8">
-
-
                         <a-dropdown>
-                                <div
-                                    class="flex rounded-lg transition-colors py-1.5 px-2 hover:bg-gray-200/50"
-                                >
+                                <div class="flex rounded-lg transition-colors py-1.5 px-2 hover:bg-gray-200/50">
                                         <div class="flex-shrink-0">
                                                 <a-avatar :size="28" :src="profile.avatarUrl">
                                                         {{ (profile.nickname || '昵称').charAt(0) }}
@@ -54,14 +47,8 @@
                                                 <header-logout/>
                                         </a-menu>
                                 </template>
-
-
                         </a-dropdown>
-
-
                 </div>
-
-
         </header>
 </template>
 
