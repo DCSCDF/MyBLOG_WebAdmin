@@ -49,7 +49,7 @@
                                                 </div>
                                         </div>
                                 </div>
-                                <template #overlay>
+                                <template>
                                         <a-menu>
                                                 <header-logout/>
                                         </a-menu>
