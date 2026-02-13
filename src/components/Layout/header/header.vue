@@ -30,7 +30,9 @@
 
                 <div class="flex items-center gap-3 mx-0 md:mx-8">
                         <a-dropdown>
-                                <div class="flex rounded-lg transition-colors py-1.5 px-2 hover:bg-gray-200/50">
+                                <div
+                                    class="flex rounded-lg transition-colors py-1.5 px-2 hover:bg-gray-200/50"
+                                >
                                         <div class="flex-shrink-0">
                                                 <a-avatar :size="28" :src="profile.avatarUrl">
                                                         {{ (profile.nickname || '昵称').charAt(0) }}
@@ -42,7 +44,7 @@
                                                 </div>
                                         </div>
                                 </div>
-                                <template>
+                                <template #overlay>
                                         <a-menu>
                                                 <header-logout/>
                                         </a-menu>
