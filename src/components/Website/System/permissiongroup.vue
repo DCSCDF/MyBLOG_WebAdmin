@@ -44,26 +44,32 @@
                 <!-- 查看权限组详情抽屉 -->
                 <a-drawer
                     v-model:open="viewDrawerVisible"
-                    title="权限组详情"
-                    placement="right"
-                    :width="480"
-                    :footerStyle="{ textAlign: 'right' }"
                     :bodyStyle="{ backgroundColor: 'transparent', border: 'none' }"
-                    :headerStyle="{ backgroundColor: 'transparent', border: 'none' }"
+                    :destroyOnClose="true"
                     :drawerStyle="{ backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(10px)' }"
-                    :destroyOnClose="true">
+                    :footerStyle="{ textAlign: 'right' }"
+                    :headerStyle="{ backgroundColor: 'transparent', border: 'none' }"
+                    :width="480"
+                    placement="right"
+                    title="权限组详情">
                         <div class="flex flex-col gap-4">
                                 <div class="flex flex-col gap-1">
                                         <span class="font-medium text-gray-900 text-sm">排序顺序：</span>
-                                        <span class="text-gray-600 text-sm break-all">{{ currentPermissionGroup.order }}</span>
+                                        <span class="text-gray-600 text-sm break-all">{{
+                                                        currentPermissionGroup.order
+                                                }}</span>
                                 </div>
                                 <div class="flex flex-col gap-1">
                                         <span class="font-medium text-gray-900 text-sm">权限组名称：</span>
-                                        <span class="text-gray-600 text-sm break-all">{{ currentPermissionGroup.name }}</span>
+                                        <span class="text-gray-600 text-sm break-all">{{
+                                                        currentPermissionGroup.name
+                                                }}</span>
                                 </div>
                                 <div class="flex flex-col gap-1">
                                         <span class="font-medium text-gray-900 text-sm">权限组描述：</span>
-                                        <span class="text-gray-600 text-sm break-all">{{ currentPermissionGroup.description }}</span>
+                                        <span class="text-gray-600 text-sm break-all">{{
+                                                        currentPermissionGroup.description
+                                                }}</span>
                                 </div>
                                 <div class="flex flex-col gap-1">
                                         <span class="font-medium text-gray-900 text-sm">状态：</span>
@@ -79,16 +85,16 @@
         </a-card>
 </template>
 <script setup>
-import {computed, onMounted, reactive, ref} from 'vue';
-import { usePermissionStore } from '../../../stores/permission.js';
+import {computed, onMounted, ref} from 'vue';
+import {usePermissionGroupStore} from '../../../stores/permissiongroup.js';
 import logger from "../../../utils/logger.js";
 
-const permissionStore = usePermissionStore();
+const permissionGroupStore = usePermissionGroupStore();
 
 // 使用 store 的状态
-const tableData = computed(() => permissionStore.currentPermissionGroups);
-const loading = computed(() => permissionStore.loading);
-const paginationConfig = computed(() => permissionStore.pagination);
+const tableData = computed(() => permissionGroupStore.currentPermissionGroups);
+const loading = computed(() => permissionGroupStore.loading);
+const paginationConfig = computed(() => permissionGroupStore.pagination);
 
 // 表格列配置
 const columns = [
@@ -133,16 +139,11 @@ const columns = [
 const viewDrawerVisible = ref(false);
 const currentPermissionGroup = ref(null);
 
-// 排序和筛选参数
-const queryParams = reactive({
-        sorter: {},
-        filters: {},
-});
 
 // 加载表格数据
 const loadTableData = async () => {
         try {
-                await permissionStore.fetchPermissionGroups({
+                await permissionGroupStore.fetchPermissionGroups({
                         page: paginationConfig.value.current,
                         pageSize: paginationConfig.value.pageSize
                 });
@@ -154,13 +155,13 @@ const loadTableData = async () => {
 // 处理表格变化（排序、筛选）
 const handleTableChange = (pagination, filters, sorter) => {
         // 更新分页信息
-        permissionStore.updatePagination({
+        permissionGroupStore.updatePagination({
                 current: pagination.current,
                 pageSize: pagination.pageSize
         });
 
         // 更新排序和筛选信息
-        permissionStore.updateQueryParams({
+        permissionGroupStore.updateQueryParams({
                 sorter,
                 filters
         });
@@ -169,23 +170,6 @@ const handleTableChange = (pagination, filters, sorter) => {
         loadTableData();
 };
 
-// 处理页码变化
-const handlePageChange = (page, pageSize) => {
-        permissionStore.updatePagination({
-                current: page,
-                pageSize: pageSize
-        });
-        loadTableData();
-};
-
-// 处理页面大小变化
-const handlePageSizeChange = (_current, size) => {
-        permissionStore.updatePagination({
-                current: 1,
-                pageSize: size
-        });
-        loadTableData();
-};
 
 // 查看权限组详情
 const viewPermission = (record) => {

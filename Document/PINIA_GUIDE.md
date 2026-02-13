@@ -87,7 +87,7 @@ permissionStore.fetchPermissionGroups() // 获取权限组
 permissionStore.updatePagination({...}) // 更新分页
 ```
 
-## 🔧 使用示例
+## 使用示例
 
 ### 在组件中使用
 

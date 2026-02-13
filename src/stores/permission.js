@@ -26,7 +26,6 @@ import logger from '../utils/logger.js';
 export const usePermissionStore = defineStore('permission', () => {
 	// 权限列表状态
 	const permissions = ref([]);
-	const permissionGroups = ref([]);
 	const loading = ref(false);
 
 	// 分页信息
@@ -131,7 +130,6 @@ export const usePermissionStore = defineStore('permission', () => {
 	 */
 	const clearPermissionState = () => {
 		permissions.value = [];
-		permissionGroups.value = [];
 		loading.value = false;
 		pagination.value = {
 			current: 1,
@@ -145,53 +143,15 @@ export const usePermissionStore = defineStore('permission', () => {
 		logger.log('权限状态已清理');
 	};
 
-	/**
-	 * 获取权限组列表（模拟数据）
-	 * @param {Object} params - 查询参数
-	 * @returns {Promise<Array>} 权限组列表数组
-	 */
-	const fetchPermissionGroups = async (params = {}) => {
-		try {
-			// 模拟API调用
-			await new Promise(resolve => setTimeout(resolve, 300));
 
-			const {page = 1, pageSize = 10} = params;
-			const total = 156;
-			const startIndex = (page - 1) * pageSize;
-			const endIndex = Math.min(startIndex + pageSize, total);
-
-			const data = [];
-			for (let i = startIndex; i < endIndex; i++) {
-				data.push({
-					key: i,
-					id: i + 1,
-					order: i + 1,
-					name: `权限组名称 ${i + 1}`,
-					description: `这是第${i + 1}个权限组的详细描述信息，包含相关的权限配置和使用说明。`,
-					status: Math.random() > 0.3 ? '启用' : '禁用',
-				});
-			}
-
-			permissionGroups.value = data;
-			logger.log('权限组列表获取成功，总数:', total);
-			return data;
-		} catch (error) {
-			logger.error('获取权限组列表失败:', error);
-			permissionGroups.value = [];
-			throw error;
-		}
-	};
 
 	// 计算属性
 	const hasPermissions = computed(() => permissions.value.length > 0);
-	const hasPermissionGroups = computed(() => permissionGroups.value.length > 0);
 	const currentPermissions = computed(() => permissions.value);
-	const currentPermissionGroups = computed(() => permissionGroups.value);
 
 	return {
 		// 状态
 		permissions,
-		permissionGroups,
 		loading,
 		pagination,
 		queryParams,
@@ -202,12 +162,9 @@ export const usePermissionStore = defineStore('permission', () => {
 		updatePagination,
 		updateQueryParams,
 		clearPermissionState,
-		fetchPermissionGroups,
 
 		// 计算属性
 		hasPermissions,
-		hasPermissionGroups,
-		currentPermissions,
-		currentPermissionGroups
+		currentPermissions
 	};
 });

@@ -30,7 +30,7 @@ import {message} from 'ant-design-vue';
 import {authApi} from "../../../api/user/auth/authApi.js";
 import logger from "../../../utils/logger.js";
 import {LogoutOutlined} from '@ant-design/icons-vue';
-import { useAuthStore } from '../../../stores/auth.js';
+import {useAuthStore} from '../../../stores/auth.js';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -70,7 +70,7 @@ const handleLogout = async () => {
 
                 // 发生错误时也清除本地状态
                 authStore.clearToken();
-                
+
                 // 重定向到登录页
                 await router.push('/login');
         }
@@ -78,7 +78,3 @@ const handleLogout = async () => {
 };
 
 </script>
-
-<style scoped>
-
-</style>

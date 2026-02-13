@@ -57,7 +57,9 @@
                                 <div class="flex flex-col gap-1">
                                         <span class="font-medium text-gray-900 text-sm">排序顺序：</span>
                                         <span
-                                            class="text-gray-600 text-sm break-all">{{ currentPermission?.sortOrder }}</span>
+                                            class="text-gray-600 text-sm break-all">{{
+                                                        currentPermission?.sortOrder
+                                                }}</span>
                                 </div>
                                 <a-divider/>
                                 <div class="flex flex-col gap-1">
@@ -91,8 +93,8 @@
         </a-card>
 </template>
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue';
-import { usePermissionStore } from '../../../stores/permission.js';
+import {computed, onMounted, ref} from 'vue';
+import {usePermissionStore} from '../../../stores/permission.js';
 import logger from "../../../utils/logger.js";
 
 const permissionStore = usePermissionStore();
@@ -141,11 +143,6 @@ const columns = [
 const viewDrawerVisible = ref(false);
 const currentPermission = ref(null);
 
-// 排序和筛选参数
-const queryParams = reactive({
-        sorter: {},
-        filters: {},
-});
 
 // 加载表格数据
 const loadTableData = async () => {
