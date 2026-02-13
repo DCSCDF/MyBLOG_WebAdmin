@@ -13,12 +13,25 @@
  *
  */
 
+import { useAuthStore } from '../stores/auth.js';
+
 export const tools = {
 
+	/**
+	 * 获取当前token（已废弃，建议直接使用 useAuthStore().currentToken）
+	 * @deprecated 使用 useAuthStore().currentToken 替代
+	 */
 	getToken() {
-		const remember = localStorage.getItem('remember') === 'true';
-		return remember
-		    ? localStorage.getItem('token')
-		    : sessionStorage.getItem('token');
+		const authStore = useAuthStore();
+		return authStore.currentToken;
 	},
+	
+	/**
+	 * 检查是否已登录（已废弃，建议直接使用 useAuthStore().isLoggedIn）
+	 * @deprecated 使用 useAuthStore().isLoggedIn 替代
+	 */
+	isAuthenticated() {
+		const authStore = useAuthStore();
+		return authStore.isLoggedIn;
+	}
 };

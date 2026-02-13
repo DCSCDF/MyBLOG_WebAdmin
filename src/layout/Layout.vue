@@ -55,10 +55,8 @@
                         <Header
                             :class="windowWidth >= 768 ? (collapsed ? 'left-20 right-0' : 'left-60 right-0') : 'left-0 right-0'"
                             :collapsed="collapsed"
-                            :mobile-sidebar-open="mobileSidebarOpen"
                             class="fixed top-0 transition-all duration-300 ease-in-out z-20"
                             @toggle-collapsed="toggleCollapsed"
-                            @toggle-mobile-sidebar="toggleMobileSidebar"
                         />
 
                         <!-- 右侧内容区域 -->
@@ -82,26 +80,42 @@
 <script setup>
 import {RouterView} from 'vue-router'
 import Header from '../components/Layout/header/header.vue';
-import {onMounted, onUnmounted, ref} from 'vue';
+import {onMounted, onUnmounted, ref, computed} from 'vue';
 import Menu from "../components/Layout/menu/menu.vue";
 import {CloseOutlined} from '@ant-design/icons-vue';
 import Breadcrumb from "../components/Layout/header/breadcrumb.vue";
+import { useAppStore } from '../stores/app.js';
 
+const appStore = useAppStore();
 
 const collapsed = ref(false); // 默认为展开状态，意味着显示图标和文字
-const mobileSidebarOpen = ref(false); // 控制移动端侧边栏的展开/收起
 const windowWidth = ref(window.innerWidth);
 
+// 使用 app store 的移动端状态
+const mobileSidebarOpen = computed({
+        get: () => appStore.isMobileSidebarOpen,
+        set: (value) => appStore.setMobileSidebarOpen(value)
+});
 
 // 监听窗口大小变化
 const handleResize = () => {
         windowWidth.value = window.innerWidth;
+        // 更新设备状态
+        appStore.updateDeviceStatus();
 };
 
 onMounted(() => {
         window.addEventListener('resize', handleResize);
-        // 初始化时设置窗口宽度
+        // 初始化时设置窗口宽度和设备状态
         windowWidth.value = window.innerWidth;
+        appStore.updateDeviceStatus();
+        // 启动窗口大小监听器
+        const cleanup = appStore.startResizeListener();
+        
+        // 组件卸载时清理
+        onUnmounted(() => {
+                cleanup();
+        });
 });
 
 onUnmounted(() => {
@@ -114,7 +128,7 @@ const toggleCollapsed = () => {
 
 // 切换移动端侧边栏
 const toggleMobileSidebar = () => {
-        mobileSidebarOpen.value = !mobileSidebarOpen.value;
+        appStore.toggleMobileSidebar();
 };
 
 

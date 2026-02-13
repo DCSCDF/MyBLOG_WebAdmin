@@ -91,9 +91,16 @@
         </a-card>
 </template>
 <script setup>
-import {onMounted, reactive, ref} from 'vue';
-import {permissionApi} from "../../../api/user/auth/permission.js";
+import { computed, onMounted, reactive, ref } from 'vue';
+import { usePermissionStore } from '../../../stores/permission.js';
 import logger from "../../../utils/logger.js";
+
+const permissionStore = usePermissionStore();
+
+// 使用 store 的状态
+const tableData = computed(() => permissionStore.currentPermissions);
+const loading = computed(() => permissionStore.loading);
+const paginationConfig = computed(() => permissionStore.pagination);
 
 
 // 表格列配置
@@ -131,20 +138,8 @@ const columns = [
 ];
 
 // 响应式数据
-const tableData = ref([]);
-const loading = ref(false);
 const viewDrawerVisible = ref(false);
 const currentPermission = ref(null);
-
-// 分页配置
-const paginationConfig = reactive({
-        current: 1,
-        pageSize: 10,
-        total: 0,
-        showSizeChanger: true,
-        showTotal: (total) => `共 ${total} 条记录`,
-        pageSizeOptions: ['10', '20', '50', '100']
-});
 
 // 排序和筛选参数
 const queryParams = reactive({
@@ -152,97 +147,31 @@ const queryParams = reactive({
         filters: {},
 });
 
-// 获取权限列表数据（分页查询）
-const fetchPermissionList = async (currentPage = 1, pageSize = 10) => {
-        let result = {data: [], total: 0};
-
-        try {
-                // 确保参数不为空
-                const current = currentPage || 1;
-                const size = pageSize || 10;
-
-                // 构造请求参数，包含分页信息
-                const requestData = {
-                        currentPage: current,
-                        pageSize: size
-                };
-                logger.log("获取权限数据请求参数:", requestData);
-                logger.log("原始传入参数 - currentPage:", currentPage, "pageSize:", pageSize);
-
-                const response = await permissionApi.permissionList(requestData);
-
-                logger.log("权限列表响应:", response);
-
-                // 检查API响应格式
-                if (response.code === 200 && response.data) {
-                        // 成功获取权限数据 - 处理分页响应格式
-                        const paginationData = response.data;
-                        const permissionData = paginationData.records || [];
-                        const total = paginationData.total || 0;
-
-                        // 为每个权限项添加序号（用于表格显示）
-                        const formattedData = permissionData.map((item, index) => ({
-                                ...item,
-                                key: item.id, // 使用id作为唯一键
-                                order: item.sortOrder || (index + 1)
-                        }));
-
-                        logger.log("格式化后的权限数据:", formattedData);
-                        logger.log("总记录数:", total);
-
-                        result = {
-                                data: formattedData,
-                                total: total
-                        };
-                } else {
-                        logger.error("API返回错误:", response.msg || '未知错误');
-                }
-
-        } catch (error) {
-                logger.error('获取权限列表失败:', error);
-        }
-
-        return result;
-};
-
 // 加载表格数据
 const loadTableData = async () => {
-        loading.value = true;
         try {
-                // 确保分页参数有效
-                const current = paginationConfig.current || 1;
-                const size = paginationConfig.pageSize || 10;
-
-                const result = await fetchPermissionList(current, size);
-
-                if (result && result.data) {
-                        tableData.value = result.data;
-                        paginationConfig.total = result.total;
-                } else {
-                        tableData.value = [];
-                        paginationConfig.total = 0;
-                }
-
+                await permissionStore.fetchPermissions({
+                        currentPage: paginationConfig.value.current,
+                        pageSize: paginationConfig.value.pageSize
+                });
         } catch (error) {
                 logger.error('加载数据失败:', error);
-                tableData.value = [];
-                paginationConfig.total = 0;
-        } finally {
-                loading.value = false;
         }
 };
 
 // 处理表格变化（排序、筛选、分页）
 const handleTableChange = (pagination, filters, sorter) => {
         // 更新分页信息
-        paginationConfig.current = pagination.current;
-        paginationConfig.pageSize = pagination.pageSize;
+        permissionStore.updatePagination({
+                current: pagination.current,
+                pageSize: pagination.pageSize
+        });
 
-        // 更新排序信息
-        queryParams.sorter = sorter;
-
-        // 更新筛选信息
-        queryParams.filters = filters;
+        // 更新排序和筛选信息
+        permissionStore.updateQueryParams({
+                sorter,
+                filters
+        });
 
         // 重新加载数据
         loadTableData();
@@ -281,7 +210,7 @@ const formatDate = (dateString) => {
 
 // 组件挂载时加载数据
 onMounted(() => {
-        logger.log("组件挂载，分页配置:", paginationConfig);
+        logger.log("组件挂载，分页配置:", paginationConfig.value);
         loadTableData();
 });
 

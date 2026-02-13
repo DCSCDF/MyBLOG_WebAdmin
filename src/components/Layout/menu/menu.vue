@@ -79,9 +79,12 @@
 </template>
 
 <script setup>
-import {onMounted, reactive, watch} from 'vue';
+import { computed, onMounted, onUnmounted, reactive, watch } from 'vue';
 import {useRoute, useRouter} from 'vue-router';
-import {childRoutes} from "../../../config/childRoutes.js"
+import {childRoutes} from "../../../config/childRoutes.js";
+import { useAppStore } from '../../../stores/app.js';
+
+const appStore = useAppStore();
 
 const cleanMenuItem = (routeItem) => {
         const {key, label, title, route, icon, children} = routeItem;
@@ -119,12 +122,19 @@ const props = defineProps({
         }
 });
 
+// 使用 props 的 collapsed 状态，避免与 store 冲突
+const collapsed = computed(() => props.collapsed);
 
+
+// 菜单状态
 const state = reactive({
         selectedKeys: [],
         openKeys: [''],
         preOpenKeys: [''],
 });
+
+// 设备检测
+const isMobile = computed(() => appStore.isMobile);
 
 // 监听props中的collapsed变化，更新openKeys状态
 watch(() => props.collapsed, (newCollapsed) => {
@@ -132,6 +142,14 @@ watch(() => props.collapsed, (newCollapsed) => {
                 state.openKeys = [];
         } else {
                 state.openKeys = state.preOpenKeys;
+        }
+});
+
+// 监听移动端状态变化
+watch(isMobile, (newIsMobile) => {
+        if (newIsMobile) {
+                state.openKeys = [];
+                state.preOpenKeys = [];
         }
 });
 
@@ -195,7 +213,7 @@ const updateSelectedKeys = () => {
                 state.selectedKeys = [matchedItem.key];
 
                 // 仅在非移动端展开父级菜单
-                if (window.innerWidth >= 768) {
+                if (!isMobile.value) {
                         // 展开父级菜单
                         const getParentKeys = (items, targetKey, parentKeys = []) => {
                                 let result = [];
@@ -232,7 +250,7 @@ const updateSelectedKeys = () => {
                 // 如果没有匹配到，默认选中第一个菜单
                 state.selectedKeys = ['1'];
                 // 移动端清空展开状态
-                if (window.innerWidth < 768) {
+                if (isMobile.value) {
                         state.openKeys = [];
                         state.preOpenKeys = [];
                 }
@@ -248,13 +266,25 @@ const handleMenuClick = (e) => {
 };
 
 // 组件挂载时初始化选中状态
+let cleanupResizeListener = null;
+
 onMounted(() => {
         updateSelectedKeys();
+        // 初始化设备状态
+        appStore.updateDeviceStatus();
+        // 启动窗口大小监听器
+        cleanupResizeListener = appStore.startResizeListener();
 });
 
 // 监听路由变化，更新选中状态
 watch(() => route.path, () => {
         updateSelectedKeys();
+});
+
+onUnmounted(() => {
+        if (cleanupResizeListener) {
+                cleanupResizeListener();
+        }
 });
 
 

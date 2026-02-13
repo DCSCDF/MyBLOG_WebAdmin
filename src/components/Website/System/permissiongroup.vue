@@ -79,9 +79,16 @@
         </a-card>
 </template>
 <script setup>
-import {onMounted, reactive, ref} from 'vue';
-import {permissionApi} from "../../../api/user/auth/permission.js";
+import {computed, onMounted, reactive, ref} from 'vue';
+import { usePermissionStore } from '../../../stores/permission.js';
 import logger from "../../../utils/logger.js";
+
+const permissionStore = usePermissionStore();
+
+// 使用 store 的状态
+const tableData = computed(() => permissionStore.currentPermissionGroups);
+const loading = computed(() => permissionStore.loading);
+const paginationConfig = computed(() => permissionStore.pagination);
 
 // 表格列配置
 const columns = [
@@ -123,26 +130,8 @@ const columns = [
 ];
 
 // 响应式数据
-const tableData = ref([]);
-const loading = ref(false);
 const viewDrawerVisible = ref(false);
 const currentPermissionGroup = ref(null);
-
-// 分页配置
-const paginationConfig = reactive({
-        current: 1,
-        pageSize: 10,
-        total: 0,
-        showSizeChanger: true,
-        showTotal: (total) => `共 ${total} 条记录`,
-        pageSizeOptions: ['10', '20', '50', '100'],
-        onChange: (page, pageSize) => {
-                handlePageChange(page, pageSize);
-        },
-        onShowSizeChange: (current, size) => {
-                handlePageSizeChange(current, size);
-        },
-});
 
 // 排序和筛选参数
 const queryParams = reactive({
@@ -150,60 +139,31 @@ const queryParams = reactive({
         filters: {},
 });
 
-// 模拟数据生成
-const generateMockData = (page = 1, pageSize = 10) => {
-        const data = [];
-        const total = 156; // 模拟总数据量
-        const startIndex = (page - 1) * pageSize;
-        const endIndex = Math.min(startIndex + pageSize, total);
-
-        for (let i = startIndex; i < endIndex; i++) {
-                data.push({
-                        key: i,
-                        order: i + 1,
-                        name: `权限组名称 ${i + 1}`,
-                        description: `这是第${i + 1}个权限组的详细描述信息，包含相关的权限配置和使用说明。`,
-                        status: Math.random() > 0.3 ? '启用' : '禁用',
-                });
-        }
-
-        return {data, total};
-};
-
 // 加载表格数据
 const loadTableData = async () => {
-        loading.value = true;
         try {
-                // 模拟API调用延迟
-                await new Promise(resolve => setTimeout(resolve, 300));
-
-                const {data, total} = generateMockData(
-                    paginationConfig.current,
-                    paginationConfig.pageSize
-                );
-
-                tableData.value = data;
-                paginationConfig.total = total;
+                await permissionStore.fetchPermissionGroups({
+                        page: paginationConfig.value.current,
+                        pageSize: paginationConfig.value.pageSize
+                });
         } catch (error) {
                 logger.error('加载数据失败:', error);
-                tableData.value = [];
-                paginationConfig.total = 0;
-        } finally {
-                loading.value = false;
         }
 };
 
 // 处理表格变化（排序、筛选）
 const handleTableChange = (pagination, filters, sorter) => {
         // 更新分页信息
-        paginationConfig.current = pagination.current;
-        paginationConfig.pageSize = pagination.pageSize;
+        permissionStore.updatePagination({
+                current: pagination.current,
+                pageSize: pagination.pageSize
+        });
 
-        // 更新排序信息
-        queryParams.sorter = sorter;
-
-        // 更新筛选信息
-        queryParams.filters = filters;
+        // 更新排序和筛选信息
+        permissionStore.updateQueryParams({
+                sorter,
+                filters
+        });
 
         // 重新加载数据
         loadTableData();
@@ -211,15 +171,19 @@ const handleTableChange = (pagination, filters, sorter) => {
 
 // 处理页码变化
 const handlePageChange = (page, pageSize) => {
-        paginationConfig.current = page;
-        paginationConfig.pageSize = pageSize;
+        permissionStore.updatePagination({
+                current: page,
+                pageSize: pageSize
+        });
         loadTableData();
 };
 
 // 处理页面大小变化
 const handlePageSizeChange = (_current, size) => {
-        paginationConfig.current = 1; // 重置到第一页
-        paginationConfig.pageSize = size;
+        permissionStore.updatePagination({
+                current: 1,
+                pageSize: size
+        });
         loadTableData();
 };
 

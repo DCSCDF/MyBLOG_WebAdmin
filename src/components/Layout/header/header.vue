@@ -55,25 +55,23 @@
 </template>
 
 <script setup>
-import {computed, defineEmits, defineProps, onMounted, onUnmounted, ref} from "vue";
+import {computed, defineEmits, defineProps, onMounted} from "vue";
 import {authApi} from "../../../api/user/auth/authApi.js";
 import logger from "../../../utils/logger.js";
 import HeaderLogout from "./headerLogout.vue";
 import {MenuFoldOutlined, MenuUnfoldOutlined,} from '@ant-design/icons-vue';
 import {useAuthStore} from '../../../stores/auth.js';
+import { useAppStore } from '../../../stores/app.js';
 
 const props = defineProps({
         collapsed: {
-                type: Boolean,
-                default: false
-        },
-        mobileSidebarOpen: {
                 type: Boolean,
                 default: false
         }
 });
 
 const authStore = useAuthStore();
+const appStore = useAppStore();
 
 // 从 store 获取用户资料，如果没有则使用默认值
 const profile = computed(() => {
@@ -85,34 +83,22 @@ const profile = computed(() => {
         };
 });
 
-const emit = defineEmits(['toggle-collapsed', 'toggle-mobile-sidebar']);
+const emit = defineEmits(['toggle-collapsed']);
 
-const windowWidth = ref(window.innerWidth);
-
-// 监听窗口大小变化
-const handleResize = () => {
-        windowWidth.value = window.innerWidth;
-};
-
-onMounted(() => {
-        window.addEventListener('resize', handleResize);
-});
-
-onUnmounted(() => {
-        window.removeEventListener('resize', handleResize);
-});
+// 使用 app store 的状态
+const isMobile = computed(() => appStore.isMobile);
 
 // 判断是否显示展开图标
 const showExpandIcon = computed(() => {
-        // 在移动端（屏幕宽度 < 768px）时，如果侧边栏已打开则显示收起图标，否则显示展开图标
-        // 在桌面端（屏幕宽度 >= 768px）时，使用原来的 collapsed 状态
-        return windowWidth.value < 768 ? !props.mobileSidebarOpen : props.collapsed;
+        // 在移动端时，如果侧边栏已打开则显示收起图标，否则显示展开图标
+        // 在桌面端时，使用原来的 collapsed 状态
+        return isMobile.value ? !appStore.isMobileSidebarOpen : props.collapsed;
 });
 
 const handleMenuToggle = () => {
         // 如果在移动端，则触发移动端侧边栏切换
-        if (windowWidth.value < 768) {
-                emit('toggle-mobile-sidebar');
+        if (isMobile.value) {
+                appStore.toggleMobileSidebar();
         } else {
                 // 桌面端则使用原来的切换逻辑
                 emit('toggle-collapsed');
@@ -136,7 +122,12 @@ onMounted(async () => {
                 logger.error("获取用户信息失败", error);
         }
 
+        // 初始化设备状态
+        appStore.updateDeviceStatus();
 })
+
+// Header组件不再单独监听窗口大小变化，由menu组件统一管理
+// 设备状态通过appStore统一管理
 
 
 </script>

@@ -2,7 +2,7 @@
 
 这是一个基于 Vue 3 + Vite 构建的博客管理系统后台。
 
-![img.png](docimg/img.png)
+![img.png](Document/docimg/img.png)
 
 ## 技术栈
 
@@ -17,6 +17,9 @@
 ![Vue Router](https://img.shields.io/badge/Vue_Router-4FC08D?style=for-the-badge&logo=vuedotjs&logoColor=white)
 
 </div>
+
+> ### 参考文档
+> - [状态管理](/Document/PINIA_GUIDE.md)
 
 ## 目录结构详解
 
