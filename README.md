@@ -35,6 +35,8 @@ MyBLOG_WebAdmin/
 │   ├── router/                 # 路由配置
 │   │   └── index.js            # 路由主配置文件
 │   │
+│   ├── stores/                 # 全局状态管理
+│   │
 │   ├── style/                  # 全局样式
 │   │   ├── fonts.css           # 字体样式
 │   │   └── style.css           # 全局样式
