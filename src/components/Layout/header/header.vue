@@ -71,6 +71,7 @@ import {authApi} from "../../../api/user/auth/authApi.js";
 import logger from "../../../utils/logger.js";
 import HeaderLogout from "./headerLogout.vue";
 import {MenuFoldOutlined, MenuUnfoldOutlined,} from '@ant-design/icons-vue';
+import {useAuthStore} from '../../../stores/auth.js';
 
 const props = defineProps({
         collapsed: {
@@ -83,10 +84,16 @@ const props = defineProps({
         }
 });
 
-const profile = ref({
-        nickname: "",
-        email: "",
-        avatarUrl: ""
+const authStore = useAuthStore();
+
+// 从 store 获取用户资料，如果没有则使用默认值
+const profile = computed(() => {
+        const storeProfile = authStore.getUserProfile();
+        return {
+                nickname: storeProfile?.nickname || "",
+                email: storeProfile?.email || "",
+                avatarUrl: storeProfile?.avatarUrl || ""
+        };
 });
 
 const emit = defineEmits(['toggle-collapsed', 'toggle-mobile-sidebar']);
@@ -128,11 +135,14 @@ onMounted(async () => {
                 const response = await authApi.profile();
                 logger.log("用户信息", response);
 
-                profile.value.avatarUrl = response.data.avatarUrl;
-                profile.value.nickname = response.data.nickname;
-                profile.value.email = response.data.email;
+                // 更新 store 中的用户资料
+                authStore.updateUserProfile({
+                        nickname: response.data.nickname,
+                        email: response.data.email,
+                        avatarUrl: response.data.avatarUrl
+                });
 
-                logger.log("用户信息", profile.value.nickname);
+                logger.log("用户信息已更新到 store");
         } catch (error) {
                 logger.error("获取用户信息失败", error);
         }

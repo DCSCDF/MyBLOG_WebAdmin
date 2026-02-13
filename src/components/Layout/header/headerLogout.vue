@@ -30,8 +30,10 @@ import {message} from 'ant-design-vue';
 import {authApi} from "../../../api/user/auth/authApi.js";
 import logger from "../../../utils/logger.js";
 import {LogoutOutlined} from '@ant-design/icons-vue';
+import { useAuthStore } from '../../../stores/auth.js';
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 const handleLogout = async () => {
 
@@ -44,11 +46,8 @@ const handleLogout = async () => {
                         // 提示用户登出成功
                         message.success(logoutResponse.data.message);
 
-                        // 清除本地存储的token
-                        localStorage.removeItem('token');
-                        sessionStorage.removeItem('token');
-                        localStorage.removeItem('remember');
-                        localStorage.removeItem('user_profile');
+                        // 使用 Pinia store 清除认证状态
+                        authStore.clearToken();
                         logger.log('登出成功')
 
                         await router.push('/login');
@@ -56,10 +55,8 @@ const handleLogout = async () => {
                         //响应拦截器会马上跳转login
                         logger.error('code不是200')
 
-                        localStorage.removeItem('token');
-                        sessionStorage.removeItem('token');
-                        localStorage.removeItem('remember');
-                        localStorage.removeItem('user_profile');
+                        // 即使后端返回错误，也要清除本地状态
+                        authStore.clearToken();
 
                         await router.push('/login');
                         message.error("错误：未登录，跳转到登陆");
@@ -71,6 +68,9 @@ const handleLogout = async () => {
                 logger.error('登出失败:', e)
                 message.error("登出失败,可能是内部错误");
 
+                // 发生错误时也清除本地状态
+                authStore.clearToken();
+                
                 // 重定向到登录页
                 await router.push('/login');
         }

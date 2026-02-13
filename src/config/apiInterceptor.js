@@ -19,6 +19,7 @@
  */
 
 import logger from '../utils/logger.js';
+import { useAuthStore } from '../stores/auth.js';
 
 // 定义API响应码处理映射对象
 const apiResponseMap = {
@@ -30,8 +31,10 @@ const apiResponseMap = {
 	},
 	'401': () => {
 		logger.error('未授权，401');
-		localStorage.removeItem('token');
-		sessionStorage.removeItem('token');
+		
+		// 使用 Pinia store 清除认证状态
+		const authStore = useAuthStore();
+		authStore.clearToken();
 
 		// 使用window.location 跳转
 		window.location.href = '/';

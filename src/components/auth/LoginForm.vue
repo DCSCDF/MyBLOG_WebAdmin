@@ -66,8 +66,10 @@ import {message} from "ant-design-vue";
 import {authApi} from "../../api/user/auth/authApi.js";
 import RsaEncryptor from "../../utils/RsaUtils.js";
 import {useRouter} from 'vue-router';
+import { useAuthStore } from '../../stores/auth.js';
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 const loginForm = ref({
         username: '',
@@ -184,23 +186,19 @@ const handleLogin = async () => {
                         message.info(`登陆成功，欢迎回来 ${loginForm.value.username}`);
                         logger.log('获取的token:' + loginResponse.data.token)
 
-                        if (loginForm.value.remember) {
-                                localStorage.setItem('token', loginResponse.data.token);
-                                sessionStorage.removeItem('token');
-                                localStorage.setItem('remember', true);
-                                localStorage.removeItem('user_profile');
+                        // 使用 Pinia store 管理 token 和用户状态
+                        authStore.setToken(
+                            loginResponse.data.token, 
+                            loginForm.value.remember,
+                            {
+                                username: loginForm.value.username,
+                                // 可以添加更多用户信息
+                                loginTime: new Date().toISOString()
+                            }
+                        );
 
-                                logger.log("长期token")
-                                router.push('/user')
-                        } else {
-                                sessionStorage.setItem('token', loginResponse.data.token);
-                                localStorage.removeItem('token');
-                                localStorage.setItem('remember', false);
-                                localStorage.removeItem('user_profile');
-
-                                logger.log("会话token")
-                                router.push('/user')
-                        }
+                        logger.log(`${loginForm.value.remember ? '长期' : '会话'}token 设置完成`)
+                        router.push('/user')
                 } else {
                         message.error(loginResponse.msg);
                         logger.error('Login 失败:', loginResponse.msg)

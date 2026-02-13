@@ -24,8 +24,8 @@ import request from '../../../utils/request.js';
 export const authApi = {
 
 	// 获取公钥API
-	publicKey: (data) => {
-		return request.get(`${AUTH_BASE_PATH}/public-key`, data);
+	publicKey: () => {
+		return request.get(`${AUTH_BASE_PATH}/public-key`);
 	},
 
 	// 登录API
@@ -33,34 +33,8 @@ export const authApi = {
 		return request.post(`${AUTH_BASE_PATH}/login`, data);
 	},
 
-	profile: async (data) => {
-		// let result;
-		// // 先检查本地存储中是否有 user_profile
-		// const storedProfile = localStorage.getItem('user_profile');
-		//
-		// if (storedProfile) {
-		// 	try {
-		// 		// 返回与API响应相同格式的数据
-		// 		result = {data: JSON.parse(storedProfile)};
-		// 	} catch (error) {
-		// 		console.error('解析本地存储的用户信息失败:', error);
-		// 		// 如果解析失败，则继续请求API
-		// 	}
-		// }
-		//
-		// if (!result) {
-		// 	// 调用API获取用户信息
-		// 	const response = await request.post(`${AUTH_BASE_PATH}/profile`, data);
-		// 	// 将获取到的用户信息存储到本地存储中
-		// 	if (response && response.data) {
-		// 		localStorage.setItem('user_profile', JSON.stringify(response.data));
-		// 	}
-		// 	result = response;
-		// }
-		//
-		// return result;
-
-		return request.post(`${AUTH_BASE_PATH}/profile`, data)
+	profile: async () => {
+		return request.post(`${AUTH_BASE_PATH}/profile`)
 	},
 
 	// 退出登录 API

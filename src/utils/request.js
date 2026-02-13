@@ -27,7 +27,7 @@
 import axios from 'axios';
 import {handleAjCaptchaResponse} from '../config/captchaInterceptor.js'; // 导入验证码响应处理函数
 import {handleApi} from '../config/apiInterceptor.js';
-import {tools} from "./tools.js";
+import {useAuthStore} from '../stores/auth.js';
 // 使用环境变量设置请求的基础URL，支持不同环境下的API地址配置
 /* eslint-disable no-undef */
 // 从环境变量获取API基础URL，如果未定义则使用相对路径（配合代理使用）
@@ -54,7 +54,11 @@ const service = axios.create({
 // 请求拦截器 - 在发送请求前对请求进行处理
 service.interceptors.request.use(
     (config) => {
-	    const token = tools.getToken(); // 每次请求都重新获取
+
+	    // 使用 Pinia store 获取当前 token
+	    const authStore = useAuthStore();
+	    const token = authStore.currentToken;
+
 	    if (token) {
 		    config.headers.token = `${token}`;
 	    }
