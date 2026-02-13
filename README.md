@@ -2,6 +2,8 @@
 
 这是一个基于 Vue 3 + Vite 构建的博客管理系统后台。
 
+![img.png](docimg/img.png)
+
 ## 技术栈
 
 <div align="center">
