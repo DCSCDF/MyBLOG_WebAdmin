@@ -181,13 +181,58 @@
 					<div class="mb-4">
 						<div class="flex items-center justify-between mb-2">
 							<span class="font-medium">已关联权限</span>
-							<a-button
-								v-if="permissionRole && !permissionRole.isSystem"
-								type="primary"
-								size="small"
-								@click="showAddPermissionModal = true">添加权限</a-button>
+							<a-space>
+								<a-radio-group v-model:value="permissionViewMode" size="small">
+									<a-radio-button value="tree">
+										<AppstoreOutlined /> 树形
+									</a-radio-button>
+									<a-radio-button value="list">
+										<UnorderedListOutlined /> 列表
+									</a-radio-button>
+								</a-radio-group>
+								<a-button
+									v-if="permissionRole && !permissionRole.isSystem"
+									type="primary"
+									size="small"
+									@click="showAddPermissionModal = true">添加权限</a-button>
+							</a-space>
 						</div>
+						
+						<!-- 树形展示 -->
+						<div v-if="permissionViewMode === 'tree'">
+							<a-tree
+								:tree-data="rolePermissionTreeData"
+								:field-names="{ children: 'children', title: 'name', key: 'id' }"
+								:show-line="{ showLeafIcon: false }"
+								:default-expand-all="true"
+								block-node>
+								<template #title="{ name, code, fromGroup, id }">
+									<div class="flex items-center justify-between w-full pr-4">
+										<div class="flex flex-col flex-1">
+											<div class="flex items-center gap-2">
+												<span class="font-medium">{{ name }}</span>
+												<a-tag :color="fromGroup ? 'blue' : 'green'" size="small">
+													{{ fromGroup ? '来自权限组' : '直接添加' }}
+												</a-tag>
+											</div>
+											<span class="text-xs text-gray-500">{{ code }}</span>
+										</div>
+										<a-popconfirm 
+											v-if="!fromGroup"
+											title="确定移除此权限？" 
+											@confirm.stop="removePermission(id)">
+											<a-button type="link" size="small" danger>移除</a-button>
+										</a-popconfirm>
+										<span v-else class="text-gray-400 text-xs">需移除权限组</span>
+									</div>
+								</template>
+							</a-tree>
+							<div v-if="!rolePermissionTreeData.length" class="text-gray-400 text-sm py-2">暂无</div>
+						</div>
+						
+						<!-- 列表展示 -->
 						<a-table
+							v-else
 							:columns="permissionColumns"
 							:data-source="permissionsWithSource"
 							:pagination="false"
@@ -211,7 +256,7 @@
 								</template>
 							</template>
 						</a-table>
-						<div v-if="!permissionsWithSource.length" class="text-gray-400 text-sm py-2">暂无</div>
+						<div v-if="permissionViewMode === 'list' && !permissionsWithSource.length" class="text-gray-400 text-sm py-2">暂无</div>
 					</div>
 					<!-- 已关联权限组 -->
 					<div>
@@ -251,15 +296,19 @@
 			:confirm-loading="addPermissionLoading"
 			@ok="doAddPermission"
 			@cancel="selectedPermissionId = null">
-			<a-select
+			<a-tree-select
 				v-model:value="selectedPermissionId"
 				placeholder="请选择要添加的权限"
 				style="width: 100%;"
 				:loading="permissionListLoading"
-				show-search
-				:filter-option="filterPermissionOption"
-				:options="permissionOptions"
-				:field-names="{ label: 'name', value: 'id' }" />
+				:tree-data="permissionTreeOptions"
+				:field-names="{ children: 'children', label: 'name', value: 'id' }"
+				:show-search="true"
+				:filter-tree-node="filterPermissionTreeNode"
+				tree-default-expand-all
+				:tree-checkable="false"
+				:tree-node-filter-prop="'name'"
+				@select="onPermissionSelect" />
 		</a-modal>
 
 		<!-- 添加权限组弹窗 -->
@@ -286,11 +335,12 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { message } from 'ant-design-vue';
-import { InfoCircleOutlined } from '@ant-design/icons-vue';
+import { InfoCircleOutlined, AppstoreOutlined, UnorderedListOutlined } from '@ant-design/icons-vue';
 import { useRoleStore } from '../../../../stores/role.js';
 import { usePermissionStore } from '../../../../stores/permission.js';
 import { usePermissionGroupStore } from '../../../../stores/permissiongroup.js';
 import logger from '../../../../utils/logger.js';
+import { buildPermissionTree, getAllChildrenIds, hasChildren, checkPermissionConflict, flattenPermissionTree } from '../../../../utils/permissionTree.js';
 
 const roleStore = useRoleStore();
 const permissionStore = usePermissionStore();
@@ -319,6 +369,7 @@ const columns = [
 // 存储所有权限组中的权限ID集合
 const permissionIdsFromGroups = ref(new Set());
 const loadingGroupPermissions = ref(false);
+const permissionViewMode = ref('tree'); // 'tree' 或 'list'
 
 // 计算权限来源：哪些权限来自权限组，哪些是直接添加的
 const permissionsWithSource = computed(() => {
@@ -332,6 +383,14 @@ const permissionsWithSource = computed(() => {
 			fromGroup
 		};
 	});
+});
+
+// 计算角色权限树形数据
+const rolePermissionTreeData = computed(() => {
+	if (permissionViewMode.value === 'tree') {
+		return buildPermissionTree(permissionsWithSource.value);
+	}
+	return [];
 });
 
 // 权限配置抽屉内：已关联权限表格列（非系统角色显示操作列）
@@ -416,6 +475,7 @@ const addGroupLoading = ref(false);
 const permissionListLoading = ref(false);
 const groupListLoading = ref(false);
 const permissionOptions = ref([]);
+const permissionTreeOptions = ref([]);
 const groupOptions = ref([]);
 
 function formatDate(val) {
@@ -525,12 +585,77 @@ function openDetail(record) {
 	detailVisible.value = true;
 }
 
-function openEdit(record) {
+async function openEdit(record) {
 	// 系统内置角色不可编辑（双重保护，UI 已经隐藏按钮）
 	if (record.isSystem) {
 		message.warning('系统内置角色不可修改');
 		return;
 	}
+	
+	// 检查权限冲突：权限组中的权限（如果是父权限，要包含所有子权限）与权限列表不能重复
+	try {
+		await roleStore.fetchPermissionsDetail(record.id);
+		const roleDetail = roleStore.roleDetail;
+		
+		if (roleDetail) {
+			// 获取权限组中的所有权限（如果是父权限，要包含所有子权限）
+			const groupPermissionsFlat = [];
+			if (roleDetail.permissionGroups && roleDetail.permissionGroups.length > 0) {
+				// 构建所有权限的 code 映射
+				const allPermissions = await permissionStore.fetchPermissions({ currentPage: 1, pageSize: 500 });
+				const codeMap = new Map();
+				allPermissions.forEach(p => {
+					codeMap.set(p.code, p);
+				});
+				
+				// 获取每个权限组的权限，并展开父权限的所有子权限
+				for (const group of roleDetail.permissionGroups) {
+					try {
+						const groupPerms = await permissionGroupStore.fetchGroupPermissions(group.id);
+						// 对于每个权限，如果是父权限，需要包含所有子权限
+						for (const perm of groupPerms) {
+							groupPermissionsFlat.push(perm);
+							// 检查是否是父权限，如果是，添加所有子权限
+							const permInTree = findPermissionInTree(buildPermissionTree(allPermissions), perm.id);
+							if (permInTree && hasChildren(permInTree)) {
+								const allChildren = flattenPermissionTree([permInTree]);
+								allChildren.forEach(child => {
+									if (child.id !== perm.id && !groupPermissionsFlat.find(p => p.id === child.id)) {
+										groupPermissionsFlat.push(child);
+									}
+								});
+							}
+						}
+					} catch (e) {
+						logger.error('获取权限组权限失败:', e);
+					}
+				}
+			}
+			
+			// 获取角色直接添加的权限
+			const directPermissions = roleDetail.permissions || [];
+			
+			// 检查是否有重复
+			const groupPermissionCodes = new Set(groupPermissionsFlat.map(p => p.code));
+			const directPermissionCodes = new Set(directPermissions.map(p => p.code));
+			
+			const conflicts = [];
+			for (const code of groupPermissionCodes) {
+				if (directPermissionCodes.has(code)) {
+					conflicts.push(code);
+				}
+			}
+			
+			if (conflicts.length > 0) {
+				message.warning(`权限冲突：权限组中的权限 "${conflicts.join('", "')}" 与角色直接添加的权限重复，请先移除冲突的权限后再编辑角色`);
+				return;
+			}
+		}
+	} catch (e) {
+		logger.error('检查权限冲突失败:', e);
+		// 如果检查失败，仍然允许编辑，但记录错误
+	}
+	
 	editForm.value = {
 		id: record.id,
 		name: record.name,
@@ -688,7 +813,10 @@ watch(showAddPermissionModal, (open) => {
 		selectedPermissionId.value = null;
 		permissionListLoading.value = true;
 		permissionStore.fetchPermissions({ currentPage: 1, pageSize: 500 }).then(() => {
-			permissionOptions.value = permissionStore.currentPermissions || [];
+			const permissions = permissionStore.currentPermissions || [];
+			permissionOptions.value = permissions;
+			// 构建树形结构
+			permissionTreeOptions.value = buildPermissionTree(permissions);
 		}).catch((e) => {
 			logger.error(e);
 			message.error('加载权限列表失败');
@@ -698,9 +826,15 @@ watch(showAddPermissionModal, (open) => {
 	}
 });
 
-function filterPermissionOption(input, option) {
-	const name = option?.name ?? option?.label ?? '';
-	return name.toLowerCase().includes((input || '').toLowerCase());
+// 树形选择器过滤函数
+function filterPermissionTreeNode(inputValue, node) {
+	const name = node.name || '';
+	return name.toLowerCase().includes((inputValue || '').toLowerCase());
+}
+
+// 处理权限选择
+function onPermissionSelect(value, node) {
+	selectedPermissionId.value = value;
 }
 
 async function doAddPermission() {
@@ -708,6 +842,68 @@ async function doAddPermission() {
 		message.warning('请选择要添加的权限');
 		return;
 	}
+	
+	// 查找选中的权限对象
+	const selectedPermission = permissionOptions.value.find(p => p.id === selectedPermissionId.value);
+	if (!selectedPermission) {
+		message.error('未找到选中的权限');
+		return;
+	}
+	
+	// 构建 code 映射
+	const codeMap = new Map();
+	permissionOptions.value.forEach(p => {
+		codeMap.set(p.code, p);
+	});
+	
+	// 获取当前角色的所有权限（包括权限组中的权限）
+	const currentPermissions = roleStore.roleDetail?.permissions || [];
+	
+	// 构建权限树以检查父子关系
+	const allPermissionsTree = buildPermissionTree(permissionOptions.value);
+	const selectedPermissionInTree = findPermissionInTree(allPermissionsTree, selectedPermissionId.value);
+	
+	if (!selectedPermissionInTree) {
+		message.error('未找到权限信息');
+		return;
+	}
+	
+	// 获取权限组中的所有权限（如果是父权限，要包含所有子权限）
+	const groupPermissionsFlat = [];
+	if (roleStore.roleDetail?.permissionGroups) {
+		for (const group of roleStore.roleDetail.permissionGroups) {
+			try {
+				const groupPerms = await permissionGroupStore.fetchGroupPermissions(group.id);
+				// 对于每个权限，如果是父权限，需要包含所有子权限
+				for (const perm of groupPerms) {
+					groupPermissionsFlat.push(perm);
+					// 检查是否是父权限，如果是，添加所有子权限
+					const permInTree = findPermissionInTree(allPermissionsTree, perm.id);
+					if (permInTree && hasChildren(permInTree)) {
+						const allChildren = flattenPermissionTree([permInTree]);
+						allChildren.forEach(child => {
+							if (child.id !== perm.id && !groupPermissionsFlat.find(p => p.id === child.id)) {
+								groupPermissionsFlat.push(child);
+							}
+						});
+					}
+				}
+			} catch (e) {
+				logger.error('获取权限组权限失败:', e);
+			}
+		}
+	}
+	
+	// 合并所有已存在的权限（角色直接添加的 + 权限组中的）
+	const allExistingPermissions = [...currentPermissions, ...groupPermissionsFlat];
+	
+	// 检查冲突
+	const conflict = checkPermissionConflict(selectedPermissionInTree, allExistingPermissions, codeMap);
+	if (conflict.conflict) {
+		message.warning(conflict.reason);
+		return;
+	}
+	
 	addPermissionLoading.value = true;
 	try {
 		await roleStore.addPermissionToRole(permissionRole.value.id, selectedPermissionId.value);
@@ -722,6 +918,20 @@ async function doAddPermission() {
 	} finally {
 		addPermissionLoading.value = false;
 	}
+}
+
+// 在树中查找权限
+function findPermissionInTree(tree, permissionId) {
+	for (const node of tree) {
+		if (node.id === permissionId) {
+			return node;
+		}
+		if (node.children && node.children.length > 0) {
+			const found = findPermissionInTree(node.children, permissionId);
+			if (found) return found;
+		}
+	}
+	return null;
 }
 
 watch(showAddGroupModal, (open) => {
@@ -749,6 +959,57 @@ async function doAddGroup() {
 		message.warning('请选择要添加的权限组');
 		return;
 	}
+	
+	// 检查权限冲突：权限组中的权限（如果是父权限，要包含所有子权限）与权限列表不能重复
+	try {
+		// 获取要添加的权限组的所有权限
+		const groupPermissions = await permissionGroupStore.fetchGroupPermissions(selectedGroupId.value);
+		
+		// 获取所有权限列表以构建树形结构
+		await permissionStore.fetchPermissions({ currentPage: 1, pageSize: 500 });
+		const allPermissions = permissionStore.currentPermissions || [];
+		const allPermissionsTree = buildPermissionTree(allPermissions);
+		
+		// 展开权限组中的权限（如果是父权限，要包含所有子权限）
+		const groupPermissionsFlat = [];
+		for (const perm of groupPermissions) {
+			groupPermissionsFlat.push(perm);
+			// 检查是否是父权限，如果是，添加所有子权限
+			const permInTree = findPermissionInTree(allPermissionsTree, perm.id);
+			if (permInTree && hasChildren(permInTree)) {
+				const allChildren = flattenPermissionTree([permInTree]);
+				allChildren.forEach(child => {
+					if (child.id !== perm.id && !groupPermissionsFlat.find(p => p.id === child.id)) {
+						groupPermissionsFlat.push(child);
+					}
+				});
+			}
+		}
+		
+		// 获取角色直接添加的权限
+		const directPermissions = roleStore.roleDetail?.permissions || [];
+		
+		// 检查是否有重复
+		const groupPermissionCodes = new Set(groupPermissionsFlat.map(p => p.code));
+		const directPermissionCodes = new Set(directPermissions.map(p => p.code));
+		
+		const conflicts = [];
+		for (const code of groupPermissionCodes) {
+			if (directPermissionCodes.has(code)) {
+				conflicts.push(code);
+			}
+		}
+		
+		if (conflicts.length > 0) {
+			message.warning(`权限冲突：权限组中的权限 "${conflicts.join('", "')}" 与角色直接添加的权限重复，不能同时关联`);
+			return;
+		}
+	} catch (e) {
+		logger.error('检查权限冲突失败:', e);
+		message.error('检查权限冲突失败，请稍后重试');
+		return;
+	}
+	
 	addGroupLoading.value = true;
 	try {
 		await roleStore.addPermissionGroupToRole(permissionRole.value.id, selectedGroupId.value);

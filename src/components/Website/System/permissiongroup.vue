@@ -173,15 +173,19 @@
 			:confirm-loading="addPermissionLoading"
 			@ok="doAddPermission"
 			@cancel="selectedPermissionId = null">
-			<a-select
+			<a-tree-select
 				v-model:value="selectedPermissionId"
 				placeholder="请选择要添加的权限"
 				style="width: 100%;"
 				:loading="permissionOptionsLoading"
-				show-search
-				:filter-option="filterPermissionOption"
-				:options="permissionOptions"
-				:field-names="{ label: 'name', value: 'id' }" />
+				:tree-data="permissionTreeOptions"
+				:field-names="{ children: 'children', label: 'name', value: 'id' }"
+				:show-search="true"
+				:filter-tree-node="filterPermissionTreeNode"
+				tree-default-expand-all
+				:tree-checkable="false"
+				:tree-node-filter-prop="'name'"
+				@select="onPermissionSelect" />
 		</a-modal>
 	</a-card>
 </template>
@@ -192,6 +196,7 @@ import { message } from 'ant-design-vue';
 import { usePermissionGroupStore } from '../../../stores/permissiongroup.js';
 import { usePermissionStore } from '../../../stores/permission.js';
 import logger from '../../../utils/logger.js';
+import { buildPermissionTree, hasChildren, checkPermissionConflict, flattenPermissionTree } from '../../../utils/permissionTree.js';
 
 const permissionGroupStore = usePermissionGroupStore();
 const permissionStore = usePermissionStore();
@@ -263,6 +268,7 @@ const selectedPermissionId = ref(null);
 const addPermissionLoading = ref(false);
 const permissionOptionsLoading = ref(false);
 const permissionOptions = ref([]);
+const permissionTreeOptions = ref([]);
 
 function formatDate(val) {
 	if (!val) return '-';
@@ -431,7 +437,10 @@ watch(showAddPermission, (open) => {
 		selectedPermissionId.value = null;
 		permissionOptionsLoading.value = true;
 		permissionStore.fetchPermissions({ currentPage: 1, pageSize: 500 }).then(() => {
-			permissionOptions.value = permissionStore.currentPermissions || [];
+			const permissions = permissionStore.currentPermissions || [];
+			permissionOptions.value = permissions;
+			// 构建树形结构
+			permissionTreeOptions.value = buildPermissionTree(permissions);
 		}).catch((e) => {
 			logger.error(e);
 			message.error('加载权限列表失败');
@@ -441,9 +450,15 @@ watch(showAddPermission, (open) => {
 	}
 });
 
-function filterPermissionOption(input, option) {
-	const name = (option?.name ?? option?.label ?? '').toString();
-	return name.toLowerCase().includes((input || '').toLowerCase());
+// 树形选择器过滤函数
+function filterPermissionTreeNode(inputValue, node) {
+	const name = node.name || '';
+	return name.toLowerCase().includes((inputValue || '').toLowerCase());
+}
+
+// 处理权限选择
+function onPermissionSelect(value, node) {
+	selectedPermissionId.value = value;
 }
 
 async function doAddPermission() {
@@ -456,6 +471,39 @@ async function doAddPermission() {
 		message.warning('系统内置权限组不可修改');
 		return;
 	}
+	
+	// 查找选中的权限对象
+	const selectedPermission = permissionOptions.value.find(p => p.id === selectedPermissionId.value);
+	if (!selectedPermission) {
+		message.error('未找到选中的权限');
+		return;
+	}
+	
+	// 构建 code 映射
+	const codeMap = new Map();
+	permissionOptions.value.forEach(p => {
+		codeMap.set(p.code, p);
+	});
+	
+	// 获取权限组中已有的权限
+	const existingPermissions = permissionGroupStore.currentGroupPermissions || [];
+	
+	// 构建权限树以检查父子关系
+	const allPermissionsTree = buildPermissionTree(permissionOptions.value);
+	const selectedPermissionInTree = findPermissionInTree(allPermissionsTree, selectedPermissionId.value);
+	
+	if (!selectedPermissionInTree) {
+		message.error('未找到权限信息');
+		return;
+	}
+	
+	// 检查冲突
+	const conflict = checkPermissionConflict(selectedPermissionInTree, existingPermissions, codeMap);
+	if (conflict.conflict) {
+		message.warning(conflict.reason);
+		return;
+	}
+	
 	addPermissionLoading.value = true;
 	try {
 		await permissionGroupStore.addPermissionToGroup(selectedGroup.value.id, selectedPermissionId.value);
@@ -468,6 +516,20 @@ async function doAddPermission() {
 	} finally {
 		addPermissionLoading.value = false;
 	}
+}
+
+// 在树中查找权限
+function findPermissionInTree(tree, permissionId) {
+	for (const node of tree) {
+		if (node.id === permissionId) {
+			return node;
+		}
+		if (node.children && node.children.length > 0) {
+			const found = findPermissionInTree(node.children, permissionId);
+			if (found) return found;
+		}
+	}
+	return null;
 }
 
 async function removePermission(permissionId) {
