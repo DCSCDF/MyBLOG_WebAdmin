@@ -22,8 +22,6 @@ import 'ant-design-vue/dist/reset.css'
 import './style/style.css'
 import './style/fonts.css'
 import './style/captcha-responsive.css'
-import {useAuthStore} from './stores/auth.js'
-
 const app = createApp(App)
 const pinia = createPinia()
 
@@ -31,8 +29,4 @@ app.use(pinia)
 app.use(router)
 app.use(Antd)
 
-// 初始化 token 从存储中恢复
-const authStore = useAuthStore();
-authStore.initTokenFromStorage();
-
-app.mount('#app') 
+app.mount('#app')
