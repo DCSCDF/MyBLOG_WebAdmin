@@ -29,13 +29,35 @@
  * logger.error('错误信息');
  * logger.debug('调试信息');
  */
+// 输出当前环境信息
+const logEnvironmentInfo = () => {
+	console.log('%c[Logger] 当前运行环境信息:', 'color: #4CAF50; font-weight: bold;');
+	console.log('%c- 运行模式:', 'color: #2196F3;', import.meta.env.MODE);
+	console.log('%c- 日志输出:', 'color: #2196F3;', import.meta.env.VITE_SHOW_CONSOLE_LOGS === 'true' ? '启用' : '禁用');
+	console.log('%c- 调试模式:', 'color: #2196F3;', import.meta.env.VITE_DEBUG_MODE === 'true' ? '启用' : '禁用');
+	console.log('%c- API地址:', 'color: #2196F3;', import.meta.env.VITE_API_BASE_URL);
+};
+
+// 注意：环境信息输出已移至 App.vue 中手动调用，避免重复输出
+
 const logger = {
+	/**
+	 * 输出当前环境信息
+	 * 显示运行模式、日志配置、API地址等关键信息
+	 */
+	environment: () => {
+		logEnvironmentInfo();
+	},
+
 	/**
 	 * 普通日志输出
 	 * 在开发环境或VITE_SHOW_CONSOLE_LOGS为' true '时输出
 	 */
 	log: (...args) => {
-		if (import.meta.env.VITE_SHOW_CONSOLE_LOGS === 'true' || import.meta.env.MODE === 'development') {
+		// 当明确设置为 false 时不输出，否则在开发环境或设置为 true 时输出
+		const showLogs = import.meta.env.VITE_SHOW_CONSOLE_LOGS !== 'false' &&
+		    (import.meta.env.VITE_SHOW_CONSOLE_LOGS === 'true' || import.meta.env.MODE === 'development');
+		if (showLogs) {
 			console.log(...args);
 		}
 	},
@@ -44,7 +66,10 @@ const logger = {
 	 * 在开发环境或VITE_SHOW_CONSOLE_LOGS为' true '时输出
 	 */
 	warn: (...args) => {
-		if (import.meta.env.VITE_SHOW_CONSOLE_LOGS === 'true' || import.meta.env.MODE === 'development') {
+		// 当明确设置为 false 时不输出，否则在开发环境或设置为 true 时输出
+		const showLogs = import.meta.env.VITE_SHOW_CONSOLE_LOGS !== 'false' &&
+		    (import.meta.env.VITE_SHOW_CONSOLE_LOGS === 'true' || import.meta.env.MODE === 'development');
+		if (showLogs) {
 			console.warn(...args);
 		}
 	},
@@ -60,8 +85,11 @@ const logger = {
 	 * 仅在开发环境且VITE_SHOW_CONSOLE_LOGS为'true'同时VITE_DEBUG_MODE为' true '时输出
 	 */
 	debug: (...args) => {
-		if ((import.meta.env.VITE_SHOW_CONSOLE_LOGS === 'true' || import.meta.env.MODE === 'development')
-		    && import.meta.env.VITE_DEBUG_MODE === 'true') {
+		// debug 日志需要同时满足：不被禁用、在开发环境或启用状态、debug 模式开启
+		const showLogs = import.meta.env.VITE_SHOW_CONSOLE_LOGS !== 'false' &&
+		    (import.meta.env.VITE_SHOW_CONSOLE_LOGS === 'true' || import.meta.env.MODE === 'development') &&
+		    import.meta.env.VITE_DEBUG_MODE === 'true';
+		if (showLogs) {
 			console.debug(...args);
 		}
 	}

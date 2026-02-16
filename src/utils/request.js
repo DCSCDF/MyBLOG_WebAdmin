@@ -73,25 +73,76 @@ service.interceptors.request.use(
 // 响应拦截器 - 对响应数据进行处理
 service.interceptors.response.use(
     response => {
-	    // 提取响应中的data部分并返回
-	    const {repCode, code} = response.data;
+	    // 初始化返回结果变量
+	    let finalResult = null;
+	    let isError = false;
+	    let errorObj = null;
 
-	    // 使用验证码处理工具处理Captcha响应码
-	    handleAjCaptchaResponse(repCode);
+	    // 提取响应中的数据
+	    const {data, success, errorMsg, code, repCode} = response.data;
 
-	    // 使用API响应处理工具处理后端响应码
-	    if (code !== undefined) {
-		    handleApi(code);
+	    // 处理验证码响应码（保持原有逻辑）
+	    if (repCode) {
+		    handleAjCaptchaResponse(repCode);
 	    }
 
-	    return response.data;
+	    // 根据新的统一返回格式处理响应
+	    if (success === false) {
+		    // 处理业务错误
+		    console.error('API Error:', errorMsg);
+		    isError = true;
+		    errorObj = new Error(errorMsg || '请求失败');
+
+		    // 使用API响应处理工具处理错误码
+		    if (code !== undefined) {
+			    handleApi(code.toString());
+		    }
+	    } else {
+		    // 成功响应，使用API响应处理工具处理状态码
+		    if (code !== undefined) {
+			    handleApi(code.toString());
+		    }
+
+		    // 设置成功响应的数据
+		    finalResult = {
+			    data: data,
+			    success: success,
+			    errorMsg: errorMsg,
+			    code: code
+		    };
+	    }
+
+	    // 统一返回处理 - 只有一个返回点
+	    return isError ? Promise.reject(errorObj) : finalResult;
     },
     error => {
+	    // 初始化错误处理变量
+	    let finalError = error;
+
 	    // 响应错误时的处理
-	    // 这里可以添加统一的错误处理逻辑
-	    return Promise.reject(error);
+	    console.error('Network Error:', error);
 
+	    // 如果是HTTP状态码错误，提取相关信息
+	    if (error.response) {
+		    const {status, data} = error.response;
 
+		    // 处理HTTP状态码错误
+		    handleApi(status.toString());
+
+		    // 如果响应体有我们定义的格式，按格式处理
+		    if (data && typeof data === 'object') {
+			    const {errorMsg, code} = data;
+			    if (code !== undefined) {
+				    handleApi(code.toString());
+			    }
+			    finalError = new Error(errorMsg || `请求失败 (${status})`);
+		    } else {
+			    finalError = new Error(`请求失败 (${status})`);
+		    }
+	    }
+
+	    // 统一返回错误处理
+	    return Promise.reject(finalError);
     }
 )
 

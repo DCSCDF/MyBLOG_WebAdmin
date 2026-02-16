@@ -24,6 +24,14 @@ dist-ssr
 *.sw?
 
 
-**/.env.development
-**/.env.production
+# Environment Variables
+# 忽略实际的环境配置文件
+.env.local
+.env.*.local
+# 保留示例环境文件用于文档参考
+!.env.development
+!.env.production
 
+
+/.env.development
+/.env.production

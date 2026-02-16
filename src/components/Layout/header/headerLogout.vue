@@ -41,7 +41,7 @@ const handleLogout = async () => {
 
                 const logoutResponse = await authApi.logout()
 
-                if (logoutResponse.code === 200) {
+                if (logoutResponse.success === true) {
 
                         // 提示用户登出成功
                         message.success(logoutResponse.data.message);
@@ -53,13 +53,13 @@ const handleLogout = async () => {
                         await router.push('/login');
                 } else {
                         //响应拦截器会马上跳转login
-                        logger.error('code不是200')
+                        logger.error('登出失败:', logoutResponse.errorMsg)
 
                         // 即使后端返回错误，也要清除本地状态
                         authStore.clearToken();
 
                         await router.push('/login');
-                        message.error("错误：未登录，跳转到登陆");
+                        message.error(logoutResponse.errorMsg || "登出失败");
                 }
 
 

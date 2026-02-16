@@ -19,5 +19,10 @@
 
 <script setup>
 import {RouterView} from 'vue-router'
+import logger from './utils/logger.js'
+
+console.info("%c MyBlogDev %c", "padding: 2px 6px; border-radius: 3px 3px; color: #fff; background: #FF6699; font-weight: bold;", "padding: 2px 6px; border-radius: 3px 3px; color: #fff; background: #FF9999; font-weight: bold;")
+// 应用启动时输出环境信息
+logger.environment()
 </script>
 

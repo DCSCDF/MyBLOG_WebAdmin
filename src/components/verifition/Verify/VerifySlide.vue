@@ -276,7 +276,11 @@ export default {
                                         }), secretKey.value) : JSON.stringify({x: moveLeftDistance, y: 5.0}),
                                         "token": backToken.value
                                 }
-                                reqCheck(data).then(res => {
+                                reqCheck(data).then(response => {
+                                        // 注意：由于响应拦截器已经处理了数据结构，
+                                        // 实际的数据在 response.data 中
+                                        const res = response.data || response;
+                                        
                                         if (res.repCode == "0000") {
                                                 moveBlockBackgroundColor.value = '#5cb85c'
                                                 leftBarBorderColor.value = '#5cb85c'
@@ -310,6 +314,8 @@ export default {
                                                 iconColor.value = '#fff'
                                                 iconClass.value = 'icon-close'
                                                 passFlag.value = false
+                                                status.value = false  // 重置拖动状态
+                                                isEnd.value = false   // 重置完成状态
                                                 setTimeout(function () {
                                                         refresh();
                                                 }, 1000);
@@ -319,6 +325,22 @@ export default {
                                                         tipWords.value = ""
                                                 }, 1000)
                                         }
+                                }).catch(error => {
+                                        // 处理验证失败的情况
+                                        console.error('验证码验证失败:', error);
+                                        moveBlockBackgroundColor.value = '#d9534f'
+                                        leftBarBorderColor.value = '#d9534f'
+                                        iconColor.value = '#fff'
+                                        iconClass.value = 'icon-close'
+                                        passFlag.value = false
+                                        status.value = false
+                                        isEnd.value = false
+                                        // 显示具体的错误信息
+                                        tipWords.value = error.message || "验证失败"
+                                        setTimeout(() => {
+                                                refresh();
+                                                tipWords.value = ""
+                                        }, 1500);
                                 })
                                 status.value = false;
                         }
@@ -353,15 +375,33 @@ export default {
                         let data = {
                                 captchaType: captchaType.value
                         }
-                        reqGet(data).then(res => {
+                        reqGet(data).then(response => {
+                                // 注意：由于响应拦截器已经处理了数据结构，
+                                // 实际的数据在 response.data 中
+                                const res = response.data || response;
+                                
                                 if (res.repCode == "0000") {
+                                        // 检查关键字段是否存在且不为null
+                                        if (!res.repData || 
+                                            !res.repData.originalImageBase64 || 
+                                            !res.repData.jigsawImageBase64 || 
+                                            !res.repData.token || 
+                                            !res.repData.secretKey) {
+                                                tipWords.value = "验证码数据不完整，请刷新重试";
+                                                logger.error('验证码数据缺失:', res);
+                                                return;
+                                        }
+                                        
                                         backImgBase.value = res.repData.originalImageBase64
                                         blockBackImgBase.value = res.repData.jigsawImageBase64
                                         backToken.value = res.repData.token
                                         secretKey.value = res.repData.secretKey
                                 } else {
-                                        tipWords.value = res.repMsg;
+                                        tipWords.value = res.repMsg || "获取验证码失败";
                                 }
+                        }).catch(error => {
+                                tipWords.value = "网络请求失败，请检查网络连接";
+                                logger.error('获取验证码图片失败:', error);
                         })
                 }
 

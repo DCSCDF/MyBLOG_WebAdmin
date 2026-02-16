@@ -181,7 +181,7 @@ const handleLogin = async () => {
                 const loginResponse = await authApi.login(loginData)
                 logger.log('Login ', loginResponse)
 
-                if (loginResponse.code === 200) {
+                if (loginResponse.success === true) {
 
                         message.info(`登陆成功，欢迎回来 ${loginForm.value.username}`);
                         logger.log('获取的token:' + loginResponse.data.token)
@@ -200,8 +200,8 @@ const handleLogin = async () => {
                         logger.log(`${loginForm.value.remember ? '长期' : '会话'}token 设置完成`)
                         router.push('/user')
                 } else {
-                        message.error(loginResponse.msg);
-                        logger.error('Login 失败:', loginResponse.msg)
+                        message.error(loginResponse.errorMsg);
+                        logger.error('Login 失败:', loginResponse.errorMsg)
 
                         //延时解除加载状态 防止重复点击
                         setTimeout(() => {
@@ -221,7 +221,7 @@ const handleLogin = async () => {
         } else {
                 // 验证码失败处理
                 logger.log('Login 验证码失败', publicKeyResponse)
-                message.error('服务器错误');
+                message.error(publicKeyResponse.errorMsg || '服务器错误');
 
                 //延时解除加载状态 防止重复点击
                 setTimeout(() => {

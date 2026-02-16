@@ -61,7 +61,7 @@ import logger from "../../../utils/logger.js";
 import HeaderLogout from "./headerLogout.vue";
 import {MenuFoldOutlined, MenuUnfoldOutlined,} from '@ant-design/icons-vue';
 import {useAuthStore} from '../../../stores/auth.js';
-import { useAppStore } from '../../../stores/app.js';
+import {useAppStore} from '../../../stores/app.js';
 
 const props = defineProps({
         collapsed: {
@@ -106,6 +106,7 @@ const handleMenuToggle = () => {
 };
 
 onMounted(async () => {
+
         try {
                 const response = await authApi.profile();
                 logger.log("用户信息", response);

@@ -62,7 +62,7 @@ export const usePermissionStore = defineStore('permission', () => {
 
 			const response = await permissionApi.permissionList(requestParams);
 
-			if (response.code === 200 && response.data) {
+			if (response.success === true && response.data) {
 				const paginationData = response.data;
 				const permissionData = paginationData.records || [];
 				const total = paginationData.total || 0;
@@ -82,7 +82,7 @@ export const usePermissionStore = defineStore('permission', () => {
 				logger.log('权限列表获取成功，总数:', total);
 				return formattedData;
 			} else {
-				const errorMsg = response.msg || '获取权限列表失败';
+				const errorMsg = response.errorMsg || '获取权限列表失败';
 				logger.error('获取权限列表失败:', errorMsg);
 				throw new Error(errorMsg);
 			}

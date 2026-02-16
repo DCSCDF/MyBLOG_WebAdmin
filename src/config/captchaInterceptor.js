@@ -9,7 +9,7 @@
  * author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
  * license: "MIT"
  * license_exception: "Mandatory attribution retention"
- * UpdateTime: 2026/2/2 18:23
+ UpdateTime: 2026/2/16 18:00
  *
  */
 
@@ -23,7 +23,6 @@
  */
 
 import logger from '../utils/logger.js';
-import {message} from "ant-design-vue";
 
 // 定义Captcha响应码处理映射对象
 const captchaResponseMap = {
@@ -35,39 +34,39 @@ const captchaResponseMap = {
 	},
 	'0011': () => {
 		logger.error('参数不能为空');
-		message.error('参数不能为空');
+		// message.error('参数不能为空');
 	},
 	'6110': () => {
 		logger.error('验证码已失效，请重新获取');
-		message.warning('验证码已失效，请重新获取');
+		//message.warning('验证码已失效，请重新获取');
 	},
 	'6111': () => {
 		logger.error('验证失败');
-		// message.warning('验证失败');
+		//message.warning('验证失败');
 	},
 	'6112': () => {
 		logger.error('获取验证码失败,请联系管理员');
-		message.error('获取验证码失败,请联系管理员');
+		//message.error('获取验证码失败,请联系管理员');
 	},
 	'6113': () => {
 		logger.error('底图未初始化成功，请检查路径');
-		message.error('底图未初始化成功，请检查路径');
+		//message.error('底图未初始化成功，请检查路径');
 	},
 	'6201': () => {
 		logger.error('get接口请求次数超限，请稍后再试!');
-		message.warning('get接口请求次数超限，请稍后再试!');
+		//message.warning('get接口请求次数超限，请稍后再试!');
 	},
 	'6206': () => {
 		logger.error('无效请求，请重新获取验证码');
-		message.error('无效请求，请重新获取验证码');
+		//message.error('无效请求，请重新获取验证码');
 	},
 	'6202': () => {
 		logger.error('接口验证失败数过多，请稍后再试');
-		message.warning('验证失败数过多，请稍后再试');
+		//message.warning('验证失败数过多，请稍后再试');
 	},
 	'6204': () => {
 		logger.error('check接口请求次数超限，请稍后再试!');
-		message.warning('请求次数超限，请稍后再试!');
+		//message.warning('请求次数超限，请稍后再试!');
 	}
 };
 

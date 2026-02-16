@@ -169,7 +169,11 @@ export default {
                                                 "pointJson": secretKey.value ? aesEncrypt(JSON.stringify(checkPosArr), secretKey.value) : JSON.stringify(checkPosArr),
                                                 "token": backToken.value
                                         }
-                                        reqCheck(data).then(res => {
+                                        reqCheck(data).then(response => {
+                                                // 注意：由于响应拦截器已经处理了数据结构，
+                                                // 实际的数据在 response.data 中
+                                                const res = response.data || response;
+                                                
                                                 if (res.repCode == "0000") {
                                                         barAreaColor.value = '#4cae4c'
                                                         barAreaBorderColor.value = '#5cb85c'
@@ -187,6 +191,11 @@ export default {
                                                         barAreaColor.value = '#d9534f'
                                                         barAreaBorderColor.value = '#d9534f'
                                                         text.value = '验证失败'
+                                                        // 重置点击状态
+                                                        bindingClick.value = true
+                                                        num.value = 1
+                                                        tempPoints.splice(0, tempPoints.length)
+                                                        checkPosArr.splice(0, checkPosArr.length)
                                                         setTimeout(() => {
                                                                 refresh();
                                                         }, 700);
@@ -227,16 +236,36 @@ export default {
                         let data = {
                                 captchaType: captchaType.value
                         }
-                        reqGet(data).then(res => {
+                        reqGet(data).then(response => {
+                                // 注意：由于响应拦截器已经处理了数据结构，
+                                // 实际的数据在 response.data 中
+                                const res = response.data || response;
+                                
                                 if (res.repCode == "0000") {
+                                        // 检查关键字段是否存在且不为null
+                                        if (!res.repData || 
+                                            !res.repData.originalImageBase64 || 
+                                            !res.repData.token || 
+                                            !res.repData.secretKey ||
+                                            !res.repData.wordList || 
+                                            !Array.isArray(res.repData.wordList) || 
+                                            res.repData.wordList.length === 0) {
+                                                text.value = "验证码数据不完整，请刷新重试";
+                                                logger.error('点选验证码数据缺失:', res);
+                                                return;
+                                        }
+                                        
                                         pointBackImgBase.value = res.repData.originalImageBase64
                                         backToken.value = res.repData.token
                                         secretKey.value = res.repData.secretKey
                                         poinTextList.value = res.repData.wordList
                                         text.value = '请依次点击【' + poinTextList.value.join(",") + '】'
                                 } else {
-                                        text.value = res.repMsg;
+                                        text.value = res.repMsg || "获取验证码失败";
                                 }
+                        }).catch(error => {
+                                text.value = "网络请求失败，请检查网络连接";
+                                logger.error('获取点选验证码图片失败:', error);
                         })
                 }
 

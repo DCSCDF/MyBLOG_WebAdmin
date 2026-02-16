@@ -9,7 +9,7 @@
  * author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
  * license: "MIT"
  * license_exception: "Mandatory attribution retention"
- * UpdateTime: 2026/2/2 18:23
+ UpdateTime: 2026/2/16 18:00
  *
  */
 
@@ -30,17 +30,17 @@ const apiResponseMap = {
 		logger.error('请求参数错误');
 	},
 	'401': () => {
-		logger.error('未授权，401');
+		logger.error('未授权，请先登录');
 		
 		// 使用 Pinia store 清除认证状态
 		const authStore = useAuthStore();
 		authStore.clearToken();
 
-		// 使用window.location 跳转
-		window.location.href = '/';
+		// 跳转到登录页
+		window.location.href = '/login';
 	},
 	'403': () => {
-		logger.error('拒绝访问');
+		logger.error('拒绝访问，权限不足');
 	},
 	'404': () => {
 		logger.error('请求的资源不存在');
@@ -68,13 +68,18 @@ const apiResponseMap = {
 /**
  * 处理后端响应码
  * 根据不同的响应码进行相应的日志记录和处理
- * @param {string} code - 响应码
+ * @param {string|number} code - 响应码
  * @returns {void}
  */
 export const handleApi = (code) => {
-	const handler = apiResponseMap[code];
+	// 将数字转换为字符串进行匹配
+	const codeStr = code.toString();
+	const handler = apiResponseMap[codeStr];
+	
 	if (handler) {
 		handler();
+	} else {
+		// 处理未定义的状态码
+		logger.warn(`未定义的响应码: ${code}`);
 	}
-	// 如果没有找到对应的处理函数，则不做任何操作
 };
