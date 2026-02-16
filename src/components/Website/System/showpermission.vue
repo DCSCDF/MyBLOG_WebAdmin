@@ -17,37 +17,47 @@
                 <div class="mb-4 flex items-center justify-between">
                         <div>
                                 <h2 class="font-bold text-lg mb-1">权限列表</h2>
-                                <span class="text-sm text-gray-600">(当前仅作为查看权限用，无法修改。)</span>
+                                <span class="text-sm text-gray-600">当前仅作为查看权限用，无法修改。</span>
                         </div>
-                        <a-radio-group v-model:value="viewMode" size="small">
-                                <a-radio-button value="tree">
-                                        <AppstoreOutlined /> 树形
-                                </a-radio-button>
-                                <a-radio-button value="list">
-                                        <UnorderedListOutlined /> 列表
-                                </a-radio-button>
-                        </a-radio-group>
+                        <a-select
+                            v-model:value="viewMode"
+                            size="small"
+                            style="width: 100px">
+                                <a-select-option value="tree">树形视图</a-select-option>
+                                <a-select-option value="list">列表视图</a-select-option>
+                        </a-select>
                 </div>
 
                 <!-- 树形展示 -->
                 <div v-if="viewMode === 'tree'">
                         <a-tree
-                            :tree-data="permissionTreeData"
+                            v-model:expandedKeys="expandedKeys"
                             :field-names="{ children: 'children', title: 'name', key: 'id' }"
                             :show-line="{ showLeafIcon: false }"
-                            :default-expand-all="true"
-                            block-node>
-                                <template #title="{ name, code, description }">
-                                        <div class="flex items-center justify-between w-full pr-4">
-                                                <div class="flex flex-col">
-                                                        <span class="font-medium">{{ name }}</span>
-                                                        <span class="text-xs text-gray-500">{{ code }}</span>
+                            :tree-data="permissionTreeData"
+                            block-node
+                            style="min-height: 300px;"
+                            @select="onTreeNodeSelect">
+                                <template #title="{ name, code }">
+                                        <div
+                                            class="flex items-center justify-between w-auto h-12 px-2 mx-2 relative box-border cursor-pointer">
+                                                <div
+                                                    class="flex-1 min-w-0 overflow-hidden flex flex-col justify-center">
+                                                        <div
+                                                            class="font-medium whitespace-nowrap overflow-hidden text-ellipsis text-sm">
+                                                                {{ name }}
+                                                        </div>
+                                                        <div
+                                                            class="text-xs text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis">
+                                                                {{ code }}
+                                                        </div>
                                                 </div>
-                                                <a-button size="small" type="link" @click.stop="viewPermissionById(code)">查看</a-button>
                                         </div>
                                 </template>
                         </a-tree>
-                        <div v-if="!permissionTreeData.length && !loading" class="text-gray-400 text-sm py-8 text-center">暂无权限数据</div>
+                        <div v-if="!permissionTreeData.length && !loading"
+                             class="text-gray-400 text-sm py-8 text-center">暂无权限数据
+                        </div>
                 </div>
 
                 <!-- 列表展示 -->
@@ -126,8 +136,7 @@
         </a-card>
 </template>
 <script setup>
-import {computed, onMounted, ref} from 'vue';
-import {AppstoreOutlined, UnorderedListOutlined} from '@ant-design/icons-vue';
+import {computed, onMounted, ref, watch} from 'vue';
 import {usePermissionStore} from '../../../stores/permission.js';
 import logger from "../../../utils/logger.js";
 import {buildPermissionTree} from '../../../utils/permissionTree.js';
@@ -142,12 +151,6 @@ const paginationConfig = computed(() => permissionStore.pagination);
 
 // 表格列配置
 const columns = [
-        // {
-        //         title: '排序顺序',
-        //         dataIndex: 'order',
-        //         key: 'order',
-        //         width: 70,
-        // },
         {
                 title: '权限编码',
                 dataIndex: 'code',
@@ -178,13 +181,14 @@ const columns = [
 const viewDrawerVisible = ref(false);
 const currentPermission = ref(null);
 const viewMode = ref('tree'); // 'tree' 或 'list'
+const expandedKeys = ref([]); // 默认展开的节点key
 
 // 计算树形数据
 const permissionTreeData = computed(() => {
-	if (viewMode.value === 'tree') {
-		return buildPermissionTree(permissionStore.currentPermissions || []);
-	}
-	return [];
+        if (viewMode.value === 'tree') {
+                return buildPermissionTree(permissionStore.currentPermissions || []);
+        }
+        return [];
 });
 
 
@@ -220,16 +224,20 @@ const handleTableChange = (pagination, filters, sorter) => {
 
 // 查看权限详情
 const viewPermission = (record) => {
-	currentPermission.value = record;
-	viewDrawerVisible.value = true;
+        currentPermission.value = record;
+        viewDrawerVisible.value = true;
 };
 
-// 根据code查找权限并查看详情
-const viewPermissionById = (code) => {
-	const permission = permissionStore.currentPermissions.find(p => p.code === code);
-	if (permission) {
-		viewPermission(permission);
-	}
+// 树节点选择事件处理
+const onTreeNodeSelect = (selectedKeys, {selectedNodes}) => {
+        if (selectedNodes.length > 0) {
+                const node = selectedNodes[0];
+                // 根据节点数据查找对应的权限
+                const permission = permissionStore.currentPermissions.find(p => p.code === node.code);
+                if (permission) {
+                        viewPermission(permission);
+                }
+        }
 };
 
 
@@ -261,6 +269,23 @@ const formatDate = (dateString) => {
 onMounted(() => {
         logger.log("组件挂载，分页配置:", paginationConfig.value);
         loadTableData();
+});
+
+// 监听树数据变化，自动展开所有节点
+watch(permissionTreeData, (newVal) => {
+        if (newVal && newVal.length > 0) {
+                const getAllKeys = (nodes) => {
+                        let keys = [];
+                        nodes.forEach(node => {
+                                keys.push(node.id);
+                                if (node.children && node.children.length > 0) {
+                                        keys = keys.concat(getAllKeys(node.children));
+                                }
+                        });
+                        return keys;
+                };
+                expandedKeys.value = getAllKeys(newVal);
+        }
 });
 
 

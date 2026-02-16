@@ -31,6 +31,11 @@ h6 {
     font-weight: 500;
 }
 
+/* 修复Tailwind CSS导致的图片图标居中问题 */
+img, svg, video, canvas, audio, iframe, embed, object {
+    vertical-align: baseline !important;
+}
+
 /* 全局滚动条样式 */
 ::-webkit-scrollbar {
     width: 6px;
@@ -50,24 +55,4 @@ h6 {
     background: rgba(155, 155, 155, 0.7);
 }
 
-
-/* 表格横向滚动优化 */
-.ant-table-wrapper {
-    overflow-x: auto !important;
-}
-
-.ant-table {
-    width: 100%;
-    table-layout: auto;
-}
-
-/* 确保表格容器可以横向滚动 */
-.table-responsive {
-    overflow-x: auto;
-    width: 100%;
-}
-
-.table-responsive .ant-table {
-    min-width: 600px;
-}
 
