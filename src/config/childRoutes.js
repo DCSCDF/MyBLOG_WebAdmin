@@ -158,7 +158,7 @@ export const childRoutes = [
 						route: '/user/website/system/role',
 						path: '/user/website/system/role',
 						name: 'role',
-						component: () => import('../pages/User/Dashboard/Dashboard.vue'),
+						component: () => import('../pages/User/Website/System/RoleManagement.vue'),
 						meta: {title: '角色管理'},
 						description: '配置用户角色及其权限范围'
 					},
