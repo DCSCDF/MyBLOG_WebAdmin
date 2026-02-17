@@ -24,6 +24,49 @@
                         </div>
                         <a-button type="primary" @click="openCreate">新建角色</a-button>
                 </div>
+
+
+                <div
+                    class="search-filter-bar mb-4 flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center ">
+                        <div class="w-full min-w-[200px] max-w-[300px]">
+                                <a-input
+                                    v-model:value="searchKeyword"
+                                    class="w-full"
+                                    placeholder="搜索编码/名称/描述"
+                                    @press-enter="handleSearch">
+                                        <template #prefix>
+                                                <SearchOutlined/>
+                                        </template>
+                                </a-input>
+                        </div>
+                        <div class="flex gap-2">
+                                <div class="search-filter-item flex items-center gap-1 rounded-md min-w-0 my-1">
+                                        <a-select
+                                            v-model:value="searchStatus"
+                                            allow-clear
+                                            placeholder="状态">
+                                                <a-select-option v-for="opt in statusFilterOptions" :key="opt.label"
+                                                                 :value="opt.value">{{ opt.label }}
+                                                </a-select-option>
+                                        </a-select>
+                                </div>
+                                <div class="search-filter-item flex items-center gap-1 rounded-md min-w-0 my-1">
+                                        <a-select
+                                            v-model:value="searchIsSystem"
+                                            allow-clear
+                                            placeholder="系统内置">
+                                                <a-select-option v-for="opt in isSystemFilterOptions" :key="opt.label"
+                                                                 :value="opt.value">{{ opt.label }}
+                                                </a-select-option>
+                                        </a-select>
+                                </div>
+                        </div>
+                        <div class="flex shrink-0 gap-2 w-full lg:w-auto justify-end ">
+                                <a-button type="primary" @click="handleSearch">搜索</a-button>
+                                <a-button @click="handleReset">重置</a-button>
+                        </div>
+                </div>
+
                 <a-table
                     :columns="columns"
                     :data-source="roleStore.currentRoles"
@@ -36,6 +79,7 @@
                                 <template v-if="column.key === 'superAdmin'">
                                         <a-tag :bordered="false" :color="record.superAdmin ? 'red' : 'default'">
                                                 {{ record.superAdmin ? '是' : '否' }}
+                                                <!-- 超级管理员角色 code=SUPER_ADMIN，与 schema 中 sys_role 一致 -->
                                         </a-tag>
                                 </template>
                                 <template v-else-if="column.key === 'isSystem'">
@@ -265,78 +309,14 @@
                                 <div class="mb-4">
                                         <div class="flex items-center justify-between mb-2">
                                                 <span class="font-medium">已关联权限</span>
-                                                <a-space>
-                                                        <a-select
-                                                            v-if="windowWidth >= 768"
-                                                            v-model:value="permissionViewMode"
-                                                            size="small"
-                                                            style="width: 100px">
-                                                                <a-select-option value="tree">树形视图</a-select-option>
-                                                                <a-select-option value="list">列表视图</a-select-option>
-                                                        </a-select>
-                                                        <span v-else class="text-sm text-gray-600">列表视图</span>
-                                                        <a-button
-                                                            v-if="permissionRole && !permissionRole.isSystem"
-                                                            size="small"
-                                                            type="primary"
-                                                            @click="showAddPermissionModal = true">添加权限
-                                                        </a-button>
-                                                </a-space>
+                                                <a-button
+                                                    v-if="permissionRole && !permissionRole.isSystem"
+                                                    size="small"
+                                                    type="primary"
+                                                    @click="showAddPermissionModal = true">添加权限
+                                                </a-button>
                                         </div>
-
-                                        <!-- 树形展示 -->
-                                        <div v-if="permissionViewMode === 'tree'">
-                                                <a-tree
-                                                    :default-expand-all="true"
-                                                    :field-names="{ children: 'children', title: 'name', key: 'id' }"
-                                                    :show-line="{ showLeafIcon: false }"
-                                                    :tree-data="rolePermissionTreeData"
-                                                    block-node>
-                                                        <template #title="{ name, code, fromGroup, id }">
-                                                                <div
-                                                                    class="flex items-center justify-between w-full pr-4">
-                                                                        <div class="flex flex-col flex-1">
-                                                                                <div
-                                                                                    class="flex items-center gap-2">
-                                                                                                <span
-                                                                                                    class="font-medium">{{
-                                                                                                                name
-                                                                                                        }}</span>
-                                                                                        <a-tag :bordered="false"
-                                                                                               :color="fromGroup ? 'blue' : 'green'"
-                                                                                               size="small">
-                                                                                                {{
-                                                                                                        fromGroup ? '来自权限组'
-                                                                                                            : '直接添加'
-                                                                                                }}
-                                                                                        </a-tag>
-                                                                                </div>
-                                                                                <span
-                                                                                    class="text-xs text-gray-500">{{
-                                                                                                code
-                                                                                        }}</span>
-                                                                        </div>
-                                                                        <a-popconfirm
-                                                                            v-if="!fromGroup && permissionRole && !permissionRole.isSystem"
-                                                                            title="确定移除此权限？"
-                                                                            @confirm.stop="removePermission(id)">
-                                                                                <a-button danger
-                                                                                          size="small"
-                                                                                          type="link">移除
-                                                                                </a-button>
-                                                                        </a-popconfirm>
-                                                                        <span v-else
-                                                                              class="text-gray-400 text-xs">需移除权限组</span>
-                                                                </div>
-                                                        </template>
-                                                </a-tree>
-                                                <div v-if="!rolePermissionTreeData.length"
-                                                     class="text-gray-400 text-sm py-2">暂无
-                                                </div>
-                                        </div>
-
-                                        <!-- 列表展示 -->
-                                        <div v-else class="overflow-x-auto">
+                                        <div class="overflow-x-auto">
                                                 <a-table
                                                     :columns="permissionColumns"
                                                     :data-source="permissionsWithSource"
@@ -370,9 +350,8 @@
                                                         </template>
                                                 </a-table>
                                         </div>
-                                        <div
-                                            v-if="permissionViewMode === 'list' && !permissionsWithSource.length"
-                                            class="text-gray-400 text-sm py-2">暂无
+                                        <div v-if="!permissionsWithSource.length"
+                                             class="text-gray-400 text-sm py-2">没有权限查看
                                         </div>
                                 </div>
                                 <!-- 已关联权限组 -->
@@ -409,34 +388,43 @@
                                                 </a-table>
                                         </div>
                                         <div v-if="!(roleStore.roleDetail?.permissionGroups?.length)"
-                                             class="text-gray-400 text-sm py-2">暂无
+                                             class="text-gray-400 text-sm py-2">没有权限查看
                                         </div>
                                 </div>
                         </template>
                 </template>
         </a-drawer>
 
-        <!-- 添加权限弹窗 -->
+        <!-- 添加权限弹窗（表格选择） -->
         <a-modal
             v-model:open="showAddPermissionModal"
             :confirm-loading="addPermissionLoading"
             ok-text="添加"
             title="添加权限"
-            @cancel="selectedPermissionId = null"
+            width="560px"
+            @cancel="selectedPermissionId = null; addPermissionSearchKeyword = ''"
             @ok="doAddPermission">
-                <a-tree-select
-                    v-model:value="selectedPermissionId"
-                    :field-names="{ children: 'children', label: 'name', value: 'id' }"
-                    :filter-tree-node="filterPermissionTreeNode"
+                <a-input
+                    v-model:value="addPermissionSearchKeyword"
+                    allow-clear
+                    class="mb-3"
+                    placeholder="搜索权限编码/名称">
+                        <template #prefix>
+                                <SearchOutlined/>
+                        </template>
+                </a-input>
+                <a-table
+                    :columns="addPermissionTableColumns"
+                    :data-source="addPermissionTableData"
                     :loading="permissionListLoading"
-                    :show-search="true"
-                    :tree-checkable="false"
-                    :tree-data="permissionTreeOptions"
-                    :tree-node-filter-prop="'name'"
-                    placeholder="请选择要添加的权限"
-                    style="width: 100%;"
-                    tree-default-expand-all
-                    @select="onPermissionSelect"/>
+                    :pagination="false"
+                    :row-selection="{ type: 'radio', selectedRowKeys: selectedPermissionId ? [selectedPermissionId] : [], onChange: onAddPermissionRowSelect }"
+                    :scroll="{ y: 280 }"
+                    row-key="id"
+                    size="small"/>
+                <div v-if="!addPermissionTableData.length && !permissionListLoading"
+                     class="text-gray-400 text-sm py-4 text-center">暂无可选权限
+                </div>
         </a-modal>
 
         <!-- 添加权限组弹窗 -->
@@ -473,7 +461,7 @@ import {
         flattenPermissionTree,
         hasChildren
 } from '../../../../utils/permissionTree.js';
-import {InfoCircleOutlined} from "@ant-design/icons-vue";
+import {InfoCircleOutlined, SearchOutlined} from "@ant-design/icons-vue";
 
 const roleStore = useRoleStore();
 const permissionStore = usePermissionStore();
@@ -483,16 +471,9 @@ const permissionGroupStore = usePermissionGroupStore();
 const windowWidth = ref(window.innerWidth);
 const drawerWidth = computed(() => windowWidth.value < 768 ? 350 : 600);
 
-// 响应式权限视图模式（手机端强制列表视图）
-const permissionViewMode = ref(windowWidth.value < 768 ? 'list' : 'tree');
-
 // 窗口大小变化处理
 const handleResize = () => {
         windowWidth.value = window.innerWidth;
-        // 手机端强制使用列表视图
-        if (windowWidth.value < 768) {
-                permissionViewMode.value = 'list';
-        }
 };
 
 // 表格分页配置（与后端 current/size 对应）
@@ -503,6 +484,22 @@ const tablePagination = computed(() => ({
         showSizeChanger: true,
         showTotal: (total) => `共 ${total} 条`
 }));
+
+// 搜索与筛选（'' 表示不传该筛选）
+const searchKeyword = ref('');
+const searchStatus = ref(undefined);
+const searchIsSystem = ref(undefined);
+
+/** 状态下拉选项：来自接口或默认 */
+const statusFilterOptions = computed(() => {
+        const fromApi = roleStore.filterOptions?.status;
+        return fromApi && fromApi.length > 0 ? fromApi : [{value: 0, label: '禁用'}, {value: 1, label: '启用'}];
+});
+/** 是否系统内置下拉选项：来自接口或默认 */
+const isSystemFilterOptions = computed(() => {
+        const fromApi = roleStore.filterOptions?.isSystem;
+        return fromApi && fromApi.length > 0 ? fromApi : [{value: 0, label: '否'}, {value: 1, label: '是'}];
+});
 
 const columns = [
         {title: '编码', dataIndex: 'code', key: 'code', width: 140, ellipsis: true},
@@ -531,13 +528,6 @@ const permissionsWithSource = computed(() => {
                         fromGroup
                 };
         });
-});
-
-// 计算角色权限树形数据
-const rolePermissionTreeData = computed(() => {
-        return permissionViewMode.value === 'tree'
-            ? buildPermissionTree(permissionsWithSource.value)
-            : [];
 });
 
 // 权限配置抽屉内：已关联权限表格列（非系统角色显示操作列）
@@ -626,8 +616,32 @@ const addGroupLoading = ref(false);
 const permissionListLoading = ref(false);
 const groupListLoading = ref(false);
 const permissionOptions = ref([]);
-const permissionTreeOptions = ref([]);
 const groupOptions = ref([]);
+/** 添加权限弹窗内搜索关键词 */
+const addPermissionSearchKeyword = ref('');
+
+// 添加权限弹窗：表格列
+const addPermissionTableColumns = [
+        {title: '权限编码', dataIndex: 'code', key: 'code', width: 160, ellipsis: true},
+        {title: '权限名称', dataIndex: 'name', key: 'name', width: 140, ellipsis: true}
+];
+
+// 添加权限弹窗：按关键词过滤后的权限列表
+const addPermissionTableData = computed(() => {
+        const list = permissionOptions.value || [];
+        const kw = (addPermissionSearchKeyword.value || '').trim().toLowerCase();
+        if (!kw) return list;
+        return list.filter(p => {
+                const code = (p.code || '').toLowerCase();
+                const name = (p.name || '').toLowerCase();
+                return code.includes(kw) || name.includes(kw);
+        });
+});
+
+/** 添加权限弹窗：表格行选择变更 */
+function onAddPermissionRowSelect(selectedRowKeys, selectedRows) {
+        selectedPermissionId.value = selectedRowKeys && selectedRowKeys[0] ? selectedRowKeys[0] : null;
+}
 
 function formatDate(val) {
         let result = '-';
@@ -648,20 +662,42 @@ function formatDate(val) {
         return result;
 }
 
+/** 加载角色列表（分页与 keyword/status/isSystem 由 store 或入参提供） */
 function loadRoles() {
         roleStore.fetchRoles({
                 currentPage: roleStore.pagination.current,
-                pageSize: roleStore.pagination.pageSize
+                pageSize: roleStore.pagination.pageSize,
+                keyword: searchKeyword.value?.trim() || undefined,
+                status: (searchStatus.value != null && searchStatus.value !== '') ? searchStatus.value : undefined,
+                isSystem: (searchIsSystem.value != null && searchIsSystem.value !== '') ? searchIsSystem.value : undefined
         }).catch((e) => {
                 message.error(e?.message || '加载角色列表失败');
         });
 }
 
 function onTableChange(pagination) {
-        roleStore.updatePagination({
-                current: pagination.current,
-                pageSize: pagination.pageSize
+        roleStore.updatePagination({current: pagination.current, pageSize: pagination.pageSize});
+        loadRoles();
+}
+
+/** 搜索：写入 store 并回第一页 */
+function handleSearch() {
+        roleStore.updatePagination({current: 1});
+        roleStore.updateQueryParams({
+                keyword: searchKeyword.value?.trim() ?? '',
+                status: (searchStatus.value != null && searchStatus.value !== '') ? searchStatus.value : undefined,
+                isSystem: (searchIsSystem.value != null && searchIsSystem.value !== '') ? searchIsSystem.value : undefined
         });
+        loadRoles();
+}
+
+/** 重置：清空条件并刷新 */
+function handleReset() {
+        searchKeyword.value = '';
+        searchStatus.value = undefined;
+        searchIsSystem.value = undefined;
+        roleStore.updatePagination({current: 1});
+        roleStore.updateQueryParams({keyword: '', status: undefined, isSystem: undefined});
         loadRoles();
 }
 
@@ -1005,8 +1041,6 @@ watch(showAddPermissionModal, (open) => {
                 permissionStore.fetchPermissions({currentPage: 1, pageSize: 500}).then(() => {
                         const permissions = permissionStore.currentPermissions || [];
                         permissionOptions.value = permissions;
-                        // 构建树形结构
-                        permissionTreeOptions.value = buildPermissionTree(permissions);
                 }).catch((e) => {
                         logger.error(e);
                         message.error('加载权限列表失败');
@@ -1015,17 +1049,6 @@ watch(showAddPermissionModal, (open) => {
                 });
         }
 });
-
-// 树形选择器过滤函数
-function filterPermissionTreeNode(inputValue, node) {
-        const name = node.name || '';
-        return name.toLowerCase().includes((inputValue || '').toLowerCase());
-}
-
-// 处理权限选择
-function onPermissionSelect(value) {
-        selectedPermissionId.value = value;
-}
 
 // 验证添加权限的参数
 function validateAddPermissionParams() {

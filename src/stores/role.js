@@ -18,8 +18,23 @@
  * --------------------------------------------------------------------------------
  * 角色状态管理 Store
  * 管理角色列表、详情、修改、删除及角色关联的权限/权限组
+ * 超级管理员角色与 schema 中 sys_role 初始化一致：
+ *   INSERT INTO sys_role (code, name, description, is_super_admin, is_system, sort_order, status)
+ *   VALUES ('SUPER_ADMIN', '超级管理员', '拥有系统所有权限，只能有一个', 1, 1, 100, 1)
  * --------------------------------------------------------------------------------
  */
+
+/** 超级管理员角色编码（唯一，拥有系统所有权限） */
+export const SUPER_ADMIN_ROLE_CODE = 'SUPER_ADMIN';
+
+/**
+ * 判断角色是否为超级管理员
+ * @param {Object} role - 角色对象 { code, superAdmin }
+ */
+export function isSuperAdminRole(role) {
+	if (!role) return false;
+	return role.code === SUPER_ADMIN_ROLE_CODE || role.superAdmin === true;
+}
 
 import {defineStore} from 'pinia';
 import {computed, ref} from 'vue';
@@ -39,13 +54,23 @@ export const useRoleStore = defineStore('role', () => {
 		pages: 0
 	});
 
+	// 查询参数：keyword 匹配 code/name/description，status 0/1，isSystem 0/1
+	const queryParams = ref({
+		keyword: '',
+		status: undefined,
+		isSystem: undefined
+	});
+
+	/** 列表接口返回的 filterOptions（status、isSystem 筛选项） */
+	const filterOptions = ref({});
+
 	// 当前选中的角色详情（含权限、权限组）
 	const roleDetail = ref(null);
 	const permissionsDetailLoading = ref(false);
 
 	/**
-	 * 分页获取角色列表
-	 * @param {Object} params - { currentPage, pageSize }
+	 * 分页获取角色列表（支持 keyword/status/isSystem）
+	 * @param {Object} params - { currentPage?, pageSize?, keyword?, status?, isSystem? }
 	 * @returns {Promise<Array>}
 	 */
 	const fetchRoles = async (params = {}) => {
@@ -53,18 +78,21 @@ export const useRoleStore = defineStore('role', () => {
 		try {
 			const currentPage = params.currentPage ?? pagination.value.current;
 			const pageSize = params.pageSize ?? pagination.value.pageSize;
-			const res = await roleApi.list({currentPage, pageSize});
+			const keyword = params.keyword !== undefined ? params.keyword : queryParams.value.keyword;
+			const status = params.status !== undefined ? params.status : queryParams.value.status;
+			const isSystem = params.isSystem !== undefined ? params.isSystem : queryParams.value.isSystem;
+			const requestParams = { currentPage, pageSize };
+			if (keyword != null && String(keyword).trim() !== '') requestParams.keyword = String(keyword).trim();
+			if (status !== undefined) requestParams.status = status;
+			if (isSystem !== undefined) requestParams.isSystem = isSystem;
+			const res = await roleApi.list(requestParams);
 			if (res.success !== true || !res.data) {
 				throw new Error(res.errorMsg || '获取角色列表失败');
 			}
-			const {records = [], total = 0, current = 1, size = pageSize, pages = 0} = res.data;
+			const {records = [], total = 0, current = 1, size = pageSize, pages = 0, filterOptions: options = {}} = res.data;
 			roles.value = (records || []).map((item) => ({...item, key: item.id}));
-			pagination.value = {
-				current,
-				pageSize: size,
-				total,
-				pages
-			};
+			pagination.value = { current, pageSize: size, total, pages };
+			filterOptions.value = options;
 			logger.log('角色列表获取成功，总数:', total);
 			return roles.value;
 		} catch (error) {
@@ -266,6 +294,14 @@ export const useRoleStore = defineStore('role', () => {
 	};
 
 	/**
+	 * 更新查询参数（keyword/status/isSystem）
+	 * @param {Object} newParams - { keyword?, status?, isSystem? }
+	 */
+	const updateQueryParams = (newParams) => {
+		queryParams.value = {...queryParams.value, ...newParams};
+	};
+
+	/**
 	 * 清空角色详情缓存
 	 */
 	const clearRoleDetail = () => {
@@ -279,6 +315,8 @@ export const useRoleStore = defineStore('role', () => {
 		roles,
 		loading,
 		pagination,
+		queryParams,
+		filterOptions,
 		roleDetail,
 		permissionsDetailLoading,
 		fetchRoles,
@@ -292,6 +330,7 @@ export const useRoleStore = defineStore('role', () => {
 		addPermissionGroupToRole,
 		removePermissionGroupFromRole,
 		updatePagination,
+		updateQueryParams,
 		clearRoleDetail,
 		currentRoles,
 		currentPagination

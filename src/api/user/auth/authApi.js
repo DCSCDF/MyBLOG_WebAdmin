@@ -40,6 +40,14 @@ export const authApi = {
 	// 退出登录 API
 	logout: (data) => {
 		return request.post(`${AUTH_BASE_PATH}/logout`, data);
+	},
+
+	/**
+	 * 用户注册 API（需先调用 publicKey 获取公钥与 tempToken，密码需 RSA 加密）
+	 * @param {Object} data - { username, email, password, tempToken, captchaVerification }
+	 */
+	register: (data) => {
+		return request.post(`${AUTH_BASE_PATH}/register`, data);
 	}
 
 };

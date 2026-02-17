@@ -41,19 +41,23 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 		pages: 0
 	});
 
+	// 查询参数：keyword 匹配 name/description，status 0/1，isSystem 0/1
 	const queryParams = ref({
-		sorter: {},
-		filters: {}
+		keyword: '',
+		status: undefined,
+		isSystem: undefined
 	});
+
+	/** 列表接口返回的 filterOptions（status、isSystem 筛选项） */
+	const filterOptions = ref({});
 
 	// 当前选中的权限组关联的权限列表（用于详情/管理权限）
 	const groupPermissions = ref([]);
 	const groupPermissionsLoading = ref(false);
 
 	/**
-	 * 分页获取权限组列表
-	 * 需要权限: system:permission_group:list
-	 * @param {Object} params - { currentPage, pageSize }
+	 * 分页获取权限组列表（支持 keyword/status/isSystem）
+	 * @param {Object} params - { currentPage?, pageSize?, keyword?, status?, isSystem? }
 	 * @returns {Promise<Array>}
 	 */
 	const fetchPermissionGroups = async (params = {}) => {
@@ -61,12 +65,18 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 		try {
 			const currentPage = params.currentPage ?? params.page ?? pagination.value.current;
 			const pageSize = params.pageSize ?? pagination.value.pageSize;
-			const res = await permissionGroupApi.list({currentPage, pageSize});
+			const keyword = params.keyword !== undefined ? params.keyword : queryParams.value.keyword;
+			const status = params.status !== undefined ? params.status : queryParams.value.status;
+			const isSystem = params.isSystem !== undefined ? params.isSystem : queryParams.value.isSystem;
+			const requestParams = { currentPage, pageSize };
+			if (keyword != null && String(keyword).trim() !== '') requestParams.keyword = String(keyword).trim();
+			if (status !== undefined) requestParams.status = status;
+			if (isSystem !== undefined) requestParams.isSystem = isSystem;
+			const res = await permissionGroupApi.list(requestParams);
 			if (res.success !== true || !res.data) {
 				throw new Error(res.errorMsg || '获取权限组列表失败');
 			}
-			const {records = [], total = 0, current = 1, size = pageSize, pages = 0} = res.data;
-			// 表格展示：sortOrder -> order，status 数字 -> 中文
+			const {records = [], total = 0, current = 1, size = pageSize, pages = 0, filterOptions: options = {}} = res.data;
 			permissionGroups.value = (records || []).map((item) => ({
 				...item,
 				key: item.id,
@@ -74,12 +84,8 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 				status: statusText(item.status),
 				statusValue: item.status
 			}));
-			pagination.value = {
-				current,
-				pageSize: size,
-				total,
-				pages
-			};
+			pagination.value = { current, pageSize: size, total, pages };
+			filterOptions.value = options;
 			logger.log('权限组列表获取成功，总数:', total);
 			return permissionGroups.value;
 		} catch (error) {
@@ -260,7 +266,8 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 		groupPermissions.value = [];
 		groupPermissionsLoading.value = false;
 		pagination.value = {current: 1, pageSize: 10, total: 0, pages: 0};
-		queryParams.value = {sorter: {}, filters: {}};
+		queryParams.value = { keyword: '', status: undefined, isSystem: undefined };
+		filterOptions.value = {};
 		logger.log('权限组状态已清理');
 	};
 
@@ -273,6 +280,7 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 		loading,
 		pagination,
 		queryParams,
+		filterOptions,
 		groupPermissions,
 		groupPermissionsLoading,
 		fetchPermissionGroups,

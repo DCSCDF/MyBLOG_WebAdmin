@@ -19,55 +19,34 @@
                                 <h2 class="font-bold text-lg mb-1">权限列表</h2>
                                 <span class="text-sm text-gray-600">当前仅作为查看权限用，无法修改。</span>
                         </div>
-                        <a-select
-                            v-model:value="viewMode"
-                            size="small"
-                            style="width: 100px">
-                                <a-select-option value="tree">树形视图</a-select-option>
-                                <a-select-option value="list">列表视图</a-select-option>
-                        </a-select>
                 </div>
 
-                <!-- 树形展示 -->
-                <div v-if="viewMode === 'tree'">
-                        <a-tree
-                            v-model:expandedKeys="expandedKeys"
-                            :field-names="{ children: 'children', title: 'name', key: 'id' }"
-                            :show-line="{ showLeafIcon: false }"
-                            :tree-data="permissionTreeData"
-                            block-node
-                            style="min-height: 300px;"
-                            @select="onTreeNodeSelect">
-                                <template #title="{ name, code }">
-                                        <div
-                                            class="flex items-center justify-between w-auto h-12 px-2 mx-2 relative box-border cursor-pointer">
-                                                <div
-                                                    class="flex-1 min-w-0 overflow-hidden flex flex-col justify-center">
-                                                        <div
-                                                            class="font-medium whitespace-nowrap overflow-hidden text-ellipsis text-sm">
-                                                                {{ name }}
-                                                        </div>
-                                                        <div
-                                                            class="text-xs text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis">
-                                                                {{ code }}
-                                                        </div>
-                                                </div>
-                                        </div>
-                                </template>
-                        </a-tree>
-                        <div v-if="!permissionTreeData.length && !loading"
-                             class="text-gray-400 text-sm py-8 text-center">暂无权限数据
+                <!-- 搜索栏：移动端上下排版，桌面端横排 -->
+                <div class="search-filter-bar mb-4 flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:gap-3">
+                        <div class="w-full md:min-w-[220px] md:max-w-[220px]">
+                                <a-input
+                                    v-model:value="searchKeyword"
+                                    placeholder="搜索权限编码/名称/描述"
+                                    class="w-full"
+                                    @press-enter="handleSearch">
+                                    <template #prefix>
+                                            <SearchOutlined/>
+                                    </template>
+                                </a-input>
+                        </div>
+                        <div class="flex shrink-0 gap-2 w-full md:w-auto justify-end md:justify-start">
+                                <a-button type="primary" @click="handleSearch">搜索</a-button>
+                                <a-button @click="handleReset">重置</a-button>
                         </div>
                 </div>
 
-                <!-- 列表展示 -->
                 <a-table
-                    v-else
                     :columns="columns"
                     :data-source="tableData"
                     :loading="loading"
                     :pagination="paginationConfig"
                     :scroll="{ x: 800 }"
+                    row-key="id"
                     table-layout="fixed"
                     @change="handleTableChange">
                         <template #bodyCell="{ column, record }">
@@ -77,13 +56,15 @@
                                         </a-button>
                                 </template>
                                 <template v-else-if="column.key === 'status'">
-                                        <a-tag :color="record.status === '启用' ? 'green' : 'red'">
+                                        <a-tag :bordered="false" :color="record.status === '启用' ? 'green' : 'red'">
                                                 {{ record.status }}
                                         </a-tag>
                                 </template>
                         </template>
                 </a-table>
-
+                <div v-if="!tableData.length && !loading"
+                     class="text-gray-400 text-sm py-8 text-center">没有权限查看
+                </div>
 
                 <!-- 查看权限详情抽屉 -->
                 <a-drawer
@@ -136,17 +117,27 @@
         </a-card>
 </template>
 <script setup>
-import {computed, onMounted, ref, watch} from 'vue';
+import {computed, onMounted, ref} from 'vue';
+import {SearchOutlined} from '@ant-design/icons-vue';
 import {usePermissionStore} from '../../../stores/permission.js';
 import logger from "../../../utils/logger.js";
-import {buildPermissionTree} from '../../../utils/permissionTree.js';
 
 const permissionStore = usePermissionStore();
 
-// 使用 store 的状态
 const tableData = computed(() => permissionStore.currentPermissions);
 const loading = computed(() => permissionStore.loading);
-const paginationConfig = computed(() => permissionStore.pagination);
+
+/** 分页配置：与角色/权限组表格一致，支持每页条数切换与总数展示 */
+const paginationConfig = computed(() => ({
+        current: permissionStore.pagination.current,
+        pageSize: permissionStore.pagination.pageSize,
+        total: permissionStore.pagination.total,
+        showSizeChanger: true,
+        showTotal: (total) => `共 ${total} 条`
+}));
+
+/** 搜索关键词（模糊匹配 code/name/description） */
+const searchKeyword = ref('');
 
 
 // 表格列配置
@@ -180,44 +171,41 @@ const columns = [
 // 响应式数据
 const viewDrawerVisible = ref(false);
 const currentPermission = ref(null);
-const viewMode = ref('tree'); // 'tree' 或 'list'
-const expandedKeys = ref([]); // 默认展开的节点key
 
-// 计算树形数据
-const permissionTreeData = computed(() => {
-        return viewMode.value === 'tree'
-            ? buildPermissionTree(permissionStore.currentPermissions || [])
-            : [];
-});
-
-
-// 加载表格数据
+/** 加载列表（带当前分页与 keyword） */
 const loadTableData = async () => {
         try {
                 await permissionStore.fetchPermissions({
-                        currentPage: paginationConfig.value.current,
-                        pageSize: paginationConfig.value.pageSize
+                        currentPage: permissionStore.pagination.current,
+                        pageSize: permissionStore.pagination.pageSize,
+                        keyword: searchKeyword.value.trim() || undefined
                 });
         } catch (error) {
                 logger.error('加载数据失败:', error);
         }
 };
 
-// 处理表格变化（排序、筛选、分页）
-const handleTableChange = (pagination, filters, sorter) => {
-        // 更新分页信息
+/** 表格分页变化 */
+const handleTableChange = (pagination) => {
         permissionStore.updatePagination({
                 current: pagination.current,
                 pageSize: pagination.pageSize
         });
+        loadTableData();
+};
 
-        // 更新排序和筛选信息
-        permissionStore.updateQueryParams({
-                sorter,
-                filters
-        });
+/** 搜索：回第一页并带 keyword */
+const handleSearch = () => {
+        permissionStore.updatePagination({ current: 1 });
+        permissionStore.updateQueryParams({ keyword: searchKeyword.value.trim() });
+        loadTableData();
+};
 
-        // 重新加载数据
+/** 重置：清空关键词并刷新 */
+const handleReset = () => {
+        searchKeyword.value = '';
+        permissionStore.updatePagination({ current: 1 });
+        permissionStore.updateQueryParams({ keyword: '' });
         loadTableData();
 };
 
@@ -226,19 +214,6 @@ const viewPermission = (record) => {
         currentPermission.value = record;
         viewDrawerVisible.value = true;
 };
-
-// 树节点选择事件处理
-const onTreeNodeSelect = (_selectedKeys, {selectedNodes}) => {
-        if (selectedNodes.length > 0) {
-                const node = selectedNodes[0];
-                // 根据节点数据查找对应的权限
-                const permission = permissionStore.currentPermissions.find(p => p.code === node.code);
-                if (permission) {
-                        viewPermission(permission);
-                }
-        }
-};
-
 
 // 格式化日期显示
 const formatDate = (dateString) => {
@@ -269,23 +244,4 @@ onMounted(() => {
         logger.log("组件挂载，分页配置:", paginationConfig.value);
         loadTableData();
 });
-
-// 监听树数据变化，自动展开所有节点
-watch(permissionTreeData, (newVal) => {
-        if (newVal && newVal.length > 0) {
-                const getAllKeys = (nodes) => {
-                        let keys = [];
-                        nodes.forEach(node => {
-                                keys.push(node.id);
-                                if (node.children && node.children.length > 0) {
-                                        keys = keys.concat(getAllKeys(node.children));
-                                }
-                        });
-                        return keys;
-                };
-                expandedKeys.value = getAllKeys(newVal);
-        }
-});
-
-
 </script>

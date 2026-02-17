@@ -28,18 +28,21 @@ export const usePermissionStore = defineStore('permission', () => {
 	const permissions = ref([]);
 	const loading = ref(false);
 
-	// 分页信息
+	// 分页信息（与后端一致：currentPage/pageSize 请求，响应 current/size/total/pages）
 	const pagination = ref({
 		current: 1,
 		pageSize: 10,
-		total: 0
+		total: 0,
+		pages: 0
 	});
 
-	// 查询参数
+	// 查询参数（keyword 模糊匹配 code/name/description）
 	const queryParams = ref({
-		sorter: {},
-		filters: {}
+		keyword: ''
 	});
+
+	/** 列表接口返回的 filterOptions（权限列表为空对象 {}） */
+	const filterOptions = ref({});
 
 	/**
 	 * 获取权限列表
@@ -48,44 +51,42 @@ export const usePermissionStore = defineStore('permission', () => {
 	 * @param {number} params.pageSize - 页面大小
 	 * @returns {Promise<Array>} 权限列表
 	 */
+	/**
+	 * 分页获取权限列表（支持 keyword 模糊匹配 code/name/description）
+	 * @param {Object} params - { currentPage?, pageSize?, keyword? }
+	 */
 	const fetchPermissions = async (params = {}) => {
 		loading.value = true;
 		try {
-			const requestParams = {
-				currentPage: params.currentPage || pagination.value.current,
-				pageSize: params.pageSize || pagination.value.pageSize,
-				...queryParams.value.sorter,
-				...queryParams.value.filters
-			};
-
-			logger.log('获取权限列表请求参数:', requestParams);
-
-			const response = await permissionApi.permissionList(requestParams);
-
-			if (response.success === true && response.data) {
-				const paginationData = response.data;
-				const permissionData = paginationData.records || [];
-				const total = paginationData.total || 0;
-
-				// 格式化数据
-				const formattedData = permissionData.map((item, index) => ({
-					...item,
-					key: item.id,
-					order: item.sortOrder || (index + 1)
-				}));
-
-				permissions.value = formattedData;
-				pagination.value.total = total;
-				pagination.value.current = requestParams.currentPage;
-				pagination.value.pageSize = requestParams.pageSize;
-
-				logger.log('权限列表获取成功，总数:', total);
-				return formattedData;
-			} else {
-				const errorMsg = response.errorMsg || '获取权限列表失败';
-				logger.error('获取权限列表失败:', errorMsg);
-				throw new Error(errorMsg);
+			const currentPage = params.currentPage ?? pagination.value.current;
+			const pageSize = params.pageSize ?? pagination.value.pageSize;
+			const keyword = params.keyword !== undefined ? params.keyword : queryParams.value.keyword;
+			const requestParams = { currentPage, pageSize };
+			if (keyword != null && String(keyword).trim() !== '') {
+				requestParams.keyword = String(keyword).trim();
 			}
+			logger.log('获取权限列表请求参数:', requestParams);
+			const response = await permissionApi.permissionList(requestParams);
+			if (response.success !== true || !response.data) {
+				throw new Error(response.errorMsg || '获取权限列表失败');
+			}
+			const paginationData = response.data;
+			const permissionData = paginationData.records || [];
+			const total = paginationData.total || 0;
+			const current = paginationData.current ?? currentPage;
+			const size = paginationData.size ?? pageSize;
+			const pages = paginationData.pages ?? 0;
+			const options = paginationData.filterOptions ?? {};
+			const formattedData = permissionData.map((item, index) => ({
+				...item,
+				key: item.id,
+				order: item.sortOrder || (index + 1)
+			}));
+			permissions.value = formattedData;
+			pagination.value = { current, pageSize: size, total, pages };
+			filterOptions.value = options;
+			logger.log('权限列表获取成功，总数:', total);
+			return formattedData;
 		} catch (error) {
 			logger.error('获取权限列表失败:', error);
 			permissions.value = [];
@@ -115,14 +116,11 @@ export const usePermissionStore = defineStore('permission', () => {
 	};
 
 	/**
-	 * 更新查询参数
-	 * @param {Object} newParams - 新查询参数
+	 * 更新查询参数（keyword 等）
+	 * @param {Object} newParams - { keyword? }
 	 */
 	const updateQueryParams = (newParams) => {
-		queryParams.value = {
-			...queryParams.value,
-			...newParams
-		};
+		queryParams.value = { ...queryParams.value, ...newParams };
 	};
 
 	/**
@@ -136,10 +134,8 @@ export const usePermissionStore = defineStore('permission', () => {
 			pageSize: 10,
 			total: 0
 		};
-		queryParams.value = {
-			sorter: {},
-			filters: {}
-		};
+		queryParams.value = { keyword: '' };
+		filterOptions.value = {};
 		logger.log('权限状态已清理');
 	};
 
@@ -149,13 +145,11 @@ export const usePermissionStore = defineStore('permission', () => {
 	const currentPermissions = computed(() => permissions.value);
 
 	return {
-		// 状态
 		permissions,
 		loading,
 		pagination,
 		queryParams,
-
-		// 方法
+		filterOptions,
 		fetchPermissions,
 		refreshPermissions,
 		updatePagination,

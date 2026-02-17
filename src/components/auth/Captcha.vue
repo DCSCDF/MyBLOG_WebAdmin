@@ -20,7 +20,7 @@
                 <div class="flex justify-between items-center">
                         <div class="flex items-center gap-1">
                                 <div :class="isVerified ? 'bg-green-500' : 'bg-blue-500'"
-                                     class="w-2 h-2 rounded-full flex-shrink-0">
+                                     class="w-2 mt-[2px] h-2 rounded-full flex-shrink-0">
                                 </div>
                                 <span :class="isVerified ? 'text-green-700' : 'text-blue-700'"
                                       class="text-sm font-medium flex items-center">

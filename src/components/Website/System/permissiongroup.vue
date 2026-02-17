@@ -23,6 +23,46 @@
                         <a-button type="primary" @click="openCreate">新增权限组</a-button>
                 </div>
 
+                <div class="search-filter-bar mb-4 flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
+                        <div class="w-full min-w-[200px] max-w-[300px]">
+                                <a-input
+                                    v-model:value="searchKeyword"
+                                    class="w-full"
+                                    placeholder="搜索名称/描述"
+                                    @press-enter="handleSearch">
+                                        <template #prefix>
+                                                <SearchOutlined/>
+                                        </template>
+                                </a-input>
+                        </div>
+                        <div class="flex gap-2">
+                                <div class="search-filter-item flex items-center gap-1 rounded-md min-w-0 my-1">
+                                        <a-select
+                                            v-model:value="searchStatus"
+                                            allow-clear
+                                            placeholder="状态">
+                                                <a-select-option v-for="opt in statusFilterOptions" :key="opt.label"
+                                                                 :value="opt.value">{{ opt.label }}
+                                                </a-select-option>
+                                        </a-select>
+                                </div>
+                                <div class="search-filter-item flex items-center gap-1 rounded-md min-w-0 my-1">
+                                        <a-select
+                                            v-model:value="searchIsSystem"
+                                            allow-clear
+                                            placeholder="系统内置">
+                                                <a-select-option v-for="opt in isSystemFilterOptions" :key="opt.label"
+                                                                 :value="opt.value">{{ opt.label }}
+                                                </a-select-option>
+                                        </a-select>
+                                </div>
+                        </div>
+                        <div class="flex shrink-0 gap-2 w-full lg:w-auto justify-end">
+                                <a-button type="primary" @click="handleSearch">搜索</a-button>
+                                <a-button @click="handleReset">重置</a-button>
+                        </div>
+                </div>
+
                 <a-table
                     :columns="columns"
                     :data-source="tableData"
@@ -125,11 +165,6 @@
                                         <span
                                             class="text-gray-600 text-sm break-all">
                                                  {{ currentPermissionGroup?.status || '-' }}
-                                                <!--                                                <a-tag :bordered="false"-->
-                                                <!--                                                       :color="currentPermissionGroup?.status === '启用' ? 'green' : 'red'"-->
-                                                <!--                                                       class="!mt-2">-->
-                                                <!--                                                       -->
-                                                <!--                                                </a-tag>-->
                                         </span>
                                 </div>
                                 <a-divider/>
@@ -253,32 +288,37 @@
                                 </div>
                                 <div
                                     v-if="!permissionGroupStore.currentGroupPermissions.length && !permissionGroupStore.groupPermissionsLoading"
-                                    class="text-gray-400 text-sm py-2">暂无
+                                    class="text-gray-400 text-sm py-2">没有权限查看
                                 </div>
                         </template>
                 </a-drawer>
 
-                <!-- 添加权限弹窗（树形选择，与角色添加权限一致） -->
+                <!-- 添加权限弹窗（表格选择） -->
                 <a-modal
                     v-model:open="showAddPermission"
                     :confirm-loading="addPermissionLoading"
                     ok-text="添加"
                     title="添加权限"
-                    @cancel="selectedPermissionId = null"
+                    width="560px"
+                    @cancel="selectedPermissionId = null; addPermissionSearchKeyword = ''"
                     @ok="doAddPermission">
-                        <a-tree-select
-                            v-model:value="selectedPermissionId"
-                            :field-names="{ children: 'children', label: 'name', value: 'id' }"
-                            :filter-tree-node="filterPermissionTreeNode"
+                        <a-input
+                            v-model:value="addPermissionSearchKeyword"
+                            allow-clear
+                            class="mb-3"
+                            placeholder="搜索权限编码/名称"/>
+                        <a-table
+                            :columns="addPermissionTableColumns"
+                            :data-source="addPermissionTableData"
                             :loading="permissionOptionsLoading"
-                            :show-search="true"
-                            :tree-checkable="false"
-                            :tree-data="permissionTreeOptions"
-                            :tree-node-filter-prop="'name'"
-                            placeholder="请选择要添加的权限"
-                            style="width: 100%;"
-                            tree-default-expand-all
-                            @select="onPermissionSelect"/>
+                            :pagination="false"
+                            :row-selection="{ type: 'radio', selectedRowKeys: selectedPermissionId ? [selectedPermissionId] : [], onChange: onAddPermissionRowSelect }"
+                            :scroll="{ y: 280 }"
+                            row-key="id"
+                            size="small"/>
+                        <div v-if="!addPermissionTableData.length && !permissionOptionsLoading"
+                             class="text-gray-400 text-sm py-4 text-center">暂无可选权限
+                        </div>
                 </a-modal>
         </a-card>
 </template>
@@ -286,11 +326,17 @@
 <script setup>
 
 import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
+import {SearchOutlined} from '@ant-design/icons-vue';
 import {message} from 'ant-design-vue';
 import {usePermissionGroupStore} from '../../../stores/permissiongroup.js';
 import {usePermissionStore} from '../../../stores/permission.js';
-import {buildPermissionTree} from '../../../utils/permissionTree.js';
 import logger from '../../../utils/logger.js';
+
+// 添加权限弹窗：表格列
+const addPermissionTableColumns = [
+        {title: '权限编码', dataIndex: 'code', key: 'code', width: 160, ellipsis: true},
+        {title: '权限名称', dataIndex: 'name', key: 'name', width: 140, ellipsis: true}
+];
 
 const permissionGroupStore = usePermissionGroupStore();
 const permissionStore = usePermissionStore();
@@ -314,6 +360,22 @@ const paginationConfig = computed(() => ({
         showSizeChanger: true,
         showTotal: (total) => `共 ${total} 条`
 }));
+
+// 搜索与筛选（'' 表示不传该筛选）
+const searchKeyword = ref('');
+const searchStatus = ref(undefined);
+const searchIsSystem = ref(undefined);
+
+/** 状态下拉选项：来自接口或默认 */
+const statusFilterOptions = computed(() => {
+        const fromApi = permissionGroupStore.filterOptions?.status;
+        return fromApi && fromApi.length > 0 ? fromApi : [{value: 0, label: '禁用'}, {value: 1, label: '启用'}];
+});
+/** 是否系统内置下拉选项：来自接口或默认 */
+const isSystemFilterOptions = computed(() => {
+        const fromApi = permissionGroupStore.filterOptions?.isSystem;
+        return fromApi && fromApi.length > 0 ? fromApi : [{value: 0, label: '否'}, {value: 1, label: '是'}];
+});
 
 const columns = [
         {title: '排序顺序', dataIndex: 'order', key: 'order', width: 100},
@@ -358,7 +420,22 @@ const selectedPermissionId = ref(null);
 const addPermissionLoading = ref(false);
 const permissionOptionsLoading = ref(false);
 const permissionOptions = ref([]);
-const permissionTreeOptions = ref([]);
+const addPermissionSearchKeyword = ref('');
+
+const addPermissionTableData = computed(() => {
+        const list = permissionOptions.value || [];
+        const kw = (addPermissionSearchKeyword.value || '').trim().toLowerCase();
+        if (!kw) return list;
+        return list.filter(p => {
+                const code = (p.code || '').toLowerCase();
+                const name = (p.name || '').toLowerCase();
+                return code.includes(kw) || name.includes(kw);
+        });
+});
+
+function onAddPermissionRowSelect(selectedRowKeys) {
+        selectedPermissionId.value = selectedRowKeys && selectedRowKeys[0] ? selectedRowKeys[0] : null;
+}
 
 // 新增权限组相关
 const createVisible = ref(false);
@@ -394,21 +471,42 @@ function formatDate(val) {
         return result;
 }
 
+/** 加载权限组列表（带分页与 keyword/status/isSystem） */
 function loadTableData() {
         permissionGroupStore.fetchPermissionGroups({
-                currentPage: paginationConfig.value.current,
-                pageSize: paginationConfig.value.pageSize
+                currentPage: permissionGroupStore.pagination.current,
+                pageSize: permissionGroupStore.pagination.pageSize,
+                keyword: searchKeyword.value?.trim() || undefined,
+                status: (searchStatus.value != null && searchStatus.value !== '') ? searchStatus.value : undefined,
+                isSystem: (searchIsSystem.value != null && searchIsSystem.value !== '') ? searchIsSystem.value : undefined
         }).catch((e) => {
                 message.error(e?.message || '加载权限组列表失败');
         });
 }
 
 function handleTableChange(pagination) {
-        permissionGroupStore.updatePagination({
-                current: pagination.current,
-                pageSize: pagination.pageSize
+        permissionGroupStore.updatePagination({current: pagination.current, pageSize: pagination.pageSize});
+        loadTableData();
+}
+
+/** 搜索：写入 store 并回第一页 */
+function handleSearch() {
+        permissionGroupStore.updatePagination({current: 1});
+        permissionGroupStore.updateQueryParams({
+                keyword: searchKeyword.value?.trim() ?? '',
+                status: (searchStatus.value != null && searchStatus.value !== '') ? searchStatus.value : undefined,
+                isSystem: (searchIsSystem.value != null && searchIsSystem.value !== '') ? searchIsSystem.value : undefined
         });
-        permissionGroupStore.updateQueryParams({pagination, filters: {}, sorter: {}});
+        loadTableData();
+}
+
+/** 重置：清空条件并刷新 */
+function handleReset() {
+        searchKeyword.value = '';
+        searchStatus.value = undefined;
+        searchIsSystem.value = undefined;
+        permissionGroupStore.updatePagination({current: 1});
+        permissionGroupStore.updateQueryParams({keyword: '', status: undefined, isSystem: undefined});
         loadTableData();
 }
 
@@ -589,7 +687,6 @@ watch(showAddPermission, (open) => {
                 permissionStore.fetchPermissions({currentPage: 1, pageSize: 500}).then(() => {
                         const permissions = permissionStore.currentPermissions || [];
                         permissionOptions.value = permissions;
-                        permissionTreeOptions.value = buildPermissionTree(permissions);
                 }).catch((e) => {
                         logger.error(e);
                         message.error('加载权限列表失败');
@@ -598,15 +695,6 @@ watch(showAddPermission, (open) => {
                 });
         }
 });
-
-function filterPermissionTreeNode(inputValue, node) {
-        const name = node.name || '';
-        return name.toLowerCase().includes((inputValue || '').toLowerCase());
-}
-
-function onPermissionSelect(value) {
-        selectedPermissionId.value = value;
-}
 
 async function doAddPermission() {
         let canAdd = true;

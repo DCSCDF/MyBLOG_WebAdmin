@@ -32,7 +32,7 @@
                                         </a-tab-pane>
                                         <!-- 注册标签页 -->
                                         <a-tab-pane key="register" tab="注册">
-                                                <RegisterForm/>
+                                                <RegisterForm @register-success="activeTab = 'login'"/>
                                         </a-tab-pane>
                                 </a-tabs>
                         </a-card>
