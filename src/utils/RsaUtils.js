@@ -43,6 +43,7 @@ class RsaEncryptor {
 		encryptor.setPublicKey(pemPublicKey);
 
 		const encrypted = encryptor.encrypt(plaintext);
+		
 		if (!encrypted) {
 			throw new Error('RSA 加密失败，请检查公钥格式或明文长度');
 		}
