@@ -9,7 +9,7 @@
   - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
   - license: "MIT"
   - license_exception: "Mandatory attribution retention"
-  - UpdateTime: 2026/2/3 22:48
+  - UpdateTime: 2026/2/17 09:12
   -
   -->
 <template>
@@ -185,10 +185,9 @@ const expandedKeys = ref([]); // 默认展开的节点key
 
 // 计算树形数据
 const permissionTreeData = computed(() => {
-        if (viewMode.value === 'tree') {
-                return buildPermissionTree(permissionStore.currentPermissions || []);
-        }
-        return [];
+        return viewMode.value === 'tree'
+            ? buildPermissionTree(permissionStore.currentPermissions || [])
+            : [];
 });
 
 
@@ -229,7 +228,7 @@ const viewPermission = (record) => {
 };
 
 // 树节点选择事件处理
-const onTreeNodeSelect = (selectedKeys, {selectedNodes}) => {
+const onTreeNodeSelect = (_selectedKeys, {selectedNodes}) => {
         if (selectedNodes.length > 0) {
                 const node = selectedNodes[0];
                 // 根据节点数据查找对应的权限

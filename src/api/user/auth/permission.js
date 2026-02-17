@@ -9,13 +9,12 @@
  * author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
  * license: "MIT"
  * license_exception: "Mandatory attribution retention"
- * UpdateTime: 2026/2/10 22:59
+ * UpdateTime: 2026/2/17 08:08
  *
  */
 
 // API基础路径配置
 const AUTH_BASE_PATH = '/api/permission';
-const AUTH_GROUP_BASE_PATH = '/api/permission-group';
 
 import request from '../../../utils/request.js';
 

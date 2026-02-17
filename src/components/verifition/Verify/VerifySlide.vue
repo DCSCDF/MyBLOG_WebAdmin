@@ -9,7 +9,7 @@
   - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
   - license: "MIT"
   - license_exception: "Mandatory attribution retention"
-  - UpdateTime: 2026/2/2 18:17
+  - UpdateTime: 2026/2/16 18:32
   -
   -->
 
@@ -280,7 +280,7 @@ export default {
                                         // 注意：由于响应拦截器已经处理了数据结构，
                                         // 实际的数据在 response.data 中
                                         const res = response.data || response;
-                                        
+
                                         if (res.repCode == "0000") {
                                                 moveBlockBackgroundColor.value = '#5cb85c'
                                                 leftBarBorderColor.value = '#5cb85c'
@@ -379,19 +379,19 @@ export default {
                                 // 注意：由于响应拦截器已经处理了数据结构，
                                 // 实际的数据在 response.data 中
                                 const res = response.data || response;
-                                
+
                                 if (res.repCode == "0000") {
                                         // 检查关键字段是否存在且不为null
-                                        if (!res.repData || 
-                                            !res.repData.originalImageBase64 || 
-                                            !res.repData.jigsawImageBase64 || 
-                                            !res.repData.token || 
+                                        if (!res.repData ||
+                                            !res.repData.originalImageBase64 ||
+                                            !res.repData.jigsawImageBase64 ||
+                                            !res.repData.token ||
                                             !res.repData.secretKey) {
                                                 tipWords.value = "验证码数据不完整，请刷新重试";
                                                 logger.error('验证码数据缺失:', res);
                                                 return;
                                         }
-                                        
+
                                         backImgBase.value = res.repData.originalImageBase64
                                         blockBackImgBase.value = res.repData.jigsawImageBase64
                                         backToken.value = res.repData.token

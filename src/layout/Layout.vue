@@ -9,7 +9,7 @@
   - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
   - license: "MIT"
   - license_exception: "Mandatory attribution retention"
-  - UpdateTime: 2026/2/2 18:17
+  - UpdateTime: 2026/2/13 18:40
   -
   -->
 
@@ -84,7 +84,7 @@ import {onMounted, onUnmounted, ref, computed} from 'vue';
 import Menu from "../components/Layout/menu/menu.vue";
 import {CloseOutlined} from '@ant-design/icons-vue';
 import Breadcrumb from "../components/Layout/header/breadcrumb.vue";
-import { useAppStore } from '../stores/app.js';
+import {useAppStore} from '../stores/app.js';
 
 const appStore = useAppStore();
 
@@ -111,7 +111,7 @@ onMounted(() => {
         appStore.updateDeviceStatus();
         // 启动窗口大小监听器
         const cleanup = appStore.startResizeListener();
-        
+
         // 组件卸载时清理
         onUnmounted(() => {
                 cleanup();

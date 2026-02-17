@@ -1,7 +1,16 @@
 <!--
   - [RoleManagement.vue]
-  - 角色管理页面：分页列表、详情、编辑、删除、管理权限（权限/权限组关联）
-  - 对应后端接口：/api/role/*
+  - -------------------------------------------------------------------------------
+  - This software is licensed under the MIT License.
+  - However, any distribution or modification must retain this copyright notice.
+  - See LICENSE for full terms.
+  - -------------------------------------------------------------------------------
+  - author: "Jiu Liu"
+  - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
+  - license: "MIT"
+  - license_exception: "Mandatory attribution retention"
+  - UpdateTime: 2026/2/17 22:26
+  -
   -->
 
 <template>
@@ -25,17 +34,17 @@
                     @change="onTableChange">
                         <template #bodyCell="{ column, record }">
                                 <template v-if="column.key === 'superAdmin'">
-                                        <a-tag :color="record.superAdmin ? 'red' : 'default'">
+                                        <a-tag :bordered="false" :color="record.superAdmin ? 'red' : 'default'">
                                                 {{ record.superAdmin ? '是' : '否' }}
                                         </a-tag>
                                 </template>
                                 <template v-else-if="column.key === 'isSystem'">
-                                        <a-tag :color="record.isSystem ? 'blue' : 'default'">
+                                        <a-tag :bordered="false" :color="record.isSystem ? 'blue' : 'default'">
                                                 {{ record.isSystem ? '系统内置' : '自定义' }}
                                         </a-tag>
                                 </template>
                                 <template v-else-if="column.key === 'status'">
-                                        <a-tag :color="record.status === 1 ? 'green' : 'red'">
+                                        <a-tag :bordered="false" :color="record.status === 1 ? 'green' : 'red'">
                                                 {{ record.status === 1 ? '启用' : '禁用' }}
                                         </a-tag>
                                 </template>
@@ -72,30 +81,79 @@
         <a-drawer
             v-model:open="detailVisible"
             :destroy-on-close="true"
-            :width="420"
+            :width="drawerWidth"
             title="角色详情"
             @close="selectedRole = null">
                 <template v-if="selectedRole">
-                        <a-descriptions :column="1" bordered size="small">
-                                <a-descriptions-item label="编码">{{ selectedRole.code }}</a-descriptions-item>
-                                <a-descriptions-item label="名称">{{ selectedRole.name }}</a-descriptions-item>
-                                <a-descriptions-item label="描述">{{ selectedRole.description || '-' }}
-                                </a-descriptions-item>
-                                <a-descriptions-item label="超级管理员">
-                                        {{ selectedRole.superAdmin ? '是' : '否' }}
-                                </a-descriptions-item>
-                                <a-descriptions-item label="系统内置">{{ selectedRole.isSystem ? '是' : '否' }}
-                                </a-descriptions-item>
-                                <a-descriptions-item label="排序">{{ selectedRole.sortOrder }}
-                                </a-descriptions-item>
-                                <a-descriptions-item label="状态">
-                                        {{ selectedRole.status === 1 ? '启用' : '禁用' }}
-                                </a-descriptions-item>
-                                <a-descriptions-item label="创建时间">{{ formatDate(selectedRole.createTime) }}
-                                </a-descriptions-item>
-                                <a-descriptions-item label="更新时间">{{ formatDate(selectedRole.updateTime) }}
-                                </a-descriptions-item>
-                        </a-descriptions>
+
+
+                        <div class="flex flex-col gap-1">
+                                <span class="font-medium text-gray-900 text-sm">编码：</span>
+                                <span
+                                    class="text-gray-600 text-sm break-all">{{ selectedRole.code }}</span>
+                        </div>
+                        <a-divider/>
+                        <div class="flex flex-col gap-1">
+                                <span class="font-medium text-gray-900 text-sm">名称：</span>
+                                <span
+                                    class="text-gray-600 text-sm break-all">{{ selectedRole.name }}</span>
+                        </div>
+                        <a-divider/>
+                        <div class="flex flex-col gap-1">
+                                <span class="font-medium text-gray-900 text-sm">描述：</span>
+                                <span
+                                    class="text-gray-600 text-sm break-all">{{ selectedRole.description || '-' }}</span>
+                        </div>
+                        <a-divider/>
+                        <div class="flex flex-col gap-1">
+                                <span class="font-medium text-gray-900 text-sm">超级管理员：</span>
+                                <span
+                                    class="text-gray-600 text-sm break-all"> {{
+                                                selectedRole.superAdmin ? '是' : '否'
+                                        }}</span>
+                        </div>
+                        <a-divider/>
+                        <div class="flex flex-col gap-1">
+                                <span class="font-medium text-gray-900 text-sm">系统内置：</span>
+                                <span
+                                    class="text-gray-600 text-sm break-all"> {{
+                                                selectedRole.isSystem ? '是' : '否'
+                                        }}</span>
+                        </div>
+                        <a-divider/>
+                        <div class="flex flex-col gap-1">
+                                <span class="font-medium text-gray-900 text-sm">排序：</span>
+                                <span
+                                    class="text-gray-600 text-sm break-all"> {{
+                                                selectedRole.sortOrder
+                                        }}</span>
+                        </div>
+                        <a-divider/>
+                        <div class="flex flex-col gap-1">
+                                <span class="font-medium text-gray-900 text-sm">状态：</span>
+                                <span
+                                    class="text-gray-600 text-sm break-all">{{
+                                                selectedRole.status === 1 ? '启用' : '禁用'
+                                        }}</span>
+                        </div>
+                        <a-divider/>
+                        <div class="flex flex-col gap-1">
+                                <span class="font-medium text-gray-900 text-sm">创建时间：</span>
+                                <span
+                                    class="text-gray-600 text-sm break-all">{{
+                                                formatDate(selectedRole.createTime)
+                                        }}</span>
+                        </div>
+                        <a-divider/>
+                        <div class="flex flex-col gap-1">
+                                <span class="font-medium text-gray-900 text-sm">更新时间：</span>
+                                <span
+                                    class="text-gray-600 text-sm break-all">{{
+                                                formatDate(selectedRole.updateTime)
+                                        }}</span>
+                        </div>
+                        <a-divider/>
+
                 </template>
         </a-drawer>
 
@@ -186,12 +244,12 @@
             v-model:open="permissionDrawerVisible"
             :destroy-on-close="true"
             :footer-style="{ textAlign: 'right' }"
-            :width="560"
+            :width="drawerWidth"
             title="角色权限配置"
             @close="onPermissionDrawerClose">
                 <template v-if="permissionRole">
                         <div class="mb-4 text-gray-600 text-sm">{{
-                                        permissionRole.name
+                                permissionRole.name
                                 }}（{{ permissionRole.code }}）
                         </div>
                         <div class="mb-3 p-2 bg-blue-50 rounded text-xs text-gray-600">
@@ -209,12 +267,14 @@
                                                 <span class="font-medium">已关联权限</span>
                                                 <a-space>
                                                         <a-select
+                                                            v-if="windowWidth >= 768"
                                                             v-model:value="permissionViewMode"
                                                             size="small"
                                                             style="width: 100px">
                                                                 <a-select-option value="tree">树形视图</a-select-option>
                                                                 <a-select-option value="list">列表视图</a-select-option>
                                                         </a-select>
+                                                        <span v-else class="text-sm text-gray-600">列表视图</span>
                                                         <a-button
                                                             v-if="permissionRole && !permissionRole.isSystem"
                                                             size="small"
@@ -242,11 +302,12 @@
                                                                                                     class="font-medium">{{
                                                                                                                 name
                                                                                                         }}</span>
-                                                                                        <a-tag
-                                                                                            :color="fromGroup ? 'blue' : 'green'"
-                                                                                            size="small">
+                                                                                        <a-tag :bordered="false"
+                                                                                               :color="fromGroup ? 'blue' : 'green'"
+                                                                                               size="small">
                                                                                                 {{
-                                                                                                        fromGroup ? '来自权限组' : '直接添加'
+                                                                                                fromGroup ? '来自权限组'
+                                                                                                : '直接添加'
                                                                                                 }}
                                                                                         </a-tag>
                                                                                 </div>
@@ -256,7 +317,7 @@
                                                                                         }}</span>
                                                                         </div>
                                                                         <a-popconfirm
-                                                                            v-if="!fromGroup"
+                                                                            v-if="!fromGroup && permissionRole && !permissionRole.isSystem"
                                                                             title="确定移除此权限？"
                                                                             @confirm.stop="removePermission(id)">
                                                                                 <a-button danger
@@ -275,37 +336,40 @@
                                         </div>
 
                                         <!-- 列表展示 -->
-                                        <a-table
-                                            v-else
-                                            :columns="permissionColumns"
-                                            :data-source="permissionsWithSource"
-                                            :loading="roleStore.permissionsDetailLoading"
-                                            :pagination="false"
-                                            row-key="id"
-                                            size="small">
-                                                <template #bodyCell="{ column, record }">
-                                                        <template v-if="column.key === 'source'">
-                                                                <a-tag
-                                                                    :color="record.fromGroup ? 'blue' : 'green'">
-                                                                        {{
+                                        <div v-else class="overflow-x-auto">
+                                                <a-table
+                                                    :columns="permissionColumns"
+                                                    :data-source="permissionsWithSource"
+                                                    :loading="roleStore.permissionsDetailLoading"
+                                                    :pagination="false"
+                                                    :scroll="{ x: 500 }"
+                                                    row-key="id"
+                                                    size="small"
+                                                    table-layout="fixed">
+                                                        <template #bodyCell="{ column, record }">
+                                                                <template v-if="column.key === 'source'">
+                                                                        <a-tag :bordered="false"
+                                                                               :color="record.fromGroup ? 'blue' : 'green'">
+                                                                                {{
                                                                                 record.fromGroup ? '来自权限组' : '直接添加'
-                                                                        }}
-                                                                </a-tag>
+                                                                                }}
+                                                                        </a-tag>
+                                                                </template>
+                                                                <template v-else-if="column.key === 'action'">
+                                                                        <a-popconfirm
+                                                                            v-if="!record.fromGroup && permissionRole && !permissionRole.isSystem"
+                                                                            title="确定移除此权限？"
+                                                                            @confirm="removePermission(record.id)">
+                                                                                <a-button danger size="small"
+                                                                                          type="link">移除
+                                                                                </a-button>
+                                                                        </a-popconfirm>
+                                                                        <span v-else
+                                                                              class="text-gray-400 text-xs">需移除权限组</span>
+                                                                </template>
                                                         </template>
-                                                        <template v-else-if="column.key === 'action'">
-                                                                <a-popconfirm
-                                                                    v-if="!record.fromGroup"
-                                                                    title="确定移除此权限？"
-                                                                    @confirm="removePermission(record.id)">
-                                                                        <a-button danger size="small"
-                                                                                  type="link">移除
-                                                                        </a-button>
-                                                                </a-popconfirm>
-                                                                <span v-else
-                                                                      class="text-gray-400 text-xs">需移除权限组</span>
-                                                        </template>
-                                                </template>
-                                        </a-table>
+                                                </a-table>
+                                        </div>
                                         <div
                                             v-if="permissionViewMode === 'list' && !permissionsWithSource.length"
                                             class="text-gray-400 text-sm py-2">暂无
@@ -322,24 +386,28 @@
                                                     @click="showAddGroupModal = true">添加权限组
                                                 </a-button>
                                         </div>
-                                        <a-table
-                                            :columns="groupColumns"
-                                            :data-source="roleStore.roleDetail?.permissionGroups || []"
-                                            :pagination="false"
-                                            row-key="id"
-                                            size="small">
-                                                <template #bodyCell="{ column, record }">
-                                                        <template v-if="column.key === 'action'">
-                                                                <a-popconfirm
-                                                                    title="确定移除此权限组？将同时移除该组下所有权限。"
-                                                                    @confirm="removeGroup(record.id)">
-                                                                        <a-button danger size="small"
-                                                                                  type="link">移除
-                                                                        </a-button>
-                                                                </a-popconfirm>
+                                        <div class="overflow-x-auto">
+                                                <a-table
+                                                    :columns="groupColumns"
+                                                    :data-source="roleStore.roleDetail?.permissionGroups || []"
+                                                    :pagination="false"
+                                                    :scroll="{ x: 400 }"
+                                                    row-key="id"
+                                                    size="small"
+                                                    table-layout="fixed">
+                                                        <template #bodyCell="{ column, record }">
+                                                                <template v-if="column.key === 'action'">
+                                                                        <a-popconfirm
+                                                                            title="确定移除此权限组？将同时移除该组下所有权限。"
+                                                                            @confirm="removeGroup(record.id)">
+                                                                                <a-button danger size="small"
+                                                                                          type="link">移除
+                                                                                </a-button>
+                                                                        </a-popconfirm>
+                                                                </template>
                                                         </template>
-                                                </template>
-                                        </a-table>
+                                                </a-table>
+                                        </div>
                                         <div v-if="!(roleStore.roleDetail?.permissionGroups?.length)"
                                              class="text-gray-400 text-sm py-2">暂无
                                         </div>
@@ -393,7 +461,7 @@
 </template>
 
 <script setup>
-import {computed, ref, watch} from 'vue';
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
 import {message} from 'ant-design-vue';
 import {useRoleStore} from '../../../../stores/role.js';
 import {usePermissionStore} from '../../../../stores/permission.js';
@@ -410,6 +478,22 @@ import {InfoCircleOutlined} from "@ant-design/icons-vue";
 const roleStore = useRoleStore();
 const permissionStore = usePermissionStore();
 const permissionGroupStore = usePermissionGroupStore();
+
+// 响应式抽屉宽度
+const windowWidth = ref(window.innerWidth);
+const drawerWidth = computed(() => windowWidth.value < 768 ? 350 : 600);
+
+// 响应式权限视图模式（手机端强制列表视图）
+const permissionViewMode = ref(windowWidth.value < 768 ? 'list' : 'tree');
+
+// 窗口大小变化处理
+const handleResize = () => {
+        windowWidth.value = window.innerWidth;
+        // 手机端强制使用列表视图
+        if (windowWidth.value < 768) {
+                permissionViewMode.value = 'list';
+        }
+};
 
 // 表格分页配置（与后端 current/size 对应）
 const tablePagination = computed(() => ({
@@ -434,7 +518,6 @@ const columns = [
 // 存储所有权限组中的权限ID集合
 const permissionIdsFromGroups = ref(new Set());
 const loadingGroupPermissions = ref(false);
-const permissionViewMode = ref('tree'); // 'tree' 或 'list'
 
 // 计算权限来源：哪些权限来自权限组，哪些是直接添加的
 const permissionsWithSource = computed(() => {
@@ -452,10 +535,9 @@ const permissionsWithSource = computed(() => {
 
 // 计算角色权限树形数据
 const rolePermissionTreeData = computed(() => {
-        if (permissionViewMode.value === 'tree') {
-                return buildPermissionTree(permissionsWithSource.value);
-        }
-        return [];
+        return permissionViewMode.value === 'tree'
+            ? buildPermissionTree(permissionsWithSource.value)
+            : [];
 });
 
 // 权限配置抽屉内：已关联权限表格列（非系统角色显示操作列）
@@ -488,19 +570,23 @@ const selectedRole = ref(null);
 const createVisible = ref(false);
 const createSubmitting = ref(false);
 const createForm = ref(null);
-// 验证角色编码格式：2-50字符，只能包含大写字母和下划线
-const validateRoleCode = (rule, value) => {
+// 验证角色编码格式：2-50 字符，只能包含大写字母和下划线
+const validateRoleCode = (_rule, value) => {
+        // 统一处理所有验证逻辑，只有一个返回点
+        let errorMessage = '';
+
         if (!value || !value.trim()) {
-                return Promise.reject('请输入角色编码');
+                errorMessage = '请输入角色编码';
+        } else {
+                const trimmedValue = value.trim();
+                if (trimmedValue.length < 2 || trimmedValue.length > 50) {
+                        errorMessage = '角色编码长度必须在 2-50 个字符之间';
+                } else if (!/^[A-Z_]+$/.test(trimmedValue)) {
+                        errorMessage = '角色编码只能包含大写字母和下划线';
+                }
         }
-        const trimmedValue = value.trim();
-        if (trimmedValue.length < 2 || trimmedValue.length > 50) {
-                return Promise.reject('角色编码长度必须在 2-50 个字符之间');
-        }
-        if (!/^[A-Z_]+$/.test(trimmedValue)) {
-                return Promise.reject('角色编码只能包含大写字母和下划线');
-        }
-        return Promise.resolve();
+
+        return errorMessage ? Promise.reject(errorMessage) : Promise.resolve();
 };
 
 const createRules = {
@@ -597,37 +683,55 @@ function openCreate() {
         createVisible.value = true;
 }
 
-async function submitCreate() {
-        // 验证角色编码
-        if (!createForm.value?.code || !createForm.value.code.trim()) {
-                message.warning('请填写角色编码');
-                return;
-        }
-        const codeValue = createForm.value.code.trim().toUpperCase();
-        if (codeValue.length < 2 || codeValue.length > 50) {
-                message.warning('角色编码长度必须在 2-50 个字符之间');
-                return;
-        }
-        if (!/^[A-Z_]+$/.test(codeValue)) {
-                message.warning('角色编码只能包含大写字母和下划线');
-                return;
+// 验证角色编码
+function validateRoleCodeField(code) {
+        // 统一处理所有验证逻辑，确保只有一个返回点
+        let validationResult = {valid: true, message: '', value: ''};
+
+        // 处理空值情况
+        if (!code) {
+                validationResult.valid = false;
+                validationResult.message = '请填写角色编码';
+        } else {
+                const codeValue = code.toUpperCase();
+                const isValidLength = codeValue.length >= 2 && codeValue.length <= 50;
+                const isValidFormat = /^[A-Z_]+$/.test(codeValue);
+
+                if (!isValidLength) {
+                        validationResult.valid = false;
+                        validationResult.message = '角色编码长度必须在 2-50 个字符之间';
+                } else if (!isValidFormat) {
+                        validationResult.valid = false;
+                        validationResult.message = '角色编码只能包含大写字母和下划线';
+                } else {
+                        validationResult.value = codeValue;
+                }
         }
 
-        // 验证角色名称
-        if (!createForm.value?.name || !createForm.value.name.trim()) {
-                message.warning('请填写角色名称');
-                return;
+        return validationResult;
+}
+
+// 验证角色名称和描述
+function validateRoleNameAndDescription(name, description) {
+        // 统一处理所有验证逻辑，确保只有一个返回点
+        let validationResult = {valid: true, message: ''};
+
+        if (!name) {
+                validationResult.valid = false;
+                validationResult.message = '请填写角色名称';
+        } else if (name.length > 50) {
+                validationResult.valid = false;
+                validationResult.message = '角色名称不能超过 50 个字符';
+        } else if (description && description.length > 200) {
+                validationResult.valid = false;
+                validationResult.message = '角色描述不能超过 200 个字符';
         }
-        // 名称长度限制：最大 50 字符
-        if (createForm.value.name.length > 50) {
-                message.warning('角色名称不能超过 50 个字符');
-                return;
-        }
-        // 描述长度限制：最大 200 字符
-        if (createForm.value.description && createForm.value.description.length > 200) {
-                message.warning('角色描述不能超过 200 个字符');
-                return;
-        }
+
+        return validationResult;
+}
+
+// 执行创建角色的业务逻辑
+async function executeCreateRole(codeValue) {
         createSubmitting.value = true;
         try {
                 await roleStore.createRole({
@@ -648,141 +752,130 @@ async function submitCreate() {
         }
 }
 
+async function submitCreate() {
+        // 统一验证所有字段，确保只有一个返回点
+        let validationPassed = true;
+        let errorMessage = '';
+        let codeValue = '';
+
+        // 验证角色编码
+        const codeValidation = validateRoleCodeField(createForm.value?.code?.trim());
+        if (!codeValidation.valid) {
+                validationPassed = false;
+                errorMessage = codeValidation.message;
+        } else {
+                codeValue = codeValidation.value;
+
+                // 验证角色名称和描述
+                const nameValidation = validateRoleNameAndDescription(
+                    createForm.value?.name?.trim(),
+                    createForm.value?.description
+                );
+                if (!nameValidation.valid) {
+                        validationPassed = false;
+                        errorMessage = nameValidation.message;
+                }
+        }
+
+        // 统一处理结果
+        if (validationPassed) {
+                // 所有验证通过，执行业务逻辑
+                await executeCreateRole(codeValue);
+        } else {
+                // 验证失败，显示错误信息
+                message.warning(errorMessage);
+        }
+}
+
 function openDetail(record) {
         selectedRole.value = record;
         detailVisible.value = true;
 }
 
-async function openEdit(record) {
+function openEdit(record) {
+        // 统一处理逻辑，确保只有一个返回点
+        let canEdit = true;
+
         // 系统内置角色不可编辑（双重保护，UI 已经隐藏按钮）
         if (record.isSystem) {
                 message.warning('系统内置角色不可修改');
-                return;
+                canEdit = false;
         }
 
-        // 检查权限冲突：权限组中的权限（如果是父权限，要包含所有子权限）与权限列表不能重复
-        try {
-                await roleStore.fetchPermissionsDetail(record.id);
-                const roleDetail = roleStore.roleDetail;
-
-                if (roleDetail) {
-                        // 获取权限组中的所有权限（如果是父权限，要包含所有子权限）
-                        const groupPermissionsFlat = [];
-                        if (roleDetail.permissionGroups && roleDetail.permissionGroups.length > 0) {
-                                // 构建所有权限的 code 映射
-                                const allPermissions = await permissionStore.fetchPermissions({
-                                        currentPage: 1,
-                                        pageSize: 500
-                                });
-                                const codeMap = new Map();
-                                allPermissions.forEach(p => {
-                                        codeMap.set(p.code, p);
-                                });
-
-                                // 获取每个权限组的权限，并展开父权限的所有子权限
-                                for (const group of roleDetail.permissionGroups) {
-                                        try {
-                                                const groupPerms = await permissionGroupStore.fetchGroupPermissions(group.id);
-                                                // 对于每个权限，如果是父权限，需要包含所有子权限
-                                                for (const perm of groupPerms) {
-                                                        groupPermissionsFlat.push(perm);
-                                                        // 检查是否是父权限，如果是，添加所有子权限
-                                                        const permInTree = findPermissionInTree(buildPermissionTree(allPermissions), perm.id);
-                                                        if (permInTree && hasChildren(permInTree)) {
-                                                                const allChildren = flattenPermissionTree([permInTree]);
-                                                                allChildren.forEach(child => {
-                                                                        if (child.id !== perm.id && !groupPermissionsFlat.find(p => p.id === child.id)) {
-                                                                                groupPermissionsFlat.push(child);
-                                                                        }
-                                                                });
-                                                        }
-                                                }
-                                        } catch (e) {
-                                                logger.error('获取权限组权限失败:', e);
-                                        }
-                                }
-                        }
-
-                        // 获取角色直接添加的权限
-                        const directPermissions = roleDetail.permissions || [];
-
-                        // 检查是否有重复
-                        const groupPermissionCodes = new Set(groupPermissionsFlat.map(p => p.code));
-                        const directPermissionCodes = new Set(directPermissions.map(p => p.code));
-
-                        const conflicts = [];
-                        for (const code of groupPermissionCodes) {
-                                if (directPermissionCodes.has(code)) {
-                                        conflicts.push(code);
-                                }
-                        }
-
-                        if (conflicts.length > 0) {
-                                message.warning(`权限冲突：权限组中的权限 "${conflicts.join('", "')}" 与角色直接添加的权限重复，请先移除冲突的权限后再编辑角色`);
-                                return;
-                        }
-                }
-        } catch (e) {
-                logger.error('检查权限冲突失败:', e);
-                // 如果检查失败，仍然允许编辑，但记录错误
+        // 如果可以编辑，则初始化编辑表单
+        if (canEdit) {
+                // 重叠校验仅在做“新添加”权限/权限组时执行，接口返回的已有数据不视为冲突
+                editForm.value = {
+                        id: record.id,
+                        name: record.name,
+                        description: record.description ?? '',
+                        sortOrder: record.sortOrder ?? 0,
+                        status: record.status ?? 1
+                };
+                editVisible.value = true;
         }
-
-        editForm.value = {
-                id: record.id,
-                name: record.name,
-                description: record.description ?? '',
-                sortOrder: record.sortOrder ?? 0,
-                status: record.status ?? 1
-        };
-        editVisible.value = true;
 }
 
 async function submitEdit() {
+        // 统一验证所有字段，确保只有一个返回点
+        let validationPassed = true;
+        let errorMessage = '';
+
+        // 验证角色名称
         if (!editForm.value?.name || !editForm.value.name.trim()) {
-                message.warning('请填写角色名称');
-                return;
+                validationPassed = false;
+                errorMessage = '请填写角色名称';
+        } else if (editForm.value.name.length > 50) {
+                validationPassed = false;
+                errorMessage = '角色名称不能超过 50 个字符';
+        } else if (editForm.value.description && editForm.value.description.length > 200) {
+                validationPassed = false;
+                errorMessage = '角色描述不能超过 200 个字符';
         }
-        // 名称长度限制：最大 50 字符
-        if (editForm.value.name.length > 50) {
-                message.warning('角色名称不能超过 50 个字符');
-                return;
-        }
-        // 描述长度限制：最大 200 字符
-        if (editForm.value.description && editForm.value.description.length > 200) {
-                message.warning('角色描述不能超过 200 个字符');
-                return;
-        }
-        editSubmitting.value = true;
-        try {
-                await roleStore.updateRole(editForm.value.id, {
-                        name: editForm.value.name.trim(),
-                        description: editForm.value.description?.trim() || '',
-                        sortOrder: editForm.value.sortOrder ?? 0,
-                        status: editForm.value.status ?? 1
-                });
-                message.success('保存成功');
-                editVisible.value = false;
-                editForm.value = null;
-                loadRoles();
-        } catch (e) {
-                message.error(e?.message || '保存失败');
-        } finally {
-                editSubmitting.value = false;
+
+        // 统一处理结果
+        if (validationPassed) {
+                editSubmitting.value = true;
+                try {
+                        await roleStore.updateRole(editForm.value.id, {
+                                name: editForm.value.name.trim(),
+                                description: editForm.value.description?.trim() || '',
+                                sortOrder: editForm.value.sortOrder ?? 0,
+                                status: editForm.value.status ?? 1
+                        });
+                        message.success('保存成功');
+                        editVisible.value = false;
+                        editForm.value = null;
+                        loadRoles();
+                } catch (e) {
+                        message.error(e?.message || '保存失败');
+                } finally {
+                        editSubmitting.value = false;
+                }
+        } else {
+                message.warning(errorMessage);
         }
 }
 
 async function onDelete(record) {
+        // 统一处理逻辑，确保只有一个返回点
+        let canDelete = true;
+
         // 系统内置角色不可删除（双重保护，UI 已经隐藏按钮）
         if (record.isSystem) {
                 message.warning('系统内置角色不可删除');
-                return;
+                canDelete = false;
         }
-        try {
-                await roleStore.deleteRole(record.id);
-                message.success('删除成功');
-                loadRoles();
-        } catch (e) {
-                message.error(e?.message || '删除失败');
+
+        // 如果可以删除，则执行删除操作
+        if (canDelete) {
+                try {
+                        await roleStore.deleteRole(record.id);
+                        message.success('删除成功');
+                        loadRoles();
+                } catch (e) {
+                        message.error(e?.message || '删除失败');
+                }
         }
 }
 
@@ -803,35 +896,36 @@ async function openPermissionDrawer(record) {
 
 // 加载所有权限组中的权限ID
 async function loadGroupPermissions() {
+        // 统一处理逻辑，确保只有一个返回点且减少循环嵌套
         const permissionGroups = roleStore.roleDetail?.permissionGroups || [];
-        if (permissionGroups.length === 0) {
+        let shouldLoad = permissionGroups.length > 0;
+
+        if (!shouldLoad) {
                 permissionIdsFromGroups.value = new Set();
-                return;
-        }
+        } else {
+                loadingGroupPermissions.value = true;
+                const allPermissionIds = new Set();
 
-        loadingGroupPermissions.value = true;
-        const allPermissionIds = new Set();
+                try {
+                        // 并发获取所有权限组的权限列表
+                        const promises = permissionGroups.map(group =>
+                            permissionGroupStore.fetchGroupPermissions(group.id).catch(() => [])
+                        );
+                        const results = await Promise.all(promises);
 
-        try {
-                // 并发获取所有权限组的权限列表
-                const promises = permissionGroups.map(group =>
-                    permissionGroupStore.fetchGroupPermissions(group.id).catch(() => [])
-                );
-                const results = await Promise.all(promises);
-
-                // 收集所有权限ID
-                results.forEach(permissions => {
-                        permissions.forEach(permission => {
+                        // 使用 flatMap 展平数组并收集所有权限ID
+                        const allPermissions = results.flat();
+                        allPermissions.forEach(permission => {
                                 allPermissionIds.add(permission.id);
                         });
-                });
 
-                permissionIdsFromGroups.value = allPermissionIds;
-        } catch (e) {
-                logger.error('加载权限组权限失败:', e);
-                permissionIdsFromGroups.value = new Set();
-        } finally {
-                loadingGroupPermissions.value = false;
+                        permissionIdsFromGroups.value = allPermissionIds;
+                } catch (e) {
+                        logger.error('加载权限组权限失败:', e);
+                        permissionIdsFromGroups.value = new Set();
+                } finally {
+                        loadingGroupPermissions.value = false;
+                }
         }
 }
 
@@ -846,35 +940,60 @@ function onPermissionDrawerClose() {
 }
 
 async function removePermission(permissionId) {
-        if (!permissionRole.value) return;
+        // 统一处理逻辑，确保只有一个返回点
+        let canRemove = true;
+        let errorMessage = '';
 
-        // 检查权限是否来自权限组
-        if (permissionIdsFromGroups.value.has(permissionId)) {
-                message.warning('该权限来自权限组，请通过移除权限组来移除');
-                return;
+        // 检查必要条件
+        if (!permissionRole.value) {
+                canRemove = false;
+                errorMessage = '未找到角色信息';
+        } else if (permissionIdsFromGroups.value.has(permissionId)) {
+                // 检查权限是否来自权限组
+                canRemove = false;
+                errorMessage = '该权限来自权限组，请通过移除权限组来移除';
         }
 
-        try {
-                await roleStore.removePermissionFromRole(permissionRole.value.id, permissionId);
-                message.success('已移除');
-                await roleStore.fetchPermissionsDetail(permissionRole.value.id);
-                // 重新加载权限组权限列表
-                await loadGroupPermissions();
-        } catch (e) {
-                message.error(e?.message || '移除失败');
+        // 统一处理结果
+        if (canRemove) {
+                try {
+                        await roleStore.removePermissionFromRole(permissionRole.value.id, permissionId);
+                        message.success('已移除');
+                        await roleStore.fetchPermissionsDetail(permissionRole.value.id);
+                        // 重新加载权限组权限列表
+                        await loadGroupPermissions();
+                } catch (e) {
+                        message.error(e?.message || '移除失败');
+                }
+        } else {
+                message.warning(errorMessage);
         }
 }
 
 async function removeGroup(groupId) {
-        if (!permissionRole.value) return;
-        try {
-                await roleStore.removePermissionGroupFromRole(permissionRole.value.id, groupId);
-                message.success('已移除');
-                await roleStore.fetchPermissionsDetail(permissionRole.value.id);
-                // 重新加载权限组权限列表
-                await loadGroupPermissions();
-        } catch (e) {
-                message.error(e?.message || '移除失败');
+        // 统一处理逻辑，确保只有一个返回点
+        let canRemove = true;
+        let errorMessage = '';
+
+        // 检查必要条件
+        if (!permissionRole.value) {
+                canRemove = false;
+                errorMessage = '未找到角色信息';
+        }
+
+        // 统一处理结果
+        if (canRemove) {
+                try {
+                        await roleStore.removePermissionGroupFromRole(permissionRole.value.id, groupId);
+                        message.success('已移除');
+                        await roleStore.fetchPermissionsDetail(permissionRole.value.id);
+                        // 重新加载权限组权限列表
+                        await loadGroupPermissions();
+                } catch (e) {
+                        message.error(e?.message || '移除失败');
+                }
+        } else {
+                message.warning(errorMessage);
         }
 }
 
@@ -904,105 +1023,235 @@ function filterPermissionTreeNode(inputValue, node) {
 }
 
 // 处理权限选择
-function onPermissionSelect(value, node) {
+function onPermissionSelect(value) {
         selectedPermissionId.value = value;
 }
 
-async function doAddPermission() {
-        if (!selectedPermissionId.value || !permissionRole.value) {
-                message.warning('请选择要添加的权限');
-                return;
+// 验证添加权限的参数
+function validateAddPermissionParams() {
+        // 统一处理逻辑，确保只有一个返回点
+        let result = {valid: true, message: '', type: 'error'};
+
+        const hasValidParameters = selectedPermissionId.value && permissionRole.value;
+        if (!hasValidParameters) {
+                result.valid = false;
+                result.message = '请选择要添加的权限';
+                result.type = 'warning';
         }
 
-        // 查找选中的权限对象
+        return result;
+}
+
+// 查找选中的权限
+function findSelectedPermission() {
+        // 统一处理逻辑，确保只有一个返回点
+        let result = {valid: true, message: '', permission: null};
+
         const selectedPermission = permissionOptions.value.find(p => p.id === selectedPermissionId.value);
-        if (!selectedPermission) {
-                message.error('未找到选中的权限');
-                return;
+        const permissionFound = Boolean(selectedPermission);
+        if (!permissionFound) {
+                result.valid = false;
+                result.message = '未找到选中的权限';
+        } else {
+                result.permission = selectedPermission;
         }
 
-        // 构建 code 映射
-        const codeMap = new Map();
-        permissionOptions.value.forEach(p => {
-                codeMap.set(p.code, p);
-        });
+        return result;
+}
 
-        // 获取当前角色的所有权限（包括权限组中的权限）
-        const currentPermissions = roleStore.roleDetail?.permissions || [];
+// 构建权限树和映射
+function buildPermissionStructure() {
+        // 统一处理逻辑，确保只有一个返回点
+        let result = {valid: true, message: '', tree: null, selectedNode: null, codeMap: null};
 
-        // 构建权限树以检查父子关系
         const allPermissionsTree = buildPermissionTree(permissionOptions.value);
         const selectedPermissionInTree = findPermissionInTree(allPermissionsTree, selectedPermissionId.value);
+        const permissionInTreeFound = Boolean(selectedPermissionInTree);
 
-        if (!selectedPermissionInTree) {
-                message.error('未找到权限信息');
-                return;
+        if (!permissionInTreeFound) {
+                result.valid = false;
+                result.message = '未找到权限信息';
+        } else {
+                const codeMap = permissionOptions.value.reduce((map, p) => {
+                        map.set(p.code, p);
+                        return map;
+                }, new Map());
+
+                result.tree = allPermissionsTree;
+                result.selectedNode = selectedPermissionInTree;
+                result.codeMap = codeMap;
         }
 
-        // 获取权限组中的所有权限（如果是父权限，要包含所有子权限）
-        const groupPermissionsFlat = [];
-        if (roleStore.roleDetail?.permissionGroups) {
-                for (const group of roleStore.roleDetail.permissionGroups) {
-                        try {
-                                const groupPerms = await permissionGroupStore.fetchGroupPermissions(group.id);
-                                // 对于每个权限，如果是父权限，需要包含所有子权限
-                                for (const perm of groupPerms) {
-                                        groupPermissionsFlat.push(perm);
-                                        // 检查是否是父权限，如果是，添加所有子权限
-                                        const permInTree = findPermissionInTree(allPermissionsTree, perm.id);
-                                        if (permInTree && hasChildren(permInTree)) {
-                                                const allChildren = flattenPermissionTree([permInTree]);
-                                                allChildren.forEach(child => {
-                                                        if (child.id !== perm.id && !groupPermissionsFlat.find(p => p.id === child.id)) {
-                                                                groupPermissionsFlat.push(child);
-                                                        }
-                                                });
-                                        }
-                                }
-                        } catch (e) {
-                                logger.error('获取权限组权限失败:', e);
+        return result;
+}
+
+// 处理权限添加结果
+async function handleAddPermissionResult(validationResult, permissionData) {
+        if (validationResult.valid) {
+                try {
+                        // 检查权限冲突
+                        const conflictResult = await checkPermissionConflicts(
+                            permissionData.selectedNode,
+                            permissionData.tree,
+                            permissionData.codeMap
+                        );
+
+                        const hasConflict = conflictResult.hasConflict;
+                        if (hasConflict) {
+                                message.warning(conflictResult.reason);
+                        } else {
+                                // 执行添加操作
+                                addPermissionLoading.value = true;
+                                await roleStore.addPermissionToRole(permissionRole.value.id, selectedPermissionId.value);
+                                message.success('添加成功');
+                                showAddPermissionModal.value = false;
+                                selectedPermissionId.value = null;
+                                await roleStore.fetchPermissionsDetail(permissionRole.value.id);
+                                await loadGroupPermissions();
                         }
+                } catch (e) {
+                        message.error(e?.message || '添加失败');
+                } finally {
+                        addPermissionLoading.value = false;
+                }
+        } else {
+                // 显示验证错误信息
+                const isWarningType = validationResult.type === 'warning';
+                if (isWarningType) {
+                        message.warning(validationResult.message);
+                } else {
+                        message.error(validationResult.message);
+                }
+        }
+}
+
+async function doAddPermission() {
+        // 统一处理逻辑，确保只有一个返回点
+        let canProceed = true;
+        let validationResult = null;
+        let permissionData = null;
+
+        // 参数验证
+        const paramValidation = validateAddPermissionParams();
+        if (!paramValidation.valid) {
+                canProceed = false;
+                validationResult = paramValidation;
+        }
+
+        // 查找选中的权限
+        if (canProceed) {
+                const permissionResult = findSelectedPermission();
+                if (!permissionResult.valid) {
+                        canProceed = false;
+                        validationResult = permissionResult;
+                } else {
+                        permissionData = {permission: permissionResult.permission};
                 }
         }
 
-        // 合并所有已存在的权限（角色直接添加的 + 权限组中的）
-        const allExistingPermissions = [...currentPermissions, ...groupPermissionsFlat];
-
-        // 检查冲突
-        const conflict = checkPermissionConflict(selectedPermissionInTree, allExistingPermissions, codeMap);
-        if (conflict.conflict) {
-                message.warning(conflict.reason);
-                return;
+        // 构建权限结构
+        if (canProceed) {
+                const structureResult = buildPermissionStructure();
+                if (!structureResult.valid) {
+                        canProceed = false;
+                        validationResult = structureResult;
+                } else {
+                        permissionData = {
+                                ...permissionData,
+                                tree: structureResult.tree,
+                                selectedNode: structureResult.selectedNode,
+                                codeMap: structureResult.codeMap
+                        };
+                }
         }
 
-        addPermissionLoading.value = true;
-        try {
-                await roleStore.addPermissionToRole(permissionRole.value.id, selectedPermissionId.value);
-                message.success('添加成功');
-                showAddPermissionModal.value = false;
-                selectedPermissionId.value = null;
-                await roleStore.fetchPermissionsDetail(permissionRole.value.id);
-                // 重新加载权限组权限列表
-                await loadGroupPermissions();
-        } catch (e) {
-                message.error(e?.message || '添加失败');
-        } finally {
-                addPermissionLoading.value = false;
+        // 统一处理最终结果
+        if (canProceed) {
+                await handleAddPermissionResult(
+                    {valid: true},
+                    permissionData
+                );
+        } else {
+                await handleAddPermissionResult(validationResult, null);
         }
 }
 
 // 在树中查找权限
 function findPermissionInTree(tree, permissionId) {
+        // 统一处理逻辑，确保只有一个返回点
+        let result = null;
+
         for (const node of tree) {
                 if (node.id === permissionId) {
-                        return node;
+                        result = node;
+                        break;
                 }
                 if (node.children && node.children.length > 0) {
                         const found = findPermissionInTree(node.children, permissionId);
-                        if (found) return found;
+                        if (found) {
+                                result = found;
+                                break;
+                        }
                 }
         }
-        return null;
+
+        return result;
+}
+
+// 检查权限冲突
+async function checkPermissionConflicts(selectedPermission, allPermissionsTree, codeMap) {
+        // 统一处理逻辑，确保只有一个返回点
+        let result = {hasConflict: false, reason: ''};
+
+        const currentPermissions = roleStore.roleDetail?.permissions || [];
+        const groupPermissionsFlat = [];
+
+        // 如果有权限组，获取所有权限组的权限
+        if (roleStore.roleDetail?.permissionGroups?.length) {
+                try {
+                        // 并发获取所有权限组的权限
+                        const groupPromises = roleStore.roleDetail.permissionGroups.map(group =>
+                            permissionGroupStore.fetchGroupPermissions(group.id)
+                        );
+                        const allGroupPermissions = await Promise.all(groupPromises);
+
+                        // 扁平化并处理权限组权限
+                        const flattenedGroupPermissions = allGroupPermissions.flat();
+                        const existingPermissionIds = new Set();
+
+                        flattenedGroupPermissions.forEach(perm => {
+                                groupPermissionsFlat.push(perm);
+                                existingPermissionIds.add(perm.id);
+
+                                // 检查是否是父权限，如果是，添加所有子权限
+                                const permInTree = findPermissionInTree(allPermissionsTree, perm.id);
+                                if (permInTree && hasChildren(permInTree)) {
+                                        const allChildren = flattenPermissionTree([permInTree]);
+                                        allChildren.forEach(child => {
+                                                if (child.id !== perm.id && !existingPermissionIds.has(child.id)) {
+                                                        groupPermissionsFlat.push(child);
+                                                        existingPermissionIds.add(child.id);
+                                                }
+                                        });
+                                }
+                        });
+                } catch (e) {
+                        logger.error('获取权限组权限失败:', e);
+                        // 发生错误时不阻止操作，保持默认的 result 值
+                }
+        }
+
+        // 合并所有已存在的权限
+        const allExistingPermissions = [...currentPermissions, ...groupPermissionsFlat];
+
+        // 检查冲突
+        const conflict = checkPermissionConflict(selectedPermission, allExistingPermissions, codeMap);
+        result = {
+                hasConflict: conflict.conflict,
+                reason: conflict.reason
+        };
+
+        return result;
 }
 
 watch(showAddGroupModal, (open) => {
@@ -1099,4 +1348,12 @@ async function doAddGroup() {
 
 // 初始加载
 loadRoles();
+
+onMounted(() => {
+        window.addEventListener('resize', handleResize);
+});
+
+onUnmounted(() => {
+        window.removeEventListener('resize', handleResize);
+});
 </script>

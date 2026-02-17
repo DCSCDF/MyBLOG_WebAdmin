@@ -9,7 +9,7 @@
   - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
   - license: "MIT"
   - license_exception: "Mandatory attribution retention"
-  - UpdateTime: 2026/2/2 18:17
+  - UpdateTime: 2026/2/13 18:40
   -
   -->
 
@@ -79,10 +79,10 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, reactive, watch } from 'vue';
+import {computed, onMounted, onUnmounted, reactive, watch} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {childRoutes} from "../../../config/childRoutes.js";
-import { useAppStore } from '../../../stores/app.js';
+import {useAppStore} from '../../../stores/app.js';
 
 const appStore = useAppStore();
 

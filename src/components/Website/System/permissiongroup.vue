@@ -1,7 +1,16 @@
 <!--
   - [permissiongroup.vue]
-  - 权限组管理：分页列表、查看详情、编辑、删除（仅非系统内置）、管理关联权限
-  - 对接 API：/api/permission-group/*
+  - -------------------------------------------------------------------------------
+  - This software is licensed under the MIT License.
+  - However, any distribution or modification must retain this copyright notice.
+  - See LICENSE for full terms.
+  - -------------------------------------------------------------------------------
+  - author: "Jiu Liu"
+  - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
+  - license: "MIT"
+  - license_exception: "Mandatory attribution retention"
+  - UpdateTime: 2026/2/17 22:26
+  -
   -->
 
 <template>
@@ -26,13 +35,16 @@
                         <template #bodyCell="{ column, record }">
                                 <template v-if="column.key === 'operation'">
                                         <a-space>
-                                                <a-button size="small" type="link" @click="viewDetail(record)">查看
+                                                <a-button size="small" type="link" @click="viewDetail(record)">
+                                                        查看
                                                 </a-button>
                                                 <a-button size="small" type="link"
-                                                          @click="openPermissionDrawer(record)">权限
+                                                          @click="openPermissionDrawer(record)">
+                                                        权限
                                                 </a-button>
                                                 <a-button v-if="!record.isSystem" size="small" type="link"
-                                                          @click="openEdit(record)">编辑
+                                                          @click="openEdit(record)">
+                                                        编辑
                                                 </a-button>
                                                 <a-popconfirm
                                                     v-if="!record.isSystem"
@@ -40,18 +52,20 @@
                                                     ok-text="确定"
                                                     title="确定删除该权限组吗？将级联删除权限-权限组、角色-权限组关联。"
                                                     @confirm="onDelete(record)">
-                                                        <a-button danger size="small" type="link">删除</a-button>
+                                                        <a-button danger size="small" type="link">
+                                                                删除
+                                                        </a-button>
                                                 </a-popconfirm>
 
                                         </a-space>
                                 </template>
                                 <template v-else-if="column.key === 'status'">
-                                        <a-tag :color="record.status === '启用' ? 'green' : 'red'">
+                                        <a-tag :bordered="false" :color="record.status === '启用' ? 'green' : 'red'">
                                                 {{ record.status }}
                                         </a-tag>
                                 </template>
                                 <template v-else-if="column.key === 'isSystem'">
-                                        <a-tag :color="record.isSystem ? 'blue' : 'default'">
+                                        <a-tag :bordered="false" :color="record.isSystem ? 'blue' : 'default'">
                                                 {{ record.isSystem ? '系统内置' : '自定义' }}
                                         </a-tag>
                                 </template>
@@ -62,7 +76,7 @@
                 <a-drawer
                     v-model:open="viewDrawerVisible"
                     :destroy-on-close="true"
-                    :width="420"
+                    :width="drawerWidth"
                     title="权限组详情"
                     @close="currentPermissionGroup = null">
                         <template v-if="currentPermissionGroup">
@@ -70,7 +84,7 @@
                                         <span class="font-medium text-gray-900 text-sm">排序顺序：</span>
                                         <span
                                             class="text-gray-600 text-sm break-all">{{
-                                                        currentPermissionGroup.order
+                                                        currentPermissionGroup?.order || '-'
                                                 }}</span>
                                 </div>
                                 <a-divider/>
@@ -78,7 +92,7 @@
                                         <span class="font-medium text-gray-900 text-sm">权限组名称：</span>
                                         <span
                                             class="text-gray-600 text-sm break-all">{{
-                                                        currentPermissionGroup.name
+                                                        currentPermissionGroup?.name || '-'
                                                 }}</span>
                                 </div>
                                 <a-divider/>
@@ -86,7 +100,7 @@
                                         <span class="font-medium text-gray-900 text-sm">描述：</span>
                                         <span
                                             class="text-gray-600 text-sm break-all">{{
-                                                        currentPermissionGroup.description || '-'
+                                                        currentPermissionGroup?.description || '-'
                                                 }}</span>
                                 </div>
                                 <a-divider/>
@@ -94,7 +108,7 @@
                                         <span class="font-medium text-gray-900 text-sm">更新时间：</span>
                                         <span
                                             class="text-gray-600 text-sm break-all">{{
-                                                        formatDate(currentPermissionGroup.updateTime)
+                                                        formatDate(currentPermissionGroup?.updateTime)
                                                 }}</span>
                                 </div>
                                 <a-divider/>
@@ -102,7 +116,7 @@
                                         <span class="font-medium text-gray-900 text-sm">创建时间：</span>
                                         <span
                                             class="text-gray-600 text-sm break-all">{{
-                                                        formatDate(currentPermissionGroup.createTime)
+                                                        formatDate(currentPermissionGroup?.createTime)
                                                 }}</span>
                                 </div>
                                 <a-divider/>
@@ -110,11 +124,12 @@
                                         <span class="font-medium text-gray-900 text-sm">状态：</span>
                                         <span
                                             class="text-gray-600 text-sm break-all">
-                                                <a-tag
-                                                    :color="currentPermissionGroup.status === '启用' ? 'green' : 'red'"
-                                                    class="!mt-2">
-                                                        {{ currentPermissionGroup.status }}
-                                                </a-tag>
+                                                 {{ currentPermissionGroup?.status || '-' }}
+                                                <!--                                                <a-tag :bordered="false"-->
+                                                <!--                                                       :color="currentPermissionGroup?.status === '启用' ? 'green' : 'red'"-->
+                                                <!--                                                       class="!mt-2">-->
+                                                <!--                                                       -->
+                                                <!--                                                </a-tag>-->
                                         </span>
                                 </div>
                                 <a-divider/>
@@ -122,7 +137,7 @@
                                         <span class="font-medium text-gray-900 text-sm">系统内置：</span>
                                         <span
                                             class="text-gray-600 text-sm break-all">{{
-                                                        currentPermissionGroup.isSystem ? '是' : '否'
+                                                        currentPermissionGroup?.isSystem ? '是' : '否'
                                                 }}</span>
                                 </div>
 
@@ -159,6 +174,9 @@
                                         </a-radio-group>
                                 </a-form-item>
                         </a-form>
+                        <div v-else class="text-center py-8 text-gray-500">
+                                加载中...
+                        </div>
                 </a-modal>
 
                 <!-- 新增权限组弹窗 -->
@@ -191,6 +209,9 @@
                                         </a-radio-group>
                                 </a-form-item>
                         </a-form>
+                        <div v-else class="text-center py-8 text-gray-500">
+                                加载中...
+                        </div>
                 </a-modal>
 
                 <!-- 关联权限抽屉 -->
@@ -198,7 +219,7 @@
                     v-model:open="permissionDrawerVisible"
                     :destroy-on-close="true"
                     :footer-style="{ textAlign: 'right' }"
-                    :width="520"
+                    :width="drawerWidth"
                     title="权限组关联权限"
                     @close="onPermissionDrawerClose">
                         <template v-if="selectedGroup">
@@ -209,23 +230,27 @@
                                                   @click="showAddPermission = true">添加权限
                                         </a-button>
                                 </div>
-                                <a-table
-                                    :columns="permissionTableColumns"
-                                    :data-source="permissionGroupStore.currentGroupPermissions"
-                                    :loading="permissionGroupStore.groupPermissionsLoading"
-                                    :pagination="false"
-                                    row-key="id"
-                                    size="small">
-                                        <template #bodyCell="{ column, record }">
-                                                <template v-if="column.key === 'action'">
-                                                        <a-popconfirm title="确定移除此权限？"
-                                                                      @confirm="removePermission(record.id)">
-                                                                <a-button danger size="small" type="link">移除
-                                                                </a-button>
-                                                        </a-popconfirm>
+                                <div class="overflow-x-auto">
+                                        <a-table
+                                            :columns="permissionTableColumns"
+                                            :data-source="permissionGroupStore.currentGroupPermissions"
+                                            :loading="permissionGroupStore.groupPermissionsLoading"
+                                            :pagination="false"
+                                            :scroll="{ x: 400 }"
+                                            row-key="id"
+                                            size="small"
+                                            table-layout="fixed">
+                                                <template #bodyCell="{ column, record }">
+                                                        <template v-if="column.key === 'action'">
+                                                                <a-popconfirm title="确定移除此权限？"
+                                                                              @confirm="removePermission(record.id)">
+                                                                        <a-button danger size="small" type="link">移除
+                                                                        </a-button>
+                                                                </a-popconfirm>
+                                                        </template>
                                                 </template>
-                                        </template>
-                                </a-table>
+                                        </a-table>
+                                </div>
                                 <div
                                     v-if="!permissionGroupStore.currentGroupPermissions.length && !permissionGroupStore.groupPermissionsLoading"
                                     class="text-gray-400 text-sm py-2">暂无
@@ -259,7 +284,8 @@
 </template>
 
 <script setup>
-import {computed, onMounted, ref, watch} from 'vue';
+
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
 import {message} from 'ant-design-vue';
 import {usePermissionGroupStore} from '../../../stores/permissiongroup.js';
 import {usePermissionStore} from '../../../stores/permission.js';
@@ -268,6 +294,16 @@ import logger from '../../../utils/logger.js';
 
 const permissionGroupStore = usePermissionGroupStore();
 const permissionStore = usePermissionStore();
+
+// 响应式抽屉宽度
+const windowWidth = ref(window.innerWidth);
+const drawerWidth = computed(() => windowWidth.value < 768 ? 350 : 600);
+
+// 窗口大小变化处理
+const handleResize = () => {
+        windowWidth.value = window.innerWidth;
+};
+
 
 const tableData = computed(() => permissionGroupStore.currentPermissionGroups);
 const loading = computed(() => permissionGroupStore.loading);
@@ -285,14 +321,14 @@ const columns = [
         {title: '权限组描述', dataIndex: 'description', key: 'description', width: 220, ellipsis: true},
         {title: '状态', dataIndex: 'status', key: 'status', width: 90},
         {title: '系统内置', dataIndex: 'isSystem', key: 'isSystem', width: 100},
-        {title: '操作', key: 'operation', fixed: 'right', width: 260}
+        {title: '操作', key: 'operation', fixed: 'right', width: 200}
 ];
 
 // 关联权限表格列（非系统内置显示操作列）
 const permissionTableColumns = computed(() => {
         const cols = [
-                {title: '权限编码', dataIndex: 'code', key: 'code'},
-                {title: '权限名称', dataIndex: 'name', key: 'name'}
+                {title: '权限编码', dataIndex: 'code', key: 'code', width: 150, ellipsis: true},
+                {title: '权限名称', dataIndex: 'name', key: 'name', width: 150, ellipsis: true}
         ];
         if (selectedGroup.value && !selectedGroup.value.isSystem) {
                 cols.push({title: '操作', key: 'action', width: 80});
@@ -385,65 +421,88 @@ function openEdit(record) {
         // 系统内置权限组不可编辑
         if (record.isSystem) {
                 message.warning('系统内置权限组不可修改');
-                return;
+        } else {
+                editForm.value = {
+                        id: record.id,
+                        name: record.name,
+                        description: record.description ?? '',
+                        sortOrder: record.sortOrder ?? record.order ?? 0,
+                        status: record.statusValue ?? (record.status === '启用' ? 1 : 0)
+                };
+                editVisible.value = true;
         }
-        editForm.value = {
-                id: record.id,
-                name: record.name,
-                description: record.description ?? '',
-                sortOrder: record.sortOrder ?? record.order ?? 0,
-                status: record.statusValue ?? (record.status === '启用' ? 1 : 0)
-        };
-        editVisible.value = true;
+}
+
+// 验证编辑表单
+function validateEditForm() {
+        let isValid = true;
+        let errorMessage = '';
+
+        if (!editForm.value?.name || !editForm.value.name.trim()) {
+                isValid = false;
+                errorMessage = '请填写权限组名称';
+        } else if (editForm.value.name.length > 50) {
+                // 名称长度限制：最大 50 字符
+                isValid = false;
+                errorMessage = '权限组名称不能超过 50 个字符';
+        } else if (editForm.value.description && editForm.value.description.length > 200) {
+                // 描述长度限制：最大 200 字符
+                isValid = false;
+                errorMessage = '权限组描述不能超过 200 个字符';
+        }
+
+        return {isValid, errorMessage};
 }
 
 async function submitEdit() {
-        if (!editForm.value?.name || !editForm.value.name.trim()) {
-                message.warning('请填写权限组名称');
-                return;
+        const validation = validateEditForm();
+        let shouldProceed = validation.isValid;
+
+        if (!shouldProceed) {
+                message.warning(validation.errorMessage);
+        } else {
+                editSubmitting.value = true;
+                try {
+                        await permissionGroupStore.updatePermissionGroup(editForm.value.id, {
+                                name: editForm.value.name.trim(),
+                                description: editForm.value.description?.trim() || '',
+                                sortOrder: editForm.value.sortOrder ?? 0,
+                                status: editForm.value.status ?? 1
+                        });
+                        message.success('保存成功');
+                        editVisible.value = false;
+                        editForm.value = null;
+                        loadTableData();
+                } catch (e) {
+                        message.error(e?.message || '保存失败');
+                        shouldProceed = false;
+                } finally {
+                        editSubmitting.value = false;
+                }
         }
-        // 名称长度限制：最大 50 字符
-        if (editForm.value.name.length > 50) {
-                message.warning('权限组名称不能超过 50 个字符');
-                return;
-        }
-        // 描述长度限制：最大 200 字符
-        if (editForm.value.description && editForm.value.description.length > 200) {
-                message.warning('权限组描述不能超过 200 个字符');
-                return;
-        }
-        editSubmitting.value = true;
-        try {
-                await permissionGroupStore.updatePermissionGroup(editForm.value.id, {
-                        name: editForm.value.name.trim(),
-                        description: editForm.value.description?.trim() || '',
-                        sortOrder: editForm.value.sortOrder ?? 0,
-                        status: editForm.value.status ?? 1
-                });
-                message.success('保存成功');
-                editVisible.value = false;
-                editForm.value = null;
-                loadTableData();
-        } catch (e) {
-                message.error(e?.message || '保存失败');
-        } finally {
-                editSubmitting.value = false;
-        }
+
+        return shouldProceed;
 }
 
 async function onDelete(record) {
-        // 系统内置权限组不可删除（虽然按钮已隐藏，但这里再加一层保护）
-        if (record.isSystem) {
+        let canDelete = !record.isSystem;
+
+        if (!canDelete) {
+                // 系统内置权限组不可删除（虽然按钮已隐藏，但这里再加一层保护）
                 message.warning('系统内置权限组不可删除');
-                return;
+        } else {
+                try {
+                        await permissionGroupStore.deletePermissionGroup(record.id);
+                        message.success('删除成功');
+                        loadTableData();
+                } catch (e) {
+                        message.error(e?.message || '删除失败');
+                        canDelete = false;
+                }
         }
-        try {
-                await permissionGroupStore.deletePermissionGroup(record.id);
-                message.success('删除成功');
-                loadTableData();
-        } catch (e) {
-                message.error(e?.message || '删除失败');
-        }
+
+        // 统一返回点
+        return canDelete;
 }
 
 function openPermissionDrawer(record) {
@@ -465,39 +524,56 @@ function openCreate() {
         createVisible.value = true;
 }
 
+// 验证创建表单
+function validateCreateForm() {
+        let isValid = true;
+        let errorMessage = '';
+
+        if (!createForm.value?.name || !createForm.value.name.trim()) {
+                isValid = false;
+                errorMessage = '请填写权限组名称';
+        } else if (createForm.value.name.length > 50) {
+                // 名称长度限制：最大 50 字符
+                isValid = false;
+                errorMessage = '权限组名称不能超过 50 个字符';
+        } else if (createForm.value.description && createForm.value.description.length > 200) {
+                // 描述长度限制：最大 200 字符
+                isValid = false;
+                errorMessage = '权限组描述不能超过 200 个字符';
+        }
+
+        return {isValid, errorMessage};
+}
+
 // 提交创建权限组
 async function submitCreate() {
-        if (!createForm.value?.name || !createForm.value.name.trim()) {
-                message.warning('请填写权限组名称');
-                return;
+        const validation = validateCreateForm();
+        let shouldProceed = validation.isValid;
+
+        if (!shouldProceed) {
+                message.warning(validation.errorMessage);
+        } else {
+                createSubmitting.value = true;
+                try {
+                        await permissionGroupStore.createPermissionGroup({
+                                name: createForm.value.name.trim(),
+                                description: createForm.value.description?.trim() || '',
+                                sortOrder: createForm.value.sortOrder ?? 0,
+                                status: createForm.value.status ?? 1
+                        });
+                        message.success('创建成功');
+                        createVisible.value = false;
+                        createForm.value = null;
+                        loadTableData();
+                } catch (e) {
+                        message.error(e?.message || '创建失败');
+                        shouldProceed = false;
+                } finally {
+                        createSubmitting.value = false;
+                }
         }
-        // 名称长度限制：最大 50 字符
-        if (createForm.value.name.length > 50) {
-                message.warning('权限组名称不能超过 50 个字符');
-                return;
-        }
-        // 描述长度限制：最大 200 字符
-        if (createForm.value.description && createForm.value.description.length > 200) {
-                message.warning('权限组描述不能超过 200 个字符');
-                return;
-        }
-        createSubmitting.value = true;
-        try {
-                await permissionGroupStore.createPermissionGroup({
-                        name: createForm.value.name.trim(),
-                        description: createForm.value.description?.trim() || '',
-                        sortOrder: createForm.value.sortOrder ?? 0,
-                        status: createForm.value.status ?? 1
-                });
-                message.success('创建成功');
-                createVisible.value = false;
-                createForm.value = null;
-                loadTableData();
-        } catch (e) {
-                message.error(e?.message || '创建失败');
-        } finally {
-                createSubmitting.value = false;
-        }
+
+        return shouldProceed;
 }
 
 function onPermissionDrawerClose() {
@@ -533,46 +609,63 @@ function onPermissionSelect(value) {
 }
 
 async function doAddPermission() {
+        let canAdd = true;
+
         if (!selectedPermissionId.value || !selectedGroup.value) {
                 message.warning('请选择要添加的权限');
-                return;
-        }
-        // 系统内置权限组不可添加权限（虽然按钮已隐藏，但这里再加一层保护）
-        if (selectedGroup.value.isSystem) {
+                canAdd = false;
+        } else if (selectedGroup.value.isSystem) {
+                // 系统内置权限组不可添加权限（虽然按钮已隐藏，但这里再加一层保护）
                 message.warning('系统内置权限组不可修改');
-                return;
+                canAdd = false;
+        } else {
+                addPermissionLoading.value = true;
+                try {
+                        await permissionGroupStore.addPermissionToGroup(selectedGroup.value.id, selectedPermissionId.value);
+                        message.success('添加成功');
+                        showAddPermission.value = false;
+                        selectedPermissionId.value = null;
+                        await permissionGroupStore.fetchGroupPermissions(selectedGroup.value.id);
+                } catch (e) {
+                        message.error(e?.message || '添加失败');
+                        canAdd = false;
+                } finally {
+                        addPermissionLoading.value = false;
+                }
         }
-        addPermissionLoading.value = true;
-        try {
-                await permissionGroupStore.addPermissionToGroup(selectedGroup.value.id, selectedPermissionId.value);
-                message.success('添加成功');
-                showAddPermission.value = false;
-                selectedPermissionId.value = null;
-                await permissionGroupStore.fetchGroupPermissions(selectedGroup.value.id);
-        } catch (e) {
-                message.error(e?.message || '添加失败');
-        } finally {
-                addPermissionLoading.value = false;
-        }
+
+        return canAdd;
 }
 
 async function removePermission(permissionId) {
-        if (!selectedGroup.value) return;
-        // 系统内置权限组不可移除权限（虽然按钮已隐藏，但这里再加一层保护）
-        if (selectedGroup.value.isSystem) {
+        let canRemove = true;
+
+        if (!selectedGroup.value) {
+                canRemove = false;
+        } else if (selectedGroup.value.isSystem) {
+                // 系统内置权限组不可移除权限（虽然按钮已隐藏，但这里再加一层保护）
                 message.warning('系统内置权限组不可修改');
-                return;
+                canRemove = false;
+        } else {
+                try {
+                        await permissionGroupStore.removePermissionFromGroup(selectedGroup.value.id, permissionId);
+                        message.success('已移除');
+                        await permissionGroupStore.fetchGroupPermissions(selectedGroup.value.id);
+                } catch (e) {
+                        message.error(e?.message || '移除失败');
+                        canRemove = false;
+                }
         }
-        try {
-                await permissionGroupStore.removePermissionFromGroup(selectedGroup.value.id, permissionId);
-                message.success('已移除');
-                await permissionGroupStore.fetchGroupPermissions(selectedGroup.value.id);
-        } catch (e) {
-                message.error(e?.message || '移除失败');
-        }
+
+        return canRemove;
 }
 
 onMounted(() => {
         loadTableData();
+        window.addEventListener('resize', handleResize);
+});
+
+onUnmounted(() => {
+        window.removeEventListener('resize', handleResize);
 });
 </script>

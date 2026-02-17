@@ -1,3 +1,18 @@
+/*
+ * [permissionTree.js]
+ * --------------------------------------------------------------------------------
+ * This software is licensed under the MIT License.
+ * However, any distribution or modification must retain this copyright notice.
+ * See LICENSE for full terms.
+ * --------------------------------------------------------------------------------
+ * author: "Jiu Liu"
+ * author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
+ * license: "MIT"
+ * license_exception: "Mandatory attribution retention"
+ * UpdateTime: 2026/2/17 05:17
+ *
+ */
+
 /**
  * 权限树形结构处理工具函数
  */
@@ -22,7 +37,7 @@ export function buildPermissionTree(permissions, parentField = 'parentId', idFie
 	// 创建ID映射
 	const idMap = new Map();
 	permissions.forEach(permission => {
-		idMap.set(permission[idField], { ...permission, children: [] });
+		idMap.set(permission[idField], {...permission, children: []});
 	});
 
 	// 构建树形结构
@@ -66,7 +81,7 @@ function buildTreeFromCode(permissions, idField) {
 	// 创建 code 到权限的映射
 	const codeMap = new Map();
 	permissions.forEach(p => {
-		codeMap.set(p.code, { ...p, children: [] });
+		codeMap.set(p.code, {...p, children: []});
 	});
 
 	// 按 code 段数排序，段数少的在前（父级先于子级处理）
@@ -107,7 +122,7 @@ function buildTreeFromCode(permissions, idField) {
  */
 export function flattenPermissionTree(tree) {
 	const result = [];
-	
+
 	function traverse(nodes) {
 		nodes.forEach(node => {
 			result.push(node);
@@ -116,7 +131,7 @@ export function flattenPermissionTree(tree) {
 			}
 		});
 	}
-	
+
 	traverse(tree);
 	return result;
 }
@@ -129,13 +144,13 @@ export function flattenPermissionTree(tree) {
  */
 export function getAllChildrenIds(permission, idField = 'id') {
 	const ids = [permission[idField]];
-	
+
 	if (permission.children && permission.children.length > 0) {
 		permission.children.forEach(child => {
 			ids.push(...getAllChildrenIds(child, idField));
 		});
 	}
-	
+
 	return ids;
 }
 
@@ -174,27 +189,30 @@ export function getParentCode(code, codeMap) {
 export function checkPermissionConflict(permission, existingPermissions, codeMap) {
 	const existingCodes = new Set(existingPermissions.map(p => p.code));
 	const permissionCode = permission.code;
-	
+
 	// 检查是否已存在相同的权限
 	if (existingCodes.has(permissionCode)) {
-		return { conflict: true, reason: '该权限已存在' };
+		return {conflict: true, reason: '该权限已存在'};
 	}
-	
+
 	// 检查父权限冲突
 	const parentCode = getParentCode(permissionCode, codeMap);
 	if (parentCode && existingCodes.has(parentCode)) {
-		return { conflict: true, reason: `该权限的父权限 "${parentCode}" 已存在，不能同时关联父权限和子权限` };
+		return {conflict: true, reason: `该权限的父权限 "${parentCode}" 已存在，不能同时关联父权限和子权限`};
 	}
-	
+
 	// 检查子权限冲突：如果当前权限是父权限，检查是否有子权限已存在
 	if (permission.children && permission.children.length > 0) {
 		const childCodes = flattenPermissionTree([permission]).map(p => p.code);
 		for (const childCode of childCodes) {
 			if (childCode !== permissionCode && existingCodes.has(childCode)) {
-				return { conflict: true, reason: `该权限的子权限 "${childCode}" 已存在，不能同时关联父权限和子权限` };
+				return {
+					conflict: true,
+					reason: `该权限的子权限 "${childCode}" 已存在，不能同时关联父权限和子权限`
+				};
 			}
 		}
 	}
-	
-	return { conflict: false, reason: '' };
+
+	return {conflict: false, reason: ''};
 }

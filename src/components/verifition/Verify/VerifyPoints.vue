@@ -9,7 +9,7 @@
   - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
   - license: "MIT"
   - license_exception: "Mandatory attribution retention"
-  - UpdateTime: 2026/2/2 18:17
+  - UpdateTime: 2026/2/16 18:29
   -
   -->
 
@@ -173,7 +173,7 @@ export default {
                                                 // 注意：由于响应拦截器已经处理了数据结构，
                                                 // 实际的数据在 response.data 中
                                                 const res = response.data || response;
-                                                
+
                                                 if (res.repCode == "0000") {
                                                         barAreaColor.value = '#4cae4c'
                                                         barAreaBorderColor.value = '#5cb85c'
@@ -240,21 +240,21 @@ export default {
                                 // 注意：由于响应拦截器已经处理了数据结构，
                                 // 实际的数据在 response.data 中
                                 const res = response.data || response;
-                                
+
                                 if (res.repCode == "0000") {
                                         // 检查关键字段是否存在且不为null
-                                        if (!res.repData || 
-                                            !res.repData.originalImageBase64 || 
-                                            !res.repData.token || 
+                                        if (!res.repData ||
+                                            !res.repData.originalImageBase64 ||
+                                            !res.repData.token ||
                                             !res.repData.secretKey ||
-                                            !res.repData.wordList || 
-                                            !Array.isArray(res.repData.wordList) || 
+                                            !res.repData.wordList ||
+                                            !Array.isArray(res.repData.wordList) ||
                                             res.repData.wordList.length === 0) {
                                                 text.value = "验证码数据不完整，请刷新重试";
                                                 logger.error('点选验证码数据缺失:', res);
                                                 return;
                                         }
-                                        
+
                                         pointBackImgBase.value = res.repData.originalImageBase64
                                         backToken.value = res.repData.token
                                         secretKey.value = res.repData.secretKey

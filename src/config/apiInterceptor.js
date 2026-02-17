@@ -9,7 +9,7 @@
  * author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
  * license: "MIT"
  * license_exception: "Mandatory attribution retention"
- UpdateTime: 2026/2/16 18:00
+ * UpdateTime: 2026/2/16 17:57
  *
  */
 
@@ -19,7 +19,7 @@
  */
 
 import logger from '../utils/logger.js';
-import { useAuthStore } from '../stores/auth.js';
+import {useAuthStore} from '../stores/auth.js';
 
 // 定义API响应码处理映射对象
 const apiResponseMap = {
@@ -31,7 +31,7 @@ const apiResponseMap = {
 	},
 	'401': () => {
 		logger.error('未授权，请先登录');
-		
+
 		// 使用 Pinia store 清除认证状态
 		const authStore = useAuthStore();
 		authStore.clearToken();
@@ -75,7 +75,7 @@ export const handleApi = (code) => {
 	// 将数字转换为字符串进行匹配
 	const codeStr = code.toString();
 	const handler = apiResponseMap[codeStr];
-	
+
 	if (handler) {
 		handler();
 	} else {

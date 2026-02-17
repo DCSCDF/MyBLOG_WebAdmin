@@ -9,7 +9,7 @@
   - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
   - license: "MIT"
   - license_exception: "Mandatory attribution retention"
-  - UpdateTime: 2026/2/2 18:17
+  - UpdateTime: 2026/2/16 21:12
   -
   -->
 
@@ -20,7 +20,7 @@
 <script setup>
 import {RouterView} from 'vue-router'
 import logger from './utils/logger.js'
-import { useAuthStore } from './stores/auth.js'
+import {useAuthStore} from './stores/auth.js'
 
 console.info("%c MyBlogDev %c", "padding: 2px 6px; border-radius: 3px 3px; color: #fff; background: #FF6699; font-weight: bold;", "padding: 2px 6px; border-radius: 3px 3px; color: #fff; background: #FF9999; font-weight: bold;")
 // 应用启动时输出环境信息

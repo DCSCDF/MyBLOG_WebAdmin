@@ -1,14 +1,29 @@
 /*
  * [role.js]
  * --------------------------------------------------------------------------------
+ * This software is licensed under the MIT License.
+ * However, any distribution or modification must retain this copyright notice.
+ * See LICENSE for full terms.
+ * --------------------------------------------------------------------------------
+ * author: "Jiu Liu"
+ * author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
+ * license: "MIT"
+ * license_exception: "Mandatory attribution retention"
+ * UpdateTime: 2026/2/17 07:21
+ *
+ */
+
+/*
+ * [role.js]
+ * --------------------------------------------------------------------------------
  * 角色状态管理 Store
  * 管理角色列表、详情、修改、删除及角色关联的权限/权限组
  * --------------------------------------------------------------------------------
  */
 
-import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
-import { roleApi } from '../api/system/roleApi.js';
+import {defineStore} from 'pinia';
+import {computed, ref} from 'vue';
+import {roleApi} from '../api/system/roleApi.js';
 import logger from '../utils/logger.js';
 
 export const useRoleStore = defineStore('role', () => {
@@ -38,12 +53,12 @@ export const useRoleStore = defineStore('role', () => {
 		try {
 			const currentPage = params.currentPage ?? pagination.value.current;
 			const pageSize = params.pageSize ?? pagination.value.pageSize;
-			const res = await roleApi.list({ currentPage, pageSize });
+			const res = await roleApi.list({currentPage, pageSize});
 			if (res.success !== true || !res.data) {
 				throw new Error(res.errorMsg || '获取角色列表失败');
 			}
-			const { records = [], total = 0, current = 1, size = pageSize, pages = 0 } = res.data;
-			roles.value = (records || []).map((item) => ({ ...item, key: item.id }));
+			const {records = [], total = 0, current = 1, size = pageSize, pages = 0} = res.data;
+			roles.value = (records || []).map((item) => ({...item, key: item.id}));
 			pagination.value = {
 				current,
 				pageSize: size,
@@ -92,8 +107,18 @@ export const useRoleStore = defineStore('role', () => {
 			if (res.success !== true || !res.data) {
 				throw new Error(res.errorMsg || '获取权限详情失败');
 			}
-			roleDetail.value = res.data;
-			return res.data;
+			const data = res.data;
+			// 后端可能返回合并后的 permissions（直接分配 + 权限组），同一权限若既在组内又单独出现会重复，按 id 去重
+			if (data.permissions && Array.isArray(data.permissions)) {
+				const seen = new Set();
+				data.permissions = data.permissions.filter((p) => {
+					if (seen.has(p.id)) return false;
+					seen.add(p.id);
+					return true;
+				});
+			}
+			roleDetail.value = data;
+			return data;
 		} catch (error) {
 			logger.error('获取角色权限详情失败:', error);
 			roleDetail.value = null;
@@ -167,7 +192,7 @@ export const useRoleStore = defineStore('role', () => {
 	 */
 	const addPermissionToRole = async (roleId, permissionId) => {
 		try {
-			const res = await roleApi.addPermission(roleId, { permissionId });
+			const res = await roleApi.addPermission(roleId, {permissionId});
 			if (res.success !== true) {
 				throw new Error(res.errorMsg || '添加权限失败');
 			}
@@ -203,7 +228,7 @@ export const useRoleStore = defineStore('role', () => {
 	 */
 	const addPermissionGroupToRole = async (roleId, groupId) => {
 		try {
-			const res = await roleApi.addPermissionGroup(roleId, { groupId });
+			const res = await roleApi.addPermissionGroup(roleId, {groupId});
 			if (res.success !== true) {
 				throw new Error(res.errorMsg || '添加权限组失败');
 			}
@@ -237,7 +262,7 @@ export const useRoleStore = defineStore('role', () => {
 	 * @param {Object} newPagination - { current?, pageSize? }
 	 */
 	const updatePagination = (newPagination) => {
-		pagination.value = { ...pagination.value, ...newPagination };
+		pagination.value = {...pagination.value, ...newPagination};
 	};
 
 	/**

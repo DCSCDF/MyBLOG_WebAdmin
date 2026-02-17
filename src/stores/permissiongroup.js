@@ -1,14 +1,29 @@
 /*
  * [permissiongroup.js]
  * --------------------------------------------------------------------------------
+ * This software is licensed under the MIT License.
+ * However, any distribution or modification must retain this copyright notice.
+ * See LICENSE for full terms.
+ * --------------------------------------------------------------------------------
+ * author: "Jiu Liu"
+ * author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
+ * license: "MIT"
+ * license_exception: "Mandatory attribution retention"
+ * UpdateTime: 2026/2/17 07:45
+ *
+ */
+
+/*
+ * [permissiongroup.js]
+ * --------------------------------------------------------------------------------
  * 权限组状态管理 Store
  * 对接后端 /api/permission-group 相关接口：列表、详情、修改、删除及关联权限
  * --------------------------------------------------------------------------------
  */
 
-import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
-import { permissionGroupApi } from '../api/system/permissionGroupApi.js';
+import {defineStore} from 'pinia';
+import {computed, ref} from 'vue';
+import {permissionGroupApi} from '../api/system/permissionGroupApi.js';
 import logger from '../utils/logger.js';
 
 /** 状态码转中文：0 禁用，1 启用 */
@@ -46,11 +61,11 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 		try {
 			const currentPage = params.currentPage ?? params.page ?? pagination.value.current;
 			const pageSize = params.pageSize ?? pagination.value.pageSize;
-			const res = await permissionGroupApi.list({ currentPage, pageSize });
+			const res = await permissionGroupApi.list({currentPage, pageSize});
 			if (res.success !== true || !res.data) {
 				throw new Error(res.errorMsg || '获取权限组列表失败');
 			}
-			const { records = [], total = 0, current = 1, size = pageSize, pages = 0 } = res.data;
+			const {records = [], total = 0, current = 1, size = pageSize, pages = 0} = res.data;
 			// 表格展示：sortOrder -> order，status 数字 -> 中文
 			permissionGroups.value = (records || []).map((item) => ({
 				...item,
@@ -182,7 +197,7 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 	 */
 	const addPermissionToGroup = async (groupId, permissionId) => {
 		try {
-			const res = await permissionGroupApi.addPermission(groupId, { permissionId });
+			const res = await permissionGroupApi.addPermission(groupId, {permissionId});
 			if (res.success !== true) {
 				throw new Error(res.errorMsg || '添加权限失败');
 			}
@@ -216,7 +231,7 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 	 * @param {Object} newPagination - { current?, pageSize? }
 	 */
 	const updatePagination = (newPagination) => {
-		pagination.value = { ...pagination.value, ...newPagination };
+		pagination.value = {...pagination.value, ...newPagination};
 	};
 
 	/**
@@ -224,7 +239,7 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 	 * @param {Object} newParams - { sorter?, filters? }
 	 */
 	const updateQueryParams = (newParams) => {
-		queryParams.value = { ...queryParams.value, ...newParams };
+		queryParams.value = {...queryParams.value, ...newParams};
 	};
 
 	/**
@@ -244,8 +259,8 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 		loading.value = false;
 		groupPermissions.value = [];
 		groupPermissionsLoading.value = false;
-		pagination.value = { current: 1, pageSize: 10, total: 0, pages: 0 };
-		queryParams.value = { sorter: {}, filters: {} };
+		pagination.value = {current: 1, pageSize: 10, total: 0, pages: 0};
+		queryParams.value = {sorter: {}, filters: {}};
 		logger.log('权限组状态已清理');
 	};
 

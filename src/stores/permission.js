@@ -9,7 +9,7 @@
  * author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
  * license: "MIT"
  * license_exception: "Mandatory attribution retention"
- * UpdateTime: 2026/2/13 15:35
+ * UpdateTime: 2026/2/16 18:00
  *
  */
 
@@ -142,7 +142,6 @@ export const usePermissionStore = defineStore('permission', () => {
 		};
 		logger.log('权限状态已清理');
 	};
-
 
 
 	// 计算属性

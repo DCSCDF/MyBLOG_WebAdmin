@@ -9,7 +9,7 @@
   - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
   - license: "MIT"
   - license_exception: "Mandatory attribution retention"
-  - UpdateTime: 2026/2/2 18:23
+  - UpdateTime: 2026/2/17 09:12
   -
   -->
 
@@ -47,7 +47,6 @@ const segmentedOptions = [
         },
 ];
 
-const key = ref('tab1');
 const noTitleKey = ref('我的信息');
 
 // 移除原来的 onTabChange 函数，因为 a-segmented 使用 v-model 自动处理

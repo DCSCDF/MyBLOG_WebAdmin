@@ -9,7 +9,7 @@
  * author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
  * license: "MIT"
  * license_exception: "Mandatory attribution retention"
- * UpdateTime: 2026/2/2 18:17
+ * UpdateTime: 2026/2/16 21:12
  *
  */
 
@@ -22,6 +22,7 @@ import 'ant-design-vue/dist/reset.css'
 import './style/style.css'
 import './style/fonts.css'
 import './style/captcha-responsive.css'
+
 const app = createApp(App)
 const pinia = createPinia()
 

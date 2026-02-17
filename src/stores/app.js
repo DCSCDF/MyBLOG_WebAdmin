@@ -9,7 +9,7 @@
  * author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
  * license: "MIT"
  * license_exception: "Mandatory attribution retention"
- * UpdateTime: 2026/2/13 15:30
+ * UpdateTime: 2026/2/13 18:38
  *
  */
 
@@ -17,27 +17,27 @@
  * 应用全局状态管理 Store
  */
 
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import {defineStore} from 'pinia';
+import {ref, computed} from 'vue';
 import logger from '../utils/logger.js';
 
 export const useAppStore = defineStore('app', () => {
 	// 侧边栏状态
 	const sidebarCollapsed = ref(false);
 	const mobileSidebarOpen = ref(false);
-	
+
 	// 设备检测
 	const isMobile = ref(window.innerWidth < 768);
-	
+
 	// 主题设置 (暂未使用)
 	// const theme = ref('light'); // 'light' | 'dark'
-	
+
 	// 加载状态
 	const isLoading = ref(false);
-	
+
 	// 全局提示消息
 	const notifications = ref([]);
-	
+
 	// 窗口大小变化监听器
 	let resizeTimer = null;
 	let cleanupFunction = null;
@@ -81,7 +81,7 @@ export const useAppStore = defineStore('app', () => {
 	 */
 	const updateDeviceStatus = () => {
 		const newIsMobile = window.innerWidth < 768;
-		
+
 		// 只有当状态真正改变时才更新和记录日志
 		if (isMobile.value !== newIsMobile) {
 			isMobile.value = newIsMobile;
@@ -93,13 +93,14 @@ export const useAppStore = defineStore('app', () => {
 			logger.log(`设备状态更新: ${isMobile.value ? '移动端' : '桌面端'}`);
 		}
 	};
-	
+
 	/**
 	 * 开始监听窗口大小变化
 	 */
 	const startResizeListener = () => {
-		let localCleanupFunction = () => {};
-		
+		let localCleanupFunction = () => {
+		};
+
 		if (typeof window !== 'undefined') {
 			const handleResize = () => {
 				clearTimeout(resizeTimer);
@@ -107,16 +108,16 @@ export const useAppStore = defineStore('app', () => {
 					updateDeviceStatus();
 				}, 100);
 			};
-			
+
 			window.addEventListener('resize', handleResize);
-			
+
 			// 设置清理函数
 			localCleanupFunction = () => {
 				window.removeEventListener('resize', handleResize);
 				clearTimeout(resizeTimer);
 			};
 		}
-		
+
 		// 更新全局cleanupFunction引用
 		cleanupFunction = localCleanupFunction;
 		return localCleanupFunction;
@@ -140,7 +141,7 @@ export const useAppStore = defineStore('app', () => {
 	// 	const savedTheme = localStorage.getItem('theme') || 'light';
 	// 	setTheme(savedTheme);
 	// };
-	
+
 	// 组件卸载时清理资源
 	if (typeof window !== 'undefined') {
 		const handleBeforeUnload = () => {
@@ -149,7 +150,7 @@ export const useAppStore = defineStore('app', () => {
 				cleanupFunction();
 			}
 		};
-		
+
 		window.addEventListener('beforeunload', handleBeforeUnload);
 	}
 
@@ -177,16 +178,16 @@ export const useAppStore = defineStore('app', () => {
 			duration: notification.duration || 3000,
 			timestamp: new Date()
 		};
-		
+
 		notifications.value.push(newNotification);
-		
+
 		// 自动移除
 		if (newNotification.duration > 0) {
 			setTimeout(() => {
 				removeNotification(id);
 			}, newNotification.duration);
 		}
-		
+
 		logger.log(`添加通知: ${newNotification.message}`);
 	};
 

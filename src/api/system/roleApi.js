@@ -1,6 +1,21 @@
 /*
  * [roleApi.js]
  * --------------------------------------------------------------------------------
+ * This software is licensed under the MIT License.
+ * However, any distribution or modification must retain this copyright notice.
+ * See LICENSE for full terms.
+ * --------------------------------------------------------------------------------
+ * author: "Jiu Liu"
+ * author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
+ * license: "MIT"
+ * license_exception: "Mandatory attribution retention"
+ * UpdateTime: 2026/2/17 03:44
+ *
+ */
+
+/*
+ * [roleApi.js]
+ * --------------------------------------------------------------------------------
  * 角色管理接口封装，对应后端「角色与权限组管理」文档中的角色相关 API。
  * 所有接口需登录，请求头携带 token。
  * --------------------------------------------------------------------------------
