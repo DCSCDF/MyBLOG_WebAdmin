@@ -130,8 +130,9 @@
             cancel-text="取消"
             ok-text="创建"
             title="新建角色"
-            @cancel="createForm = null"
-            @ok="submitCreate">
+            @cancel="handleCreateCancel"
+            @ok="submitCreate"
+            @afterClose="handleCreateAfterClose">
                 <a-form
                     v-if="createForm"
                     :layout="'vertical'"
@@ -177,8 +178,9 @@
             cancel-text="取消"
             ok-text="保存"
             title="编辑角色"
-            @cancel="editForm = null"
-            @ok="submitEdit">
+            @cancel="handleEditCancel"
+            @ok="submitEdit"
+            @afterClose="handleEditAfterClose">
                 <a-form
                     v-if="editForm"
                     :layout="'vertical'"
@@ -650,6 +652,16 @@ function openCreate() {
         createVisible.value = true;
 }
 
+// 处理新建角色模态框取消事件
+function handleCreateCancel() {
+        createVisible.value = false;
+}
+
+// 处理新建角色模态框完全关闭后的清理工作
+function handleCreateAfterClose() {
+        createForm.value = null;
+}
+
 // 验证角色编码
 function validateRoleCodeField(code) {
         // 统一处理所有验证逻辑，确保只有一个返回点
@@ -771,7 +783,7 @@ function openEdit(record) {
 
         // 如果可以编辑，则初始化编辑表单
         if (canEdit) {
-                // 重叠校验仅在做“新添加”权限/权限组时执行，接口返回的已有数据不视为冲突
+                // 重叠校验仅在做"新添加"权限/权限组时执行，接口返回的已有数据不视为冲突
                 editForm.value = {
                         id: record.id,
                         name: record.name,
@@ -781,6 +793,16 @@ function openEdit(record) {
                 };
                 editVisible.value = true;
         }
+}
+
+// 处理编辑角色模态框取消事件
+function handleEditCancel() {
+        editVisible.value = false;
+}
+
+// 处理编辑角色模态框完全关闭后的清理工作
+function handleEditAfterClose() {
+        editForm.value = null;
 }
 
 async function submitEdit() {

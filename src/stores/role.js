@@ -195,183 +195,274 @@ export const useRoleStore = defineStore('role', () => {
 	/**
 	 * 根据 ID 获取角色详情
 	 * @param {number} id - 角色 ID
-	 * @returns {Promise<Object>}
+	 * @returns {Promise<Object|null>}
 	 */
 	const fetchRoleById = async (id) => {
+		let result;
+
 		try {
 			const res = await roleApi.getById(id);
-			if (res.success !== true || !res.data) {
-				throw new Error(res.errorMsg || '获取角色详情失败');
+			if (res.success === true && res.data) {
+				result = res.data;
+			} else {
+				// API 响应无效，记录错误并返回 null
+				const errorMessage = res.errorMsg || '获取角色详情失败';
+				logger.error(errorMessage);
+				result = null;
 			}
-			return res.data;
 		} catch (error) {
+			// 处理网络错误或其他意外错误
 			logger.error('获取角色详情失败:', error);
-			throw error;
+			result = null;
 		}
+
+		return result;
 	};
 
 	/**
 	 * 获取角色关联的权限和权限组
 	 * @param {number} id - 角色 ID
-	 * @returns {Promise<{ role, permissions, permissionGroups }>}
+	 * @returns {Promise<{ role, permissions, permissionGroups }|null>}
 	 */
 	const fetchPermissionsDetail = async (id) => {
 		permissionsDetailLoading.value = true;
+		let result = null;
+
 		try {
 			const res = await roleApi.getPermissionsDetail(id);
-			if (res.success !== true || !res.data) {
-				throw new Error(res.errorMsg || '获取权限详情失败');
+			if (res.success === true && res.data) {
+				const data = res.data;
+				// 后端可能返回合并后的 permissions（直接分配 + 权限组），同一权限若既在组内又单独出现会重复，按 id 去重
+				if (data.permissions && Array.isArray(data.permissions)) {
+					const seen = new Set();
+					data.permissions = data.permissions.filter((p) => {
+						const shouldInclude = !seen.has(p.id);
+						if (shouldInclude) {
+							seen.add(p.id);
+						}
+						return shouldInclude;
+					});
+				}
+				roleDetail.value = data;
+				result = data;
+			} else {
+				// API 响应无效，记录错误并返回 null
+				const errorMessage = res.errorMsg || '获取权限详情失败';
+				logger.error(errorMessage);
+				roleDetail.value = null;
+				result = null;
 			}
-			const data = res.data;
-			// 后端可能返回合并后的 permissions（直接分配 + 权限组），同一权限若既在组内又单独出现会重复，按 id 去重
-			if (data.permissions && Array.isArray(data.permissions)) {
-				const seen = new Set();
-				data.permissions = data.permissions.filter((p) => {
-					const shouldInclude = !seen.has(p.id);
-					if (shouldInclude) {
-						seen.add(p.id);
-					}
-					return shouldInclude;
-				});
-			}
-			roleDetail.value = data;
-			return data;
 		} catch (error) {
+			// 处理网络错误或其他意外错误
 			logger.error('获取角色权限详情失败:', error);
 			roleDetail.value = null;
-			throw error;
+			result = null;
 		} finally {
 			permissionsDetailLoading.value = false;
 		}
+
+		return result;
 	};
 
 	/**
 	 * 创建角色
 	 * @param {Object} body - { name, description?, sortOrder?, status? }
-	 * @returns {Promise<Object>}
+	 * @returns {Promise<Object|boolean>}
 	 */
 	const createRole = async (body) => {
+		let result;
+
 		try {
 			const res = await roleApi.create(body);
-			if (res.success !== true) {
-				throw new Error(res.errorMsg || '创建角色失败');
+			if (res.success === true) {
+				logger.log('角色创建成功');
+				result = res.data || true;
+			} else {
+				// API 响应失败，记录错误并返回 false
+				const errorMessage = res.errorMsg || '创建角色失败';
+				logger.error(errorMessage);
+				result = false;
 			}
-			logger.log('角色创建成功');
-			return res.data;
 		} catch (error) {
+			// 处理网络错误或其他意外错误
 			logger.error('创建角色失败:', error);
-			throw error;
+			result = false;
 		}
+
+		return result;
 	};
 
 	/**
 	 * 修改角色
 	 * @param {number} id - 角色 ID
 	 * @param {Object} body - { name, description?, sortOrder?, status? }
-	 * @returns {Promise<Object>}
+	 * @returns {Promise<Object|boolean>}
 	 */
 	const updateRole = async (id, body) => {
+		let result;
+
 		try {
 			const res = await roleApi.update(id, body);
-			if (res.success !== true) {
-				throw new Error(res.errorMsg || '修改角色失败');
+			if (res.success === true) {
+				logger.log('角色修改成功:', id);
+				result = res.data || true;
+			} else {
+				// API 响应失败，记录错误并返回 false
+				const errorMessage = res.errorMsg || '修改角色失败';
+				logger.error(errorMessage);
+				result = false;
 			}
-			logger.log('角色修改成功:', id);
-			return res.data;
 		} catch (error) {
+			// 处理网络错误或其他意外错误
 			logger.error('修改角色失败:', error);
-			throw error;
+			result = false;
 		}
+
+		return result;
 	};
 
 	/**
 	 * 删除角色
 	 * @param {number} id - 角色 ID
-	 * @returns {Promise<void>}
+	 * @returns {Promise<boolean>}
 	 */
 	const deleteRole = async (id) => {
+		let result;
+
 		try {
 			const res = await roleApi.delete(id);
-			if (res.success !== true) {
-				throw new Error(res.errorMsg || '删除角色失败');
+			if (res.success === true) {
+				logger.log('角色删除成功:', id);
+				result = true;
+			} else {
+				// API 响应失败，记录错误并返回 false
+				const errorMessage = res.errorMsg || '删除角色失败';
+				logger.error(errorMessage);
+				result = false;
 			}
-			logger.log('角色删除成功:', id);
 		} catch (error) {
+			// 处理网络错误或其他意外错误
 			logger.error('删除角色失败:', error);
-			throw error;
+			result = false;
 		}
+
+		return result;
 	};
 
 	/**
 	 * 为角色添加权限
 	 * @param {number} roleId - 角色 ID
 	 * @param {number} permissionId - 权限 ID
+	 * @returns {Promise<boolean>}
 	 */
 	const addPermissionToRole = async (roleId, permissionId) => {
+		let result;
+
 		try {
 			const res = await roleApi.addPermission(roleId, {permissionId});
-			if (res.success !== true) {
-				throw new Error(res.errorMsg || '添加权限失败');
+			if (res.success === true) {
+				logger.log('角色添加权限成功:', roleId, permissionId);
+				result = true;
+			} else {
+				// API 响应失败，记录错误并返回 false
+				const errorMessage = res.errorMsg || '添加权限失败';
+				logger.error(errorMessage);
+				result = false;
 			}
-			logger.log('角色添加权限成功:', roleId, permissionId);
 		} catch (error) {
+			// 处理网络错误或其他意外错误
 			logger.error('角色添加权限失败:', error);
-			throw error;
+			result = false;
 		}
+
+		return result;
 	};
 
 	/**
 	 * 从角色移除权限
 	 * @param {number} roleId - 角色 ID
 	 * @param {number} permissionId - 权限 ID
+	 * @returns {Promise<boolean>}
 	 */
 	const removePermissionFromRole = async (roleId, permissionId) => {
+		let result;
+
 		try {
 			const res = await roleApi.removePermission(roleId, permissionId);
-			if (res.success !== true) {
-				throw new Error(res.errorMsg || '移除权限失败');
+			if (res.success === true) {
+				logger.log('角色移除权限成功:', roleId, permissionId);
+				result = true;
+			} else {
+				// API 响应失败，记录错误并返回 false
+				const errorMessage = res.errorMsg || '移除权限失败';
+				logger.error(errorMessage);
+				result = false;
 			}
-			logger.log('角色移除权限成功:', roleId, permissionId);
 		} catch (error) {
+			// 处理网络错误或其他意外错误
 			logger.error('角色移除权限失败:', error);
-			throw error;
+			result = false;
 		}
+
+		return result;
 	};
 
 	/**
 	 * 为角色添加权限组
 	 * @param {number} roleId - 角色 ID
 	 * @param {number} groupId - 权限组 ID
+	 * @returns {Promise<boolean>}
 	 */
 	const addPermissionGroupToRole = async (roleId, groupId) => {
+		let result;
+
 		try {
 			const res = await roleApi.addPermissionGroup(roleId, {groupId});
-			if (res.success !== true) {
-				throw new Error(res.errorMsg || '添加权限组失败');
+			if (res.success === true) {
+				logger.log('角色添加权限组成功:', roleId, groupId);
+				result = true;
+			} else {
+				// API 响应失败，记录错误并返回 false
+				const errorMessage = res.errorMsg || '添加权限组失败';
+				logger.error(errorMessage);
+				result = false;
 			}
-			logger.log('角色添加权限组成功:', roleId, groupId);
 		} catch (error) {
+			// 处理网络错误或其他意外错误
 			logger.error('角色添加权限组失败:', error);
-			throw error;
+			result = false;
 		}
+
+		return result;
 	};
 
 	/**
 	 * 从角色移除权限组
 	 * @param {number} roleId - 角色 ID
 	 * @param {number} groupId - 权限组 ID
+	 * @returns {Promise<boolean>}
 	 */
 	const removePermissionGroupFromRole = async (roleId, groupId) => {
+		let result;
+
 		try {
 			const res = await roleApi.removePermissionGroup(roleId, groupId);
-			if (res.success !== true) {
-				throw new Error(res.errorMsg || '移除权限组失败');
+			if (res.success === true) {
+				logger.log('角色移除权限组成功:', roleId, groupId);
+				result = true;
+			} else {
+				// API 响应失败，记录错误并返回 false
+				const errorMessage = res.errorMsg || '移除权限组失败';
+				logger.error(errorMessage);
+				result = false;
 			}
-			logger.log('角色移除权限组成功:', roleId, groupId);
 		} catch (error) {
+			// 处理网络错误或其他意外错误
 			logger.error('角色移除权限组失败:', error);
-			throw error;
+			result = false;
 		}
+
+		return result;
 	};
 
 	/**

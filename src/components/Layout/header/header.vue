@@ -29,7 +29,7 @@
                 </div>
 
                 <div class="flex items-center gap-3 mx-0 md:mx-8">
-                        <a-dropdown>
+                        <a-dropdown :overlay="dropdownOverlay">
                                 <div
                                     class="flex rounded-lg transition-colors py-1.5 px-2 hover:bg-gray-200/50"
                                 >
@@ -44,24 +44,20 @@
                                                 </div>
                                         </div>
                                 </div>
-                                <template #overlay>
-                                        <a-menu>
-                                                <header-logout/>
-                                        </a-menu>
-                                </template>
                         </a-dropdown>
                 </div>
         </header>
 </template>
 
 <script setup>
-import {computed, defineEmits, defineProps, onMounted} from "vue";
+import {computed, defineEmits, defineProps, h, onMounted} from "vue";
 import {authApi} from "../../../api/user/auth/authApi.js";
 import logger from "../../../utils/logger.js";
 import HeaderLogout from "./headerLogout.vue";
 import {MenuFoldOutlined, MenuUnfoldOutlined,} from '@ant-design/icons-vue';
 import {useAuthStore} from '../../../stores/auth.js';
 import {useAppStore} from '../../../stores/app.js';
+import {Menu} from 'ant-design-vue';
 
 const props = defineProps({
         collapsed: {
@@ -93,6 +89,11 @@ const showExpandIcon = computed(() => {
         // 在移动端时，如果侧边栏已打开则显示收起图标，否则显示展开图标
         // 在桌面端时，使用原来的 collapsed 状态
         return isMobile.value ? !appStore.isMobileSidebarOpen : props.collapsed;
+});
+
+// 下拉菜单内容
+const dropdownOverlay = h(Menu, {}, {
+        default: () => h(HeaderLogout)
 });
 
 const handleMenuToggle = () => {

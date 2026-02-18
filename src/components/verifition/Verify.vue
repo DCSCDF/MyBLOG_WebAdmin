@@ -43,7 +43,6 @@
 import VerifySlide from './Verify/VerifySlide.vue'
 import VerifyPoints from './Verify/VerifyPoints.vue'
 import {computed, ref, toRefs, watchEffect} from 'vue';
-import logger from '../../utils/logger.js';
 
 export default {
         name: 'Vue2Verify',

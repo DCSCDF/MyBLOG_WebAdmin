@@ -110,17 +110,6 @@ export const useUserStore = defineStore('user', () => {
 	};
 
 	/**
-	 * 处理 API 错误
-	 * @param {Error} error - 错误对象
-	 */
-	const handleApiError = (error) => {
-		logger.error('获取用户列表失败:', error);
-		users.value = [];
-		pagination.value.total = 0;
-		throw error;
-	};
-
-	/**
 	 * 检查值是否存在（非空、非undefined、非null）
 	 * @param {*} value - 待检查的值
 	 * @returns {boolean}
@@ -156,10 +145,28 @@ export const useUserStore = defineStore('user', () => {
 				processApiResponse(response, requestParams.pageSize);
 				result = users.value;
 			} else {
-				throw new Error(getErrorMessage(response));
+				// API 响应无效，记录错误并返回空结果
+				const errorMessage = getErrorMessage(response);
+				logger.error(errorMessage);
+				users.value = [];
+				pagination.value = {
+					...pagination.value,
+					total: 0,
+					pages: 0
+				};
+				// 不抛出异常，而是返回空结果
+				result = [];
 			}
 		} catch (error) {
-			handleApiError(error);
+			// 处理网络错误或其他意外错误
+			logger.error('获取用户列表失败:', error);
+			users.value = [];
+			pagination.value = {
+				...pagination.value,
+				total: 0,
+				pages: 0
+			};
+			result = [];
 		} finally {
 			loading.value = false;
 		}
@@ -188,24 +195,34 @@ export const useUserStore = defineStore('user', () => {
 	/**
 	 * 根据 ID 获取用户详情
 	 * @param {number} id - 用户 ID
-	 * @returns {Promise<Object>}
+	 * @returns {Promise<Object|null>}
 	 */
 	const fetchUserById = async (id) => {
 		userDetailLoading.value = true;
+		let result = null;
+
 		try {
 			const res = await userApi.getById(id);
-			if (res.success !== true || !res.data) {
-				throw new Error(res.errorMsg || '获取用户详情失败');
+			if (res.success === true && res.data) {
+				userDetail.value = res.data;
+				result = res.data;
+			} else {
+				// API 响应无效，记录错误并返回 null
+				const errorMessage = res.errorMsg || '获取用户详情失败';
+				logger.error(errorMessage);
+				userDetail.value = null;
+				result = null;
 			}
-			userDetail.value = res.data;
-			return res.data;
 		} catch (error) {
+			// 处理网络错误或其他意外错误
 			logger.error('获取用户详情失败:', error);
 			userDetail.value = null;
-			throw error;
+			result = null;
 		} finally {
 			userDetailLoading.value = false;
 		}
+
+		return result;
 	};
 
 	/**
@@ -215,77 +232,116 @@ export const useUserStore = defineStore('user', () => {
 	 */
 	const fetchUserRoles = async (id) => {
 		userRolesLoading.value = true;
+		let result = [];
+
 		try {
 			const res = await userApi.getRoles(id);
-			if (res.success !== true || !res.data) {
-				throw new Error(res.errorMsg || '获取用户角色列表失败');
+			if (res.success === true && res.data) {
+				userRoles.value = res.data;
+				result = res.data;
+			} else {
+				// API 响应无效，记录错误并返回空数组
+				const errorMessage = res.errorMsg || '获取用户角色列表失败';
+				logger.error(errorMessage);
+				userRoles.value = [];
+				result = [];
 			}
-			userRoles.value = res.data || [];
-			return userRoles.value;
 		} catch (error) {
+			// 处理网络错误或其他意外错误
 			logger.error('获取用户角色列表失败:', error);
 			userRoles.value = [];
-			throw error;
+			result = [];
 		} finally {
 			userRolesLoading.value = false;
 		}
+
+		return result;
 	};
 
 	/**
 	 * 修改用户信息
 	 * @param {number} id - 用户 ID
 	 * @param {Object} body - { nickname?, avatarUrl?, roleId? }
-	 * @returns {Promise<Object>}
+	 * @returns {Promise<Object|boolean>}
 	 */
 	const updateUser = async (id, body) => {
+		let result;
+
 		try {
 			const res = await userApi.update(id, body);
-			if (res.success !== true) {
-				throw new Error(res.errorMsg || '修改用户信息失败');
+			if (res.success === true) {
+				logger.log('用户信息修改成功:', id);
+				result = res.data || true;
+			} else {
+				// API 响应失败，记录错误并返回 false
+				const errorMessage = res.errorMsg || '修改用户信息失败';
+				logger.error(errorMessage);
+				result = false;
 			}
-			logger.log('用户信息修改成功:', id);
-			return res.data;
 		} catch (error) {
+			// 处理网络错误或其他意外错误
 			logger.error('修改用户信息失败:', error);
-			throw error;
+			result = false;
 		}
+
+		return result;
 	};
 
 	/**
 	 * 启用/禁用用户
 	 * @param {number} id - 用户 ID
 	 * @param {number} status - 状态：0=禁用，1=启用
-	 * @returns {Promise<void>}
+	 * @returns {Promise<boolean>}
 	 */
 	const updateUserStatus = async (id, status) => {
+		let result;
+
 		try {
 			const res = await userApi.updateStatus(id, {status});
-			if (res.success !== true) {
-				throw new Error(res.errorMsg || '更新用户状态失败');
+			if (res.success === true) {
+				logger.log('用户状态更新成功:', id, status);
+				result = true;
+			} else {
+				// API 响应失败，记录错误并返回 false
+				const errorMessage = res.errorMsg || '更新用户状态失败';
+				logger.error(errorMessage);
+				result = false;
 			}
-			logger.log('用户状态更新成功:', id, status);
 		} catch (error) {
+			// 处理网络错误或其他意外错误
 			logger.error('更新用户状态失败:', error);
-			throw error;
+			result = false;
 		}
+
+		return result;
 	};
 
 	/**
 	 * 删除用户（逻辑删除）
 	 * @param {number} id - 用户 ID
-	 * @returns {Promise<void>}
+	 * @returns {Promise<boolean>}
 	 */
 	const deleteUser = async (id) => {
+		let result;
+
 		try {
 			const res = await userApi.delete(id);
-			if (res.success !== true) {
-				throw new Error(res.errorMsg || '删除用户失败');
+			if (res.success === true) {
+				logger.log('用户删除成功:', id);
+				result = true;
+			} else {
+				// API 响应失败，记录错误并返回 false
+				const errorMessage = res.errorMsg || '删除用户失败';
+				logger.error(errorMessage);
+				result = false;
 			}
-			logger.log('用户删除成功:', id);
 		} catch (error) {
+			// 处理网络错误或其他意外错误
 			logger.error('删除用户失败:', error);
-			throw error;
+			result = false;
 		}
+
+		return result;
 	};
 
 	/**

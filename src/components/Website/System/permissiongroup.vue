@@ -186,8 +186,9 @@
                     cancel-text="取消"
                     ok-text="保存"
                     title="编辑权限组"
-                    @cancel="editForm = null"
-                    @ok="submitEdit">
+                    @cancel="handleEditCancel"
+                    @ok="submitEdit"
+                    @afterClose="handleEditAfterClose">
                         <a-form v-if="editForm" :model="editForm" :rules="editRules" layout="vertical">
                                 <a-form-item label="权限组名称" name="name" required>
                                         <a-input v-model:value="editForm.name" :maxlength="50"
@@ -221,8 +222,9 @@
                     cancel-text="取消"
                     ok-text="创建"
                     title="新增权限组"
-                    @cancel="createForm = null"
-                    @ok="submitCreate">
+                    @cancel="handleCreateCancel"
+                    @ok="submitCreate"
+                    @afterClose="handleCreateAfterClose">
                         <a-form v-if="createForm" :model="createForm" :rules="createRules" layout="vertical">
                                 <a-form-item label="权限组名称" name="name" required>
                                         <a-input v-model:value="createForm.name" :maxlength="50"
