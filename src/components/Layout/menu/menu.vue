@@ -64,12 +64,13 @@
                                 </h1>
 
                         </div>
-                        <a-menu v-model:openKeys="state.openKeys" v-model:selectedKeys="state.selectedKeys"
+                        <a-menu :openKeys="state.openKeys" v-model:selectedKeys="state.selectedKeys"
                                 :inline-collapsed="collapsed"
                                 :items="items"
                                 class="flex-1 !overflow-y-auto !bg-transparent  !p-1 !border-0 "
                                 mode="inline"
                                 theme="light"
+                                @update:openKeys="handleOpenChange"
                                 @click="handleMenuClick">
 
 
@@ -105,8 +106,6 @@ const cleanMenuItem = (routeItem) => {
 };
 
 const items = childRoutes.map(cleanMenuItem);
-// logger.log(items)
-
 const router = useRouter();
 const route = useRoute();
 
@@ -129,23 +128,24 @@ const collapsed = computed(() => props.collapsed);
 // 菜单状态
 const state = reactive({
         selectedKeys: [],
-        openKeys: [''],
-        preOpenKeys: [''],
+        openKeys: [],
+        preOpenKeys: [],
 });
 
 // 设备检测
 const isMobile = computed(() => appStore.isMobile);
 
-// 监听props中的collapsed变化，更新openKeys状态
+// 侧栏折叠时收起 openKeys，展开时恢复
 watch(() => props.collapsed, (newCollapsed) => {
         if (newCollapsed) {
+                state.preOpenKeys = state.openKeys.slice();
                 state.openKeys = [];
         } else {
-                state.openKeys = state.preOpenKeys;
+                state.openKeys = state.preOpenKeys.slice();
         }
 });
 
-// 监听移动端状态变化
+// 移动端不展开子菜单
 watch(isMobile, (newIsMobile) => {
         if (newIsMobile) {
                 state.openKeys = [];
@@ -153,54 +153,64 @@ watch(isMobile, (newIsMobile) => {
         }
 });
 
-
-watch(
-    () => state.openKeys,
-    (_val, oldVal) => {
-            state.preOpenKeys = oldVal;
-    },
-);
-
 // 递归查找菜单项
 const findMenuItem = (items, key) => {
-        let result = null;
-
         for (let item of items) {
                 if (item.key === key) {
-                        result = item;
-                        break;
+                        return item;
                 }
+                
                 if (item.children) {
                         const found = findMenuItem(item.children, key);
                         if (found) {
-                                result = found;
-                                break;
+                                return found;
                         }
                 }
-
         }
-
-        return result;
+        
+        return null;
 };
 
-// 根据路由路径查找对应的菜单项
-const findMenuItemByRoute = (items, routePath) => {
-        let result = null;
-
+// 获取目标 key 的所有父级 key（用于保持展开）
+const getParentKeys = (items, targetKey, parentKeys = []) => {
+        let result = [];
+        
         for (let item of items) {
-                if (item.route === routePath) {
-                        result = item;
+                const newParentKeys = [...parentKeys, item.key];
+                if (item.key === targetKey) {
+                        result = newParentKeys.slice(0, -1);
                         break;
                 }
                 if (item.children) {
+                        const childResult = getParentKeys(item.children, targetKey, newParentKeys);
+                        if (childResult.length > 0) {
+                                result = childResult;
+                                break;
+                        }
+                }
+        }
+        
+        return result;
+};
+
+// 根据路由路径查找对应的菜单项（优先返回最深层的匹配，避免父子同 route 时选中父级）
+const findMenuItemByRoute = (items, routePath) => {
+        let result = null;
+        
+        for (let item of items) {
+                if (item.children?.length) {
                         const found = findMenuItemByRoute(item.children, routePath);
                         if (found) {
                                 result = found;
                                 break;
                         }
                 }
+                if (item.route === routePath) {
+                        result = item;
+                        break;
+                }
         }
-
+        
         return result;
 };
 
@@ -214,30 +224,6 @@ const updateSelectedKeys = () => {
 
                 // 仅在非移动端展开父级菜单
                 if (!isMobile.value) {
-                        // 展开父级菜单
-                        const getParentKeys = (items, targetKey, parentKeys = []) => {
-                                let result = [];
-
-                                for (let item of items) {
-                                        const newParentKeys = [...parentKeys, item.key];
-
-                                        if (item.key === targetKey) {
-                                                result = newParentKeys.slice(0, -1); // 排除自身
-                                                break;
-                                        }
-
-                                        if (item.children) {
-                                                const childResult = getParentKeys(item.children, targetKey, newParentKeys);
-                                                if (childResult.length > 0) {
-                                                        result = childResult;
-                                                        break;
-                                                }
-                                        }
-                                }
-
-                                return result;
-                        };
-
                         const parentKeys = getParentKeys(items, matchedItem.key);
                         state.openKeys = parentKeys;
                         state.preOpenKeys = parentKeys;
@@ -257,11 +243,31 @@ const updateSelectedKeys = () => {
         }
 };
 
+// 电脑端：拦截 openKeys，始终保留当前选中项所在父级展开（避免点击子项误收起）
+const handleOpenChange = (newOpenKeys) => {
+        if (isMobile.value) {
+                state.openKeys = newOpenKeys;
+                state.preOpenKeys = newOpenKeys;
+        } else {
+                const selectedKey = state.selectedKeys[0];
+                const matchedByRoute = findMenuItemByRoute(items, route.path);
+                const keepOpen = selectedKey
+                        ? getParentKeys(items, selectedKey)
+                        : (matchedByRoute ? getParentKeys(items, matchedByRoute.key) : []);
+                const merged = [...new Set([...newOpenKeys, ...keepOpen])];
+                state.openKeys = merged;
+                state.preOpenKeys = merged;
+        }
+};
+
 // 处理菜单点击事件
 const handleMenuClick = (e) => {
         const selectedItem = findMenuItem(items, e.key);
         if (selectedItem && selectedItem.route) {
-                router.push(selectedItem.route); // 跳转到对应路由
+                router.push(selectedItem.route);
+                if (appStore.isMobile) {
+                        appStore.setMobileSidebarOpen(false);
+                }
         }
 };
 
@@ -269,17 +275,15 @@ const handleMenuClick = (e) => {
 let cleanupResizeListener = null;
 
 onMounted(() => {
-        updateSelectedKeys();
-        // 初始化设备状态
         appStore.updateDeviceStatus();
-        // 启动窗口大小监听器
         cleanupResizeListener = appStore.startResizeListener();
+        updateSelectedKeys();
 });
 
-// 监听路由变化，更新选中状态
+// 完全由当前路由驱动选中与展开状态（含刷新后恢复）
 watch(() => route.path, () => {
         updateSelectedKeys();
-});
+}, { immediate: true });
 
 onUnmounted(() => {
         if (cleanupResizeListener) {

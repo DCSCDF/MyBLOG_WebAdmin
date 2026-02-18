@@ -57,6 +57,7 @@ export const childRoutes = [
 		icon: () => h(FileTextOutlined),
 		label: '文章',
 		title: '文章',
+		route: '/user/article/create',
 		path: '/article',
 		children: [
 			{
@@ -112,6 +113,7 @@ export const childRoutes = [
 		icon: () => h(SettingOutlined),
 		label: '设置',
 		title: '设置',
+		route: '/user/setting/usersetting',
 		path: '/setting',
 		children: [
 			{
@@ -132,12 +134,14 @@ export const childRoutes = [
 		icon: () => h(DesktopOutlined),
 		label: '网站管理',
 		title: '网站管理',
+		route: '/user/website/system/user',
 		path: '/website',
 		children: [
 			{
 				key: 'sub4',
 				label: '系统管理',
 				title: '系统管理',
+				route: '/user/website/system/user',
 				path: '/system',
 				children: [
 					{

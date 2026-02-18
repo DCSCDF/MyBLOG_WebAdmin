@@ -25,28 +25,59 @@
  * @returns {Array} 树形结构权限列表
  */
 export function buildPermissionTree(permissions, parentField = 'parentId', idField = 'id') {
-	if (!permissions || permissions.length === 0) {
-		return [];
+	let tree = [];
+
+	if (hasValidPermissions(permissions)) {
+		// 如果没有parentId字段，尝试根据code推断层级关系
+		if (shouldBuildFromCode(permissions, parentField)) {
+			tree = buildTreeFromCode(permissions);
+		} else {
+			tree = buildTreeFromParentId(permissions, parentField, idField);
+		}
 	}
 
-	// 如果没有parentId字段，尝试根据code推断层级关系
-	if (!permissions.some(p => p[parentField] !== undefined && p[parentField] !== null)) {
-		return buildTreeFromCode(permissions, idField);
-	}
+	return tree;
+}
 
-	// 创建ID映射
+/**
+ * 检查权限列表是否有效
+ * @param {Array} permissions - 权限列表
+ * @returns {boolean}
+ */
+function hasValidPermissions(permissions) {
+	return permissions && permissions.length > 0;
+}
+
+/**
+ * 检查是否应该根据code构建树形结构
+ * @param {Array} permissions - 权限列表
+ * @param {string} parentField - 父级字段名
+ * @returns {boolean}
+ */
+function shouldBuildFromCode(permissions, parentField) {
+	return !permissions.some(p => p[parentField] !== undefined && p[parentField] !== null);
+}
+
+/**
+ * 根据parentId字段构建树形结构
+ * @param {Array} permissions - 权限列表
+ * @param {string} parentField - 父级字段名
+ * @param {string} idField - ID字段名
+ * @returns {Array} 树形结构
+ */
+function buildTreeFromParentId(permissions, parentField, idField) {
+	// 创建ID映射并同时构建树形结构
 	const idMap = new Map();
-	permissions.forEach(permission => {
-		idMap.set(permission[idField], {...permission, children: []});
-	});
-
-	// 构建树形结构
 	const tree = [];
-	permissions.forEach(permission => {
-		const node = idMap.get(permission[idField]);
-		const parentId = permission[parentField];
 
-		if (parentId && idMap.has(parentId)) {
+	permissions.forEach(permission => {
+		// 创建节点
+		const node = {...permission, children: []};
+		idMap.set(permission[idField], node);
+
+		// 处理父子关系
+		const parentId = permission[parentField];
+		if (hasParent(parentId, idMap)) {
 			// 有父级，添加到父级的children中
 			const parent = idMap.get(parentId);
 			if (!parent.children) {
@@ -63,6 +94,16 @@ export function buildPermissionTree(permissions, parentField = 'parentId', idFie
 }
 
 /**
+ * 检查是否有有效的父级
+ * @param {*} parentId - 父级ID
+ * @param {Map} idMap - ID映射
+ * @returns {boolean}
+ */
+function hasParent(parentId, idMap) {
+	return parentId && idMap.has(parentId);
+}
+
+/**
  * 根据权限 code 推断层级关系构建树形结构
  * 规则：直接父级 = 当前 code 去掉最后一段
  * 例如：
@@ -70,47 +111,44 @@ export function buildPermissionTree(permissions, parentField = 'parentId', idFie
  * - system:user、system:role 是 system 的子权限
  * - system:role:edit 是 system:role 的子权限
  * @param {Array} permissions - 扁平权限列表
- * @param {string} idField - ID字段名
  * @returns {Array} 树形结构权限列表
  */
-function buildTreeFromCode(permissions, idField) {
-	if (!permissions || permissions.length === 0) {
-		return [];
-	}
+function buildTreeFromCode(permissions) {
+	let tree = [];
 
-	// 创建 code 到权限的映射
-	const codeMap = new Map();
-	permissions.forEach(p => {
-		codeMap.set(p.code, {...p, children: []});
-	});
+	if (permissions && permissions.length > 0) {
+		// 创建 code 到权限的映射并同时构建树形结构
+		const codeMap = new Map();
 
-	// 按 code 段数排序，段数少的在前（父级先于子级处理）
-	const sortedPermissions = [...permissions].sort((a, b) => {
-		const aParts = a.code.split(':').length;
-		const bParts = b.code.split(':').length;
-		return aParts - bParts;
-	});
+		// 按 code 段数排序，段数少的在前（父级先于子级处理）
+		const sortedPermissions = [...permissions].sort((a, b) => {
+			const aParts = a.code.split(':').length;
+			const bParts = b.code.split(':').length;
+			return aParts - bParts;
+		});
 
-	const tree = [];
+		sortedPermissions.forEach(permission => {
+			// 创建节点
+			const node = {...permission, children: []};
+			codeMap.set(permission.code, node);
 
-	sortedPermissions.forEach(permission => {
-		const code = permission.code;
-		const node = codeMap.get(code);
-		const parts = code.split(':');
+			const code = permission.code;
+			const parts = code.split(':');
 
-		// 直接父级 = 去掉最后一段后的 code
-		const parentCode = parts.length > 1 ? parts.slice(0, -1).join(':') : '';
+			// 直接父级 = 去掉最后一段后的 code
+			const parentCode = parts.length > 1 ? parts.slice(0, -1).join(':') : '';
 
-		if (parentCode && codeMap.has(parentCode)) {
-			const parent = codeMap.get(parentCode);
-			if (!parent.children) {
-				parent.children = [];
+			if (parentCode && codeMap.has(parentCode)) {
+				const parent = codeMap.get(parentCode);
+				if (!parent.children) {
+					parent.children = [];
+				}
+				parent.children.push(node);
+			} else {
+				tree.push(node);
 			}
-			parent.children.push(node);
-		} else {
-			tree.push(node);
-		}
-	});
+		});
+	}
 
 	return tree;
 }
@@ -170,12 +208,17 @@ export function hasChildren(permission) {
  * @returns {string|null} 父权限 code，如果没有则返回 null
  */
 export function getParentCode(code, codeMap) {
+	let result = null;
 	const parts = code.split(':');
-	if (parts.length <= 1) {
-		return null; // 顶级权限，没有父级
+
+	if (parts.length > 1) {
+		const parentCode = parts.slice(0, -1).join(':');
+		if (codeMap.has(parentCode)) {
+			result = parentCode;
+		}
 	}
-	const parentCode = parts.slice(0, -1).join(':');
-	return codeMap.has(parentCode) ? parentCode : null;
+
+	return result;
 }
 
 /**
@@ -187,32 +230,37 @@ export function getParentCode(code, codeMap) {
  * @returns {Object} { conflict: boolean, reason: string }
  */
 export function checkPermissionConflict(permission, existingPermissions, codeMap) {
+	let result = {conflict: false, reason: ''};
 	const existingCodes = new Set(existingPermissions.map(p => p.code));
 	const permissionCode = permission.code;
 
 	// 检查是否已存在相同的权限
 	if (existingCodes.has(permissionCode)) {
-		return {conflict: true, reason: '该权限已存在'};
-	}
-
-	// 检查父权限冲突
-	const parentCode = getParentCode(permissionCode, codeMap);
-	if (parentCode && existingCodes.has(parentCode)) {
-		return {conflict: true, reason: `该权限的父权限 "${parentCode}" 已存在，不能同时关联父权限和子权限`};
-	}
-
-	// 检查子权限冲突：如果当前权限是父权限，检查是否有子权限已存在
-	if (permission.children && permission.children.length > 0) {
-		const childCodes = flattenPermissionTree([permission]).map(p => p.code);
-		for (const childCode of childCodes) {
-			if (childCode !== permissionCode && existingCodes.has(childCode)) {
-				return {
-					conflict: true,
-					reason: `该权限的子权限 "${childCode}" 已存在，不能同时关联父权限和子权限`
-				};
+		result = {conflict: true, reason: '该权限已存在'};
+	} else {
+		// 检查父权限冲突
+		const parentCode = getParentCode(permissionCode, codeMap);
+		if (parentCode && existingCodes.has(parentCode)) {
+			result = {
+				conflict: true,
+				reason: `该权限的父权限 "${parentCode}" 已存在，不能同时关联父权限和子权限`
+			};
+		} else {
+			// 检查子权限冲突：如果当前权限是父权限，检查是否有子权限已存在
+			if (permission.children && permission.children.length > 0) {
+				const childCodes = flattenPermissionTree([permission]).map(p => p.code);
+				for (const childCode of childCodes) {
+					if (childCode !== permissionCode && existingCodes.has(childCode)) {
+						result = {
+							conflict: true,
+							reason: `该权限的子权限 "${childCode}" 已存在，不能同时关联父权限和子权限`
+						};
+						break; // 找到冲突后立即退出循环
+					}
+				}
 			}
 		}
 	}
 
-	return {conflict: false, reason: ''};
+	return result;
 }

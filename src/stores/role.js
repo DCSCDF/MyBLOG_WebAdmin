@@ -32,8 +32,11 @@ export const SUPER_ADMIN_ROLE_CODE = 'SUPER_ADMIN';
  * @param {Object} role - 角色对象 { code, superAdmin }
  */
 export function isSuperAdminRole(role) {
-	if (!role) return false;
-	return role.code === SUPER_ADMIN_ROLE_CODE || role.superAdmin === true;
+	let result = false;
+	if (role) {
+		result = role.code === SUPER_ADMIN_ROLE_CODE || role.superAdmin === true;
+	}
+	return result;
 }
 
 import {defineStore} from 'pinia';
@@ -76,33 +79,110 @@ export const useRoleStore = defineStore('role', () => {
 	const fetchRoles = async (params = {}) => {
 		loading.value = true;
 		try {
-			const currentPage = params.currentPage ?? pagination.value.current;
-			const pageSize = params.pageSize ?? pagination.value.pageSize;
-			const keyword = params.keyword !== undefined ? params.keyword : queryParams.value.keyword;
-			const status = params.status !== undefined ? params.status : queryParams.value.status;
-			const isSystem = params.isSystem !== undefined ? params.isSystem : queryParams.value.isSystem;
-			const requestParams = { currentPage, pageSize };
-			if (keyword != null && String(keyword).trim() !== '') requestParams.keyword = String(keyword).trim();
-			if (status !== undefined) requestParams.status = status;
-			if (isSystem !== undefined) requestParams.isSystem = isSystem;
+			const normalizedParams = normalizeFetchParams(params);
+			const requestParams = buildRequestParams(normalizedParams);
+			
 			const res = await roleApi.list(requestParams);
-			if (res.success !== true || !res.data) {
-				throw new Error(res.errorMsg || '获取角色列表失败');
-			}
-			const {records = [], total = 0, current = 1, size = pageSize, pages = 0, filterOptions: options = {}} = res.data;
-			roles.value = (records || []).map((item) => ({...item, key: item.id}));
-			pagination.value = { current, pageSize: size, total, pages };
-			filterOptions.value = options;
+			validateApiResponse(res);
+			
+			const { records = [], total = 0, current = 1, size = normalizedParams.pageSize, pages = 0, filterOptions: options = {} } = res.data;
+			
+			updateRoleState(records, { current, pageSize: size, total, pages }, options);
 			logger.log('角色列表获取成功，总数:', total);
+			
 			return roles.value;
 		} catch (error) {
-			logger.error('获取角色列表失败:', error);
-			roles.value = [];
-			pagination.value.total = 0;
+			handleFetchError(error);
 			throw error;
 		} finally {
 			loading.value = false;
 		}
+	};
+
+	/**
+	 * 标准化获取参数
+	 * @param {Object} params - 原始参数对象
+	 * @returns {Object} 标准化后的参数
+	 */
+	const normalizeFetchParams = (params) => {
+		const currentPage = params.currentPage ?? pagination.value.current;
+		const pageSize = params.pageSize ?? pagination.value.pageSize;
+		const keyword = params.keyword !== undefined ? params.keyword : queryParams.value.keyword;
+		const status = params.status !== undefined ? params.status : queryParams.value.status;
+		const isSystem = params.isSystem !== undefined ? params.isSystem : queryParams.value.isSystem;
+		
+		return { currentPage, pageSize, keyword, status, isSystem };
+	};
+
+	/**
+	 * 构建请求参数
+	 * @param {Object} normalizedParams - 标准化参数
+	 * @returns {Object} 请求参数对象
+	 */
+	const buildRequestParams = (normalizedParams) => {
+		const { currentPage, pageSize, keyword, status, isSystem } = normalizedParams;
+		const requestParams = { currentPage, pageSize };
+		
+		// 添加关键字参数
+		if (hasValidKeyword(keyword)) {
+			requestParams.keyword = String(keyword).trim();
+		}
+		
+		// 添加状态参数
+		if (status !== undefined) {
+			requestParams.status = status;
+		}
+		
+		// 添加系统标识参数
+		if (isSystem !== undefined) {
+			requestParams.isSystem = isSystem;
+		}
+		
+		return requestParams;
+	};
+
+	/**
+	 * 检查关键字是否有效
+	 * @param {*} keyword - 关键字
+	 * @returns {boolean} 是否为有效关键字
+	 */
+	const hasValidKeyword = (keyword) => {
+		return keyword != null && String(keyword).trim() !== '';
+	};
+
+	/**
+	 * 验证API响应
+	 * @param {Object} response - API响应对象
+	 * @throws {Error} 当响应无效时抛出错误
+	 */
+	const validateApiResponse = (response) => {
+		const isValidResponse = response.success === true && response.data !== null && response.data !== undefined;
+		
+		if (!isValidResponse) {
+			throw new Error(response.errorMsg || '获取角色列表失败');
+		}
+	};
+
+	/**
+	 * 更新角色状态
+	 * @param {Array} records - 角色记录数组
+	 * @param {Object} paginationData - 分页数据
+	 * @param {Object} filterOptions - 过滤选项
+	 */
+	const updateRoleState = (records, paginationData, filterOptions) => {
+		roles.value = (records || []).map((item) => ({ ...item, key: item.id }));
+		pagination.value = paginationData;
+		filterOptions.value = filterOptions;
+	};
+
+	/**
+	 * 处理获取错误
+	 * @param {Error} error - 错误对象
+	 */
+	const handleFetchError = (error) => {
+		logger.error('获取角色列表失败:', error);
+		roles.value = [];
+		pagination.value.total = 0;
 	};
 
 	/**
@@ -140,9 +220,11 @@ export const useRoleStore = defineStore('role', () => {
 			if (data.permissions && Array.isArray(data.permissions)) {
 				const seen = new Set();
 				data.permissions = data.permissions.filter((p) => {
-					if (seen.has(p.id)) return false;
-					seen.add(p.id);
-					return true;
+					const shouldInclude = !seen.has(p.id);
+					if (shouldInclude) {
+						seen.add(p.id);
+					}
+					return shouldInclude;
 				});
 			}
 			roleDetail.value = data;

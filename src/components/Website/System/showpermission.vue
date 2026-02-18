@@ -117,10 +117,11 @@
         </a-card>
 </template>
 <script setup>
-import {computed, onMounted, ref} from 'vue';
-import {SearchOutlined} from '@ant-design/icons-vue';
-import {usePermissionStore} from '../../../stores/permission.js';
-import logger from "../../../utils/logger.js";
+import { computed, onMounted, ref } from 'vue';
+import { SearchOutlined } from '@ant-design/icons-vue';
+import { usePermissionStore } from '../../../stores/permission.js';
+import { formatDate } from '../../../utils/formatDate.js';
+import logger from '../../../utils/logger.js';
 
 const permissionStore = usePermissionStore();
 
@@ -209,39 +210,13 @@ const handleReset = () => {
         loadTableData();
 };
 
-// 查看权限详情
-const viewPermission = (record) => {
+/** 查看权限详情 */
+function viewPermission(record) {
         currentPermission.value = record;
         viewDrawerVisible.value = true;
-};
+}
 
-// 格式化日期显示
-const formatDate = (dateString) => {
-        let result = '';
-
-        if (dateString) {
-                try {
-                        const date = new Date(dateString);
-                        result = date.toLocaleString('zh-CN', {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit'
-                        });
-                } catch (error) {
-                        logger.error('日期格式化失败:', error);
-                        result = dateString;
-                }
-        }
-
-        return result;
-};
-
-// 组件挂载时加载数据
 onMounted(() => {
-        logger.log("组件挂载，分页配置:", paginationConfig.value);
         loadTableData();
 });
 </script>

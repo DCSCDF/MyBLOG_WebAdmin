@@ -9,90 +9,77 @@
  * author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
  * license: "MIT"
  * license_exception: "Mandatory attribution retention"
- * UpdateTime: 2026/2/17 07:45
+ * UpdateTime: 2026/2/18 10:45
  *
  */
 
-/*
- * [permissiongroup.js]
- * --------------------------------------------------------------------------------
- * 权限组状态管理 Store
- * 对接后端 /api/permission-group 相关接口：列表、详情、修改、删除及关联权限
- * --------------------------------------------------------------------------------
- */
 
 import {defineStore} from 'pinia';
-import {computed, ref} from 'vue';
+import {computed} from 'vue';
 import {permissionGroupApi} from '../api/system/permissionGroupApi.js';
 import logger from '../utils/logger.js';
-
-/** 状态码转中文：0 禁用，1 启用 */
-const statusText = (status) => (status === 1 ? '启用' : '禁用');
+import {createState} from './modules/permissionGroup/state.js';
+import {buildPermissionGroupQueryParams} from './modules/permissionGroup/builder.js';
+import {processPermissionGroupResponse} from './modules/permissionGroup/processor.js';
 
 export const usePermissionGroupStore = defineStore('permissionGroup', () => {
-	const permissionGroups = ref([]);
-	const loading = ref(false);
+	// 初始化状态
+	const state = createState();
+	const {
+		permissionGroups,
+		loading,
+		pagination,
+		queryParams,
+		filterOptions,
+		groupPermissions,
+		groupPermissionsLoading
+	} = state;
 
-	// 分页信息（与后端一致：current, size, total, pages）
-	const pagination = ref({
-		current: 1,
-		pageSize: 10,
-		total: 0,
-		pages: 0
-	});
-
-	// 查询参数：keyword 匹配 name/description，status 0/1，isSystem 0/1
-	const queryParams = ref({
-		keyword: '',
-		status: undefined,
-		isSystem: undefined
-	});
-
-	/** 列表接口返回的 filterOptions（status、isSystem 筛选项） */
-	const filterOptions = ref({});
-
-	// 当前选中的权限组关联的权限列表（用于详情/管理权限）
-	const groupPermissions = ref([]);
-	const groupPermissionsLoading = ref(false);
 
 	/**
 	 * 分页获取权限组列表（支持 keyword/status/isSystem）
-	 * @param {Object} params - { currentPage?, pageSize?, keyword?, status?, isSystem? }
 	 * @returns {Promise<Array>}
+	 * @param {Object} params - 查询参数对象
+	 * @param {number} [params.currentPage] - 当前页码
+	 * @param {number} [params.page] - 页码（备选）
+	 * @param {number} [params.pageSize] - 每页大小
+	 * @param {string} [params.keyword] - 关键词搜索
+	 * @param {number} [params.status] - 状态筛选
+	 * @param {number} [params.isSystem] - 是否系统权限组
 	 */
-	const fetchPermissionGroups = async (params = {}) => {
+	const fetchPermissionGroups = async (params) => {
 		loading.value = true;
 		try {
-			const currentPage = params.currentPage ?? params.page ?? pagination.value.current;
-			const pageSize = params.pageSize ?? pagination.value.pageSize;
-			const keyword = params.keyword !== undefined ? params.keyword : queryParams.value.keyword;
-			const status = params.status !== undefined ? params.status : queryParams.value.status;
-			const isSystem = params.isSystem !== undefined ? params.isSystem : queryParams.value.isSystem;
-			const requestParams = { currentPage, pageSize };
-			if (keyword != null && String(keyword).trim() !== '') requestParams.keyword = String(keyword).trim();
-			if (status !== undefined) requestParams.status = status;
-			if (isSystem !== undefined) requestParams.isSystem = isSystem;
+			const requestParams = buildPermissionGroupQueryParams(params, state);
 			const res = await permissionGroupApi.list(requestParams);
+
 			if (res.success !== true || !res.data) {
-				throw new Error(res.errorMsg || '获取权限组列表失败');
+				const errorMsg = res.errorMsg || '获取权限组列表失败';
+				logger.error('获取权限组列表失败:', errorMsg);
+				permissionGroups.value = [];
+				pagination.value.total = 0;
+				// 抛出业务逻辑错误
+				const businessError = new Error(errorMsg);
+				businessError.type = 'BUSINESS_ERROR';
+				throw businessError;
 			}
-			const {records = [], total = 0, current = 1, size = pageSize, pages = 0, filterOptions: options = {}} = res.data;
-			permissionGroups.value = (records || []).map((item) => ({
-				...item,
-				key: item.id,
-				order: item.sortOrder ?? item.id,
-				status: statusText(item.status),
-				statusValue: item.status
-			}));
-			pagination.value = { current, pageSize: size, total, pages };
-			filterOptions.value = options;
-			logger.log('权限组列表获取成功，总数:', total);
+
+			processPermissionGroupResponse(res.data, requestParams.pageSize, state);
+			logger.log('权限组列表获取成功，总数:', res.data.total);
 			return permissionGroups.value;
 		} catch (error) {
-			logger.error('获取权限组列表失败:', error);
+			logger.error('获取权限组列表异常:', error);
 			permissionGroups.value = [];
 			pagination.value.total = 0;
-			throw error;
+			// 区分业务错误和系统异常
+			if (error.type === 'BUSINESS_ERROR') {
+				throw error; // 直接重新抛出业务错误
+			} else {
+				// 包装系统异常
+				const systemError = new Error(`权限组列表获取系统异常: ${error.message}`);
+				systemError.type = 'SYSTEM_ERROR';
+				throw systemError;
+			}
 		} finally {
 			loading.value = false;
 		}
@@ -107,12 +94,15 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 		try {
 			const res = await permissionGroupApi.getById(id);
 			if (res.success !== true || !res.data) {
-				throw new Error(res.errorMsg || '获取权限组详情失败');
+				const errorMsg = res.errorMsg || '获取权限组详情失败';
+				logger.error('获取权限组详情失败:', errorMsg);
+				throw new Error(errorMsg);
 			}
 			return res.data;
 		} catch (error) {
-			logger.error('获取权限组详情失败:', error);
-			throw error;
+			logger.error('获取权限组详情异常:', error);
+			// 将错误包装后重新抛出，保持错误链
+			throw new Error(`权限组详情获取异常: ${error.message}`);
 		}
 	};
 
@@ -126,14 +116,18 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 		try {
 			const res = await permissionGroupApi.getPermissions(id);
 			if (res.success !== true) {
-				throw new Error(res.errorMsg || '获取权限组权限失败');
+				const errorMsg = res.errorMsg || '获取权限组权限失败';
+				logger.error('获取权限组权限失败:', errorMsg);
+				groupPermissions.value = [];
+				throw new Error(errorMsg);
 			}
 			groupPermissions.value = res.data || [];
 			return groupPermissions.value;
 		} catch (error) {
-			logger.error('获取权限组权限失败:', error);
+			logger.error('获取权限组权限异常:', error);
 			groupPermissions.value = [];
-			throw error;
+			// 将错误包装后重新抛出，保持错误链
+			throw new Error(`权限组权限获取异常: ${error.message}`);
 		} finally {
 			groupPermissionsLoading.value = false;
 		}
@@ -148,13 +142,16 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 		try {
 			const res = await permissionGroupApi.create(body);
 			if (res.success !== true) {
-				throw new Error(res.errorMsg || '创建权限组失败');
+				const errorMsg = res.errorMsg || '创建权限组失败';
+				logger.error('创建权限组失败:', errorMsg);
+				throw new Error(errorMsg);
 			}
 			logger.log('权限组创建成功');
 			return res.data;
 		} catch (error) {
-			logger.error('创建权限组失败:', error);
-			throw error;
+			logger.error('创建权限组异常:', error);
+			// 将错误包装后重新抛出，保持错误链
+			throw new Error(`权限组创建异常: ${error.message}`);
 		}
 	};
 
@@ -168,13 +165,16 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 		try {
 			const res = await permissionGroupApi.update(id, body);
 			if (res.success !== true) {
-				throw new Error(res.errorMsg || '修改权限组失败');
+				const errorMsg = res.errorMsg || '修改权限组失败';
+				logger.error('修改权限组失败:', errorMsg);
+				throw new Error(errorMsg);
 			}
 			logger.log('权限组更新成功:', id);
 			return res.data;
 		} catch (error) {
-			logger.error('更新权限组失败:', error);
-			throw error;
+			logger.error('更新权限组异常:', error);
+			// 将错误包装后重新抛出，保持错误链
+			throw new Error(`权限组更新异常: ${error.message}`);
 		}
 	};
 
@@ -187,12 +187,15 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 		try {
 			const res = await permissionGroupApi.delete(id);
 			if (res.success !== true) {
-				throw new Error(res.errorMsg || '删除权限组失败');
+				const errorMsg = res.errorMsg || '删除权限组失败';
+				logger.error('删除权限组失败:', errorMsg);
+				throw new Error(errorMsg);
 			}
 			logger.log('权限组删除成功:', id);
 		} catch (error) {
-			logger.error('删除权限组失败:', error);
-			throw error;
+			logger.error('删除权限组异常:', error);
+			// 将错误包装后重新抛出，保持错误链
+			throw new Error(`权限组删除异常: ${error.message}`);
 		}
 	};
 
@@ -205,12 +208,15 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 		try {
 			const res = await permissionGroupApi.addPermission(groupId, {permissionId});
 			if (res.success !== true) {
-				throw new Error(res.errorMsg || '添加权限失败');
+				const errorMsg = res.errorMsg || '添加权限失败';
+				logger.error('添加权限失败:', errorMsg);
+				throw new Error(errorMsg);
 			}
 			logger.log('权限组添加权限成功:', groupId, permissionId);
 		} catch (error) {
-			logger.error('权限组添加权限失败:', error);
-			throw error;
+			logger.error('权限组添加权限异常:', error);
+			// 将错误包装后重新抛出，保持错误链
+			throw new Error(`权限组添加权限异常: ${error.message}`);
 		}
 	};
 
@@ -223,12 +229,15 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 		try {
 			const res = await permissionGroupApi.removePermission(groupId, permissionId);
 			if (res.success !== true) {
-				throw new Error(res.errorMsg || '移除权限失败');
+				const errorMsg = res.errorMsg || '移除权限失败';
+				logger.error('移除权限失败:', errorMsg);
+				throw new Error(errorMsg);
 			}
 			logger.log('权限组移除权限成功:', groupId, permissionId);
 		} catch (error) {
-			logger.error('权限组移除权限失败:', error);
-			throw error;
+			logger.error('权限组移除权限异常:', error);
+			// 将错误包装后重新抛出，保持错误链
+			throw new Error(`权限组移除权限异常: ${error.message}`);
 		}
 	};
 
@@ -266,7 +275,7 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 		groupPermissions.value = [];
 		groupPermissionsLoading.value = false;
 		pagination.value = {current: 1, pageSize: 10, total: 0, pages: 0};
-		queryParams.value = { keyword: '', status: undefined, isSystem: undefined };
+		queryParams.value = {keyword: '', status: undefined, isSystem: undefined};
 		filterOptions.value = {};
 		logger.log('权限组状态已清理');
 	};

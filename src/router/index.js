@@ -16,10 +16,10 @@
 import {createRouter, createWebHistory} from 'vue-router'
 
 // 导入页面组件
-import Login from '../pages/Login.vue'
-import Layout from '../layout/Layout.vue'
-import {tools} from "../utils/tools.js";
-import logger from "../utils/logger.js";
+import Login from '../pages/Login.vue';
+import Layout from '../layout/Layout.vue';
+import { useAuthStore } from '../stores/auth.js';
+import logger from '../utils/logger.js';
 
 import {childRoutes} from "../config/childRoutes.js"
 
@@ -53,29 +53,27 @@ const router = createRouter({
 })
 
 
-// 路由守卫
+// 路由守卫（Vue Router 4 签名为 to, from, next）
 router.beforeEach((to, from, next) => {
+	let nextRoute = null;
 	try {
-		// 检查是否有token
-		const token = tools.getToken();
-		const isAuthenticated = !!token; // 转为布尔值
-
+		const token = useAuthStore().currentToken;
+		const isAuthenticated = Boolean(token);
 		if (to.meta.requiresAuth && !isAuthenticated) {
-			// 需要认证但未登录
-			next('/login')
+			nextRoute = '/login';
 		} else if (to.path === '/login' && isAuthenticated) {
-			// 已登录但访问登录页
-			next('/user/dashboard')
-		} else {
-			next()
+			nextRoute = '/user/dashboard';
 		}
 	} catch (error) {
 		logger.error('路由守卫错误:', error);
-		// 发生错误时，重定向到登录页
-
-		next('/login');
+		nextRoute = '/login';
 	}
-})
+	if (nextRoute !== null) {
+		next(nextRoute);
+	} else {
+		next();
+	}
+});
 
 // 设置页面标题
 router.afterEach((to) => {

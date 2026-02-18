@@ -88,12 +88,12 @@
 </template>
 
 <script setup>
-import { nextTick, ref, watch } from 'vue'
-import { LockOutlined, MailOutlined, UserOutlined } from '@ant-design/icons-vue'
+import {nextTick, ref, watch} from 'vue'
+import {LockOutlined, MailOutlined, UserOutlined} from '@ant-design/icons-vue'
 import Captcha from './Captcha.vue'
-import { message } from 'ant-design-vue'
+import {message} from 'ant-design-vue'
 import logger from '../../utils/logger.js'
-import { authApi } from '../../api/user/auth/authApi.js'
+import {authApi} from '../../api/user/auth/authApi.js'
 import RsaEncryptor from '../../utils/RsaUtils.js'
 
 const emit = defineEmits(['register-success'])
@@ -231,19 +231,16 @@ const registerRules = {
  * @returns {Object|null} 验证参数，包含 captchaVerification；未验证时为 null
  */
 function getRegisterCaptchaVerification() {
-        if (!captchaRef.value) return null
-        return captchaRef.value.getCaptchaVerification() ?? null
+        return captchaRef.value ? captchaRef.value.getCaptchaVerification() ?? null : null;
 }
 
 /**
  * 重置注册相关状态：loading、验证码状态及验证码组件
  */
 function resetRegisterState() {
-        registerLoading.value = false
-        isVerified.value = false
-        if (captchaRef.value) {
-                captchaRef.value.resetVerifyStatus()
-        }
+        registerLoading.value = false;
+        isVerified.value = false;
+        captchaRef.value?.resetVerifyStatus();
 }
 
 /**
@@ -255,8 +252,8 @@ function resetRegisterState() {
  */
 function buildRegisterPayload(publicKey, tempToken, captchaVerification) {
         const encryptedPassword = RsaEncryptor.encrypt(
-                registerForm.value.password,
-                publicKey
+            registerForm.value.password,
+            publicKey
         )
         return {
                 username: registerForm.value.username.trim(),
@@ -274,73 +271,151 @@ function buildRegisterPayload(publicKey, tempToken, captchaVerification) {
  * @returns {string}
  */
 function getRegisterErrorMessage(res, err) {
-        if (res && res.errorMsg) return res.errorMsg
-        if (err && err.message) return err.message
-        return '注册失败，请稍后再试'
+        let errorMessage = '注册失败，请稍后再试'
+
+        if (res && res.errorMsg) {
+                errorMessage = res.errorMsg
+        } else if (err && err.message) {
+                errorMessage = err.message
+        }
+
+        return errorMessage
+}
+
+/**
+ * 验证注册前置条件
+ * @returns {boolean} 是否满足注册条件
+ */
+function validateRegisterPreconditions() {
+        return registerLoading.value === false;
+}
+
+/**
+ * 验证验证码有效性
+ * @returns {Object|null} 验证结果
+ */
+function validateCaptcha() {
+        const verification = getRegisterCaptchaVerification();
+        return {
+                isValid: verification !== null,
+                data: verification
+        };
+}
+
+/**
+ * 验证公钥响应有效性
+ * @param {Object} publicKeyRes - 公钥响应对象
+ * @returns {boolean} 公钥是否有效
+ */
+function validatePublicKeyResponse(publicKeyRes) {
+        return publicKeyRes?.code === 200 && publicKeyRes?.data !== null;
+}
+
+/**
+ * 处理注册成功情况
+ * @param {Object} registerRes - 注册响应
+ */
+function handleRegisterSuccess(registerRes) {
+        message.success(registerRes.data.message || '注册成功，请登录')
+        logger.log('注册成功 userId:', registerRes.data.userId)
+        registerLoading.value = false
+        emit('register-success')
+}
+
+/**
+ * 执行注册流程的核心逻辑
+ * @returns {Promise<Object>} 注册结果对象
+ */
+async function executeRegisterFlow() {
+        const result = { success: false, data: null, error: null };
+        let shouldContinue = true;
+
+        // 验证码验证
+        if (shouldContinue) {
+                const captchaResult = validateCaptcha();
+                if (!captchaResult.isValid) {
+                        result.error = '请先完成验证码';
+                        shouldContinue = false;
+                }
+        }
+
+        // 获取公钥
+        let publicKeyRes;
+        if (shouldContinue) {
+                try {
+                        publicKeyRes = await authApi.publicKey();
+                } catch (err) {
+                        logger.error('注册-获取公钥失败:', err);
+                        result.error = getRegisterErrorMessage(null, err);
+                        shouldContinue = false;
+                }
+        }
+
+        // 验证公钥响应
+        if (shouldContinue) {
+                if (!validatePublicKeyResponse(publicKeyRes)) {
+                        result.error = publicKeyRes.errorMsg || '获取公钥失败';
+                        shouldContinue = false;
+                }
+        }
+
+        // 构建请求载荷和执行注册
+        if (shouldContinue) {
+                const payload = buildRegisterPayload(
+                        publicKeyRes.data.publicKey,
+                        publicKeyRes.data.tempToken,
+                        validateCaptcha().data
+                );
+                logger.log('注册请求参数（已脱敏）:', {
+                        username: payload.username,
+                        email: payload.email,
+                        tempToken: payload.tempToken ? '***' : ''
+                });
+
+                // 执行注册
+                try {
+                        const registerRes = await authApi.register(payload);
+                        const isSuccessful = registerRes.success && registerRes.data;
+                        result.success = isSuccessful;
+                        result.data = registerRes;
+                        result.error = isSuccessful ? null : getRegisterErrorMessage(registerRes);
+                } catch (err) {
+                        logger.error('注册请求失败:', err);
+                        result.error = err.response?.data?.errorMsg || err.message || '注册失败，请稍后再试';
+                }
+        }
+
+        return result;
+}
+
+/**
+ * 处理注册结果
+ * @param {Object} result - 注册结果对象
+ */
+function handleRegisterResult(result) {
+        if (result.success) {
+                handleRegisterSuccess(result.data)
+        } else {
+                message.error(result.error)
+                resetRegisterState()
+        }
 }
 
 /**
  * 执行注册流程：获取公钥 → 加密密码 → 提交注册；失败时统一重置状态并提示
  */
 async function handleRegister() {
-        if (registerLoading.value) return
-
-        registerLoading.value = true
-        const verification = getRegisterCaptchaVerification()
-        if (!verification) {
-                message.error('请先完成验证码')
-                resetRegisterState()
-                return
+        let shouldProceed = validateRegisterPreconditions();
+        
+        if (shouldProceed) {
+                registerLoading.value = true;
+                
+                // 执行注册流程
+                const result = await executeRegisterFlow();
+                
+                // 处理结果
+                handleRegisterResult(result);
         }
-
-        let publicKeyRes
-        try {
-                publicKeyRes = await authApi.publicKey()
-        } catch (err) {
-                logger.error('注册-获取公钥失败:', err)
-                message.error(getRegisterErrorMessage(null, err))
-                resetRegisterState()
-                return
-        }
-
-        if (publicKeyRes.code !== 200 || !publicKeyRes.data) {
-                message.error(publicKeyRes.errorMsg || '获取公钥失败')
-                resetRegisterState()
-                return
-        }
-
-        const payload = buildRegisterPayload(
-                publicKeyRes.data.publicKey,
-                publicKeyRes.data.tempToken,
-                verification
-        )
-        logger.log('注册请求参数（已脱敏）:', {
-                username: payload.username,
-                email: payload.email,
-                tempToken: payload.tempToken ? '***' : ''
-        })
-
-        let registerRes
-        try {
-                registerRes = await authApi.register(payload)
-        } catch (err) {
-                logger.error('注册请求失败:', err)
-                const msg = err.response?.data?.errorMsg || err.message || '注册失败，请稍后再试'
-                message.error(msg)
-                resetRegisterState()
-                return
-        }
-
-        if (registerRes.success && registerRes.data) {
-                message.success(registerRes.data.message || '注册成功，请登录')
-                logger.log('注册成功 userId:', registerRes.data.userId)
-                registerLoading.value = false
-                emit('register-success')
-                return
-        }
-
-        message.error(getRegisterErrorMessage(registerRes))
-        resetRegisterState()
 }
 </script>
 

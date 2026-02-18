@@ -151,137 +151,116 @@ const handleLogin = async () => {
         // 防止重复提交
         if (loginLoading.value) return;
 
-        loginLoading.value = true
+        loginLoading.value = true;
 
         try {
-                // 从验证码组件获取验证参数
-                let captchaVerification = null
-                if (captchaRef.value) {
-                        captchaVerification = captchaRef.value.getCaptchaVerification()
-                }
+                // 获取验证码验证参数
+                const captchaVerification = captchaRef.value ? 
+                        captchaRef.value.getCaptchaVerification() : null;
 
-                logger.log('Captcha 校验码:', captchaVerification)
+                logger.log('Captcha 校验码:', captchaVerification);
                 logger.log('Login 表单数据:', {
                         username: loginForm.value.username,
                         password: loginForm.value.password,
                         checkRemember: loginForm.value.remember,
                         captchaVerification
-                })
+                });
 
-                const publicKeyResponse = await authApi.publicKey()
+                const publicKeyResponse = await authApi.publicKey();
+                
+                // 处理公钥获取失败的情况
+                if (publicKeyResponse.code !== 200) {
+                        handleError('验证码获取失败', publicKeyResponse.errorMsg || '服务器错误');
+                        return;
+                }
 
-                if (publicKeyResponse.code === 200) {
+                const password = RsaEncryptor.encrypt(loginForm.value.password, publicKeyResponse.data.publicKey);
 
-                        const password = RsaEncryptor.encrypt(loginForm.value.password, publicKeyResponse.data.publicKey)
+                const loginData = {
+                        username: loginForm.value.username,
+                        captchaVerification: captchaVerification.captchaVerification,
+                        tempToken: publicKeyResponse.data.tempToken,
+                        password: password,
+                };
+                
+                logger.log('发送前的对象 ', loginData);
 
-                        const loginData = {
-                                username: loginForm.value.username,
-                                captchaVerification: captchaVerification.captchaVerification,
-                                tempToken: publicKeyResponse.data.tempToken,
-                                password: password,
-                        };
-                        logger.log('发送前的对象 ', loginData)
-
-                        let loginResponse;
-                        try {
-                                loginResponse = await authApi.login(loginData)
-                                logger.log('Login 成功响应:', loginResponse)
-                        } catch (apiError) {
-                                // 处理API抛出的业务错误
-                                logger.log('Login 业务错误:', apiError.message)
-
-                                // 显示具体的业务错误信息
-                                let errorMessage = apiError.message || '登录失败';
-
-                                // 如果错误信息包含特定关键词，给出更友好的提示
-                                if (errorMessage.includes('用户名或密码错误') ||
-                                    errorMessage.includes('密码错误') ||
-                                    errorMessage.includes('用户不存在')) {
-                                        errorMessage = '用户名或密码错误';
-                                }
-
-                                message.error(errorMessage);
-                                logger.error('Login 失败:', errorMessage);
-
-                                // 登录失败时重置状态
-                                resetLoginState();
-                                return; // 退出函数
-                        }
-
-                        // 处理成功的响应
-                        if (loginResponse && loginResponse.success === true) {
-
-                                message.info(`登陆成功，欢迎回来 ${loginForm.value.username}`);
-                                logger.log('获取的token:' + loginResponse.data.token)
-
-                                // 使用 Pinia store 管理 token 和用户状态
-                                authStore.setToken(
-                                    loginResponse.data.token,
-                                    loginForm.value.remember,
-                                    {
-                                            username: loginForm.value.username,
-                                            // 可以添加更多用户信息
-                                            loginTime: new Date().toISOString()
-                                    }
-                                );
-
-                                logger.log(`${loginForm.value.remember ? '长期' : '会话'}token 设置完成`)
-                                router.push('/user')
-                        } else {
-                                // 根据响应格式显示具体的错误信息
-                                let errorMessage = '登录失败';
-
-                                // 优先使用errorMsg字段
-                                if (loginResponse.errorMsg) {
-                                        errorMessage = loginResponse.errorMsg;
-                                }
-                                // 如果有code字段且为400，可能是用户名或密码错误
-                                else if (loginResponse.code === 400) {
-                                        errorMessage = '用户名或密码错误';
-                                }
-                                // 兜底信息
-                                else {
-                                        errorMessage = '请检查用户名和密码';
-                                }
-
-                                message.error(errorMessage);
-                                logger.error('Login 失败:', {
-                                        errorMsg: loginResponse.errorMsg,
-                                        code: loginResponse.code,
-                                        data: loginResponse.data
-                                });
-
-                                // 登录失败时重置状态
-                                resetLoginState();
-                        }
-
-
+                const loginResponse = await authApi.login(loginData);
+                logger.log('Login 响应:', loginResponse);
+                
+                // 处理登录结果
+                if (loginResponse && loginResponse.success === true) {
+                        handleLoginSuccess(loginResponse);
                 } else {
-                        // 验证码失败处理
-                        logger.log('Login 验证码失败', publicKeyResponse)
-                        message.error(publicKeyResponse.errorMsg || '服务器错误');
-
-                        // 验证码失败时重置状态
-                        resetLoginState();
+                        handleLoginFailure(loginResponse);
                 }
+                
         } catch (error) {
-                logger.error('Login 网络异常:', error)
-
-                // 真正的网络异常处理
-                let errorMessage = '网络连接失败，请检查网络设置';
-
-                if (error.code === 'ECONNABORTED') {
-                        errorMessage = '请求超时，请稍后再试';
-                } else if (error.message && error.message.includes('Network Error')) {
-                        errorMessage = '网络连接失败，请检查网络设置';
-                }
-
-                message.error(errorMessage);
-
-                // 网络异常也要重置状态
-                resetLoginState();
+                handleNetworkError(error);
         }
-}
+};
+
+// 处理错误情况的统一函数
+const handleError = (operation, errorMessage) => {
+        message.error(errorMessage);
+        logger.error(`${operation}:`, errorMessage);
+        resetLoginState();
+};
+
+// 处理登录成功
+const handleLoginSuccess = (response) => {
+        message.info(`登陆成功，欢迎回来 ${loginForm.value.username}`);
+        logger.log('获取的token:' + response.data.token);
+
+        // 使用 Pinia store 管理 token 和用户状态
+        authStore.setToken(
+                response.data.token,
+                loginForm.value.remember,
+                {
+                        username: loginForm.value.username,
+                        loginTime: new Date().toISOString()
+                }
+        );
+
+        logger.log(`${loginForm.value.remember ? '长期' : '会话'}token 设置完成`);
+        router.push('/user');
+};
+
+// 处理登录失败
+const handleLoginFailure = (response) => {
+        let errorMessage = '登录失败';
+
+        // 根据不同情况提供具体错误信息
+        if (response.errorMsg) {
+                errorMessage = response.errorMsg;
+        } else if (response.code === 400) {
+                errorMessage = '用户名或密码错误';
+        } else {
+                errorMessage = '请检查用户名和密码';
+        }
+
+        handleError('登录失败', errorMessage);
+        logger.error('Login 失败详情:', {
+                errorMsg: response.errorMsg,
+                code: response.code,
+                data: response.data
+        });
+};
+
+// 处理网络异常
+const handleNetworkError = (error) => {
+        logger.error('Login 网络异常:', error);
+
+        let errorMessage = '网络连接失败，请检查网络设置';
+
+        if (error.code === 'ECONNABORTED') {
+                errorMessage = '请求超时，请稍后再试';
+        } else if (error.message && error.message.includes('Network Error')) {
+                errorMessage = '网络连接失败，请检查网络设置';
+        }
+
+        handleError('网络异常', errorMessage);
+};
 
 // 重置登录状态的函数
 const resetLoginState = () => {

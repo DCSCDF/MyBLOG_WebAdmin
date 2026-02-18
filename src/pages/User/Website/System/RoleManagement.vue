@@ -121,85 +121,7 @@
                 </a-table>
         </a-card>
 
-        <!-- 角色详情抽屉 -->
-        <a-drawer
-            v-model:open="detailVisible"
-            :destroy-on-close="true"
-            :width="drawerWidth"
-            title="角色详情"
-            @close="selectedRole = null">
-                <template v-if="selectedRole">
-
-
-                        <div class="flex flex-col gap-1">
-                                <span class="font-medium text-gray-900 text-sm">编码：</span>
-                                <span
-                                    class="text-gray-600 text-sm break-all">{{ selectedRole.code }}</span>
-                        </div>
-                        <a-divider/>
-                        <div class="flex flex-col gap-1">
-                                <span class="font-medium text-gray-900 text-sm">名称：</span>
-                                <span
-                                    class="text-gray-600 text-sm break-all">{{ selectedRole.name }}</span>
-                        </div>
-                        <a-divider/>
-                        <div class="flex flex-col gap-1">
-                                <span class="font-medium text-gray-900 text-sm">描述：</span>
-                                <span
-                                    class="text-gray-600 text-sm break-all">{{ selectedRole.description || '-' }}</span>
-                        </div>
-                        <a-divider/>
-                        <div class="flex flex-col gap-1">
-                                <span class="font-medium text-gray-900 text-sm">超级管理员：</span>
-                                <span
-                                    class="text-gray-600 text-sm break-all"> {{
-                                                selectedRole.superAdmin ? '是' : '否'
-                                        }}</span>
-                        </div>
-                        <a-divider/>
-                        <div class="flex flex-col gap-1">
-                                <span class="font-medium text-gray-900 text-sm">系统内置：</span>
-                                <span
-                                    class="text-gray-600 text-sm break-all"> {{
-                                                selectedRole.isSystem ? '是' : '否'
-                                        }}</span>
-                        </div>
-                        <a-divider/>
-                        <div class="flex flex-col gap-1">
-                                <span class="font-medium text-gray-900 text-sm">排序：</span>
-                                <span
-                                    class="text-gray-600 text-sm break-all"> {{
-                                                selectedRole.sortOrder
-                                        }}</span>
-                        </div>
-                        <a-divider/>
-                        <div class="flex flex-col gap-1">
-                                <span class="font-medium text-gray-900 text-sm">状态：</span>
-                                <span
-                                    class="text-gray-600 text-sm break-all">{{
-                                                selectedRole.status === 1 ? '启用' : '禁用'
-                                        }}</span>
-                        </div>
-                        <a-divider/>
-                        <div class="flex flex-col gap-1">
-                                <span class="font-medium text-gray-900 text-sm">创建时间：</span>
-                                <span
-                                    class="text-gray-600 text-sm break-all">{{
-                                                formatDate(selectedRole.createTime)
-                                        }}</span>
-                        </div>
-                        <a-divider/>
-                        <div class="flex flex-col gap-1">
-                                <span class="font-medium text-gray-900 text-sm">更新时间：</span>
-                                <span
-                                    class="text-gray-600 text-sm break-all">{{
-                                                formatDate(selectedRole.updateTime)
-                                        }}</span>
-                        </div>
-                        <a-divider/>
-
-                </template>
-        </a-drawer>
+        <RoleDetailDrawer v-model:open="detailVisible" :role="selectedRole" @close="selectedRole = null"/>
 
         <!-- 新建角色弹窗 -->
         <a-modal
@@ -449,32 +371,22 @@
 </template>
 
 <script setup>
-import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
+import {computed, ref, watch} from 'vue';
 import {message} from 'ant-design-vue';
+import {InfoCircleOutlined, SearchOutlined} from '@ant-design/icons-vue';
+import {useDrawerWidth} from '../../../../composables/useDrawerWidth.js';
 import {useRoleStore} from '../../../../stores/role.js';
 import {usePermissionStore} from '../../../../stores/permission.js';
 import {usePermissionGroupStore} from '../../../../stores/permissiongroup.js';
 import logger from '../../../../utils/logger.js';
-import {
-        buildPermissionTree,
-        checkPermissionConflict,
-        flattenPermissionTree,
-        hasChildren
-} from '../../../../utils/permissionTree.js';
-import {InfoCircleOutlined, SearchOutlined} from "@ant-design/icons-vue";
+import {buildPermissionTree, checkPermissionConflict, hasChildren} from '../../../../utils/permissionTree.js';
+import RoleDetailDrawer from './components/RoleDetailDrawer.vue';
 
 const roleStore = useRoleStore();
 const permissionStore = usePermissionStore();
 const permissionGroupStore = usePermissionGroupStore();
 
-// 响应式抽屉宽度
-const windowWidth = ref(window.innerWidth);
-const drawerWidth = computed(() => windowWidth.value < 768 ? 350 : 600);
-
-// 窗口大小变化处理
-const handleResize = () => {
-        windowWidth.value = window.innerWidth;
-};
+const {drawerWidth} = useDrawerWidth();
 
 // 表格分页配置（与后端 current/size 对应）
 const tablePagination = computed(() => ({
@@ -628,48 +540,52 @@ const addPermissionTableColumns = [
 
 // 添加权限弹窗：按关键词过滤后的权限列表
 const addPermissionTableData = computed(() => {
+        // 使用单一返回点模式
         const list = permissionOptions.value || [];
         const kw = (addPermissionSearchKeyword.value || '').trim().toLowerCase();
-        if (!kw) return list;
-        return list.filter(p => {
-                const code = (p.code || '').toLowerCase();
-                const name = (p.name || '').toLowerCase();
-                return code.includes(kw) || name.includes(kw);
-        });
+
+        // 统一处理逻辑，确保只有一个返回点
+        let result = list;
+
+        if (kw) {
+                result = list.filter(p => {
+                        const code = (p.code || '').toLowerCase();
+                        const name = (p.name || '').toLowerCase();
+                        return code.includes(kw) || name.includes(kw);
+                });
+        }
+
+        return result;
 });
 
 /** 添加权限弹窗：表格行选择变更 */
-function onAddPermissionRowSelect(selectedRowKeys, selectedRows) {
-        selectedPermissionId.value = selectedRowKeys && selectedRowKeys[0] ? selectedRowKeys[0] : null;
-}
-
-function formatDate(val) {
-        let result = '-';
-        if (val) {
-                try {
-                        result = new Date(val).toLocaleString('zh-CN', {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit'
-                        });
-                } catch (e) {
-                        result = String(val);
-                }
-        }
-        return result;
+function onAddPermissionRowSelect(selectedRowKeys) {
+        selectedPermissionId.value = selectedRowKeys?.[0] ?? null;
 }
 
 /** 加载角色列表（分页与 keyword/status/isSystem 由 store 或入参提供） */
 function loadRoles() {
+        // 完全消除否定条件，使用纯粹的正向逻辑
+        const rawKeyword = searchKeyword.value;
+        const rawStatus = searchStatus.value;
+        const rawIsSystem = searchIsSystem.value;
+
+        // 使用辅助函数处理值的存在性判断
+        const getParamValue = (rawValue, validator) => {
+                const isValid = rawValue != null && validator(rawValue);
+                return isValid ? rawValue : undefined;
+        };
+
+        const keywordParam = getParamValue(rawKeyword, val => String(val).trim().length > 0);
+        const statusParam = getParamValue(rawStatus, val => val !== '');
+        const isSystemParam = getParamValue(rawIsSystem, val => val !== '');
+
         roleStore.fetchRoles({
                 currentPage: roleStore.pagination.current,
                 pageSize: roleStore.pagination.pageSize,
-                keyword: searchKeyword.value?.trim() || undefined,
-                status: (searchStatus.value != null && searchStatus.value !== '') ? searchStatus.value : undefined,
-                isSystem: (searchIsSystem.value != null && searchIsSystem.value !== '') ? searchIsSystem.value : undefined
+                keyword: keywordParam,
+                status: statusParam,
+                isSystem: isSystemParam
         }).catch((e) => {
                 message.error(e?.message || '加载角色列表失败');
         });
@@ -682,11 +598,26 @@ function onTableChange(pagination) {
 
 /** 搜索：写入 store 并回第一页 */
 function handleSearch() {
+        // 完全消除否定条件，使用正向逻辑
+        const rawKeyword = searchKeyword.value;
+        const rawStatus = searchStatus.value;
+        const rawIsSystem = searchIsSystem.value;
+
+        // 使用辅助函数处理值的存在性判断
+        const getParamValue = (rawValue, validator) => {
+                const isValid = rawValue != null && validator(rawValue);
+                return isValid ? rawValue : undefined;
+        };
+
+        const keywordParam = getParamValue(rawKeyword, val => String(val).trim().length > 0);
+        const statusParam = getParamValue(rawStatus, val => val !== '');
+        const isSystemParam = getParamValue(rawIsSystem, val => val !== '');
+
         roleStore.updatePagination({current: 1});
         roleStore.updateQueryParams({
-                keyword: searchKeyword.value?.trim() ?? '',
-                status: (searchStatus.value != null && searchStatus.value !== '') ? searchStatus.value : undefined,
-                isSystem: (searchIsSystem.value != null && searchIsSystem.value !== '') ? searchIsSystem.value : undefined
+                keyword: keywordParam ?? '',
+                status: statusParam,
+                isSystem: isSystemParam
         });
         loadRoles();
 }
@@ -1039,8 +970,7 @@ watch(showAddPermissionModal, (open) => {
                 selectedPermissionId.value = null;
                 permissionListLoading.value = true;
                 permissionStore.fetchPermissions({currentPage: 1, pageSize: 500}).then(() => {
-                        const permissions = permissionStore.currentPermissions || [];
-                        permissionOptions.value = permissions;
+                        permissionOptions.value = permissionStore.currentPermissions || [];
                 }).catch((e) => {
                         logger.error(e);
                         message.error('加载权限列表失败');
@@ -1149,54 +1079,45 @@ async function handleAddPermissionResult(validationResult, permissionData) {
 }
 
 async function doAddPermission() {
-        // 统一处理逻辑，确保只有一个返回点
-        let canProceed = true;
+        // 使用单一返回点模式，通过标志变量控制流程
+        let shouldProceed = true;
         let validationResult = null;
         let permissionData = null;
 
         // 参数验证
         const paramValidation = validateAddPermissionParams();
         if (!paramValidation.valid) {
-                canProceed = false;
                 validationResult = paramValidation;
+                shouldProceed = false;
         }
 
         // 查找选中的权限
-        if (canProceed) {
+        if (shouldProceed) {
                 const permissionResult = findSelectedPermission();
                 if (!permissionResult.valid) {
-                        canProceed = false;
                         validationResult = permissionResult;
+                        shouldProceed = false;
                 } else {
-                        permissionData = {permission: permissionResult.permission};
+                        // 构建权限结构
+                        const structureResult = buildPermissionStructure();
+                        if (!structureResult.valid) {
+                                validationResult = structureResult;
+                                shouldProceed = false;
+                        } else {
+                                // 准备成功的权限数据
+                                permissionData = {
+                                        permission: permissionResult.permission,
+                                        tree: structureResult.tree,
+                                        selectedNode: structureResult.selectedNode,
+                                        codeMap: structureResult.codeMap
+                                };
+                        }
                 }
         }
 
-        // 构建权限结构
-        if (canProceed) {
-                const structureResult = buildPermissionStructure();
-                if (!structureResult.valid) {
-                        canProceed = false;
-                        validationResult = structureResult;
-                } else {
-                        permissionData = {
-                                ...permissionData,
-                                tree: structureResult.tree,
-                                selectedNode: structureResult.selectedNode,
-                                codeMap: structureResult.codeMap
-                        };
-                }
-        }
-
-        // 统一处理最终结果
-        if (canProceed) {
-                await handleAddPermissionResult(
-                    {valid: true},
-                    permissionData
-                );
-        } else {
-                await handleAddPermissionResult(validationResult, null);
-        }
+        // 统一处理结果
+        const finalResult = shouldProceed ? {valid: true} : validationResult;
+        await handleAddPermissionResult(finalResult, permissionData);
 }
 
 // 在树中查找权限
@@ -1204,11 +1125,13 @@ function findPermissionInTree(tree, permissionId) {
         // 统一处理逻辑，确保只有一个返回点
         let result = null;
 
+        // 使用标签跳出多层循环
         for (const node of tree) {
                 if (node.id === permissionId) {
                         result = node;
                         break;
                 }
+
                 if (node.children && node.children.length > 0) {
                         const found = findPermissionInTree(node.children, permissionId);
                         if (found) {
@@ -1221,50 +1144,71 @@ function findPermissionInTree(tree, permissionId) {
         return result;
 }
 
+// 处理权限组权限：去重并展开子权限
+function processGroupPermissions(flattenedPermissions, allPermissionsTree) {
+        const groupPermissionsFlat = [];
+        const existingPermissionIds = new Set();
+
+        // 单次遍历完成去重，子权限在递归中处理
+        for (const perm of flattenedPermissions) {
+                const id = perm.id;
+                const isNewPermission = !existingPermissionIds.has(id);
+                if (isNewPermission) {
+                        // 添加基础权限
+                        groupPermissionsFlat.push(perm);
+                        existingPermissionIds.add(id);
+
+                        // 如果是父权限，递归展开所有子权限
+                        const permInTree = findPermissionInTree(allPermissionsTree, id);
+                        const hasSubPermissions = permInTree && hasChildren(permInTree);
+                        if (hasSubPermissions) {
+                                expandChildrenPermissions(permInTree, existingPermissionIds, groupPermissionsFlat);
+                        }
+                }
+        }
+
+        return groupPermissionsFlat;
+}
+
+// 递归展开子权限
+function expandChildrenPermissions(parentNode, existingIds, resultArray) {
+        if (parentNode.children && parentNode.children.length > 0) {
+                for (const child of parentNode.children) {
+                        const isDifferentPermission = child.id !== parentNode.id;
+                        const isUniqueChild = !existingIds.has(child.id);
+                        if (isDifferentPermission && isUniqueChild) {
+                                resultArray.push(child);
+                                existingIds.add(child.id);
+                                // 递归处理孙权限
+                                expandChildrenPermissions(child, existingIds, resultArray);
+                        }
+                }
+        }
+}
+
 // 检查权限冲突
 async function checkPermissionConflicts(selectedPermission, allPermissionsTree, codeMap) {
-        // 统一处理逻辑
-        let result;
+        // 统一处理逻辑，减少循环嵌套
+        const result = {hasConflict: false, reason: ''};
 
         const currentPermissions = roleStore.roleDetail?.permissions || [];
-        const groupPermissionsFlat = [];
+        let groupPermissionsFlat = [];
 
-        // 如果有权限组，获取所有权限组的权限
-        if (roleStore.roleDetail?.permissionGroups?.length) {
+        // 如果有权限组，获取并处理所有权限组的权限
+        const hasPermissionGroups = roleStore.roleDetail?.permissionGroups?.length;
+        if (hasPermissionGroups) {
                 try {
                         // 并发获取所有权限组的权限
                         const groupPromises = roleStore.roleDetail.permissionGroups.map(group =>
                             permissionGroupStore.fetchGroupPermissions(group.id)
                         );
                         const allGroupPermissions = await Promise.all(groupPromises);
-
                         const flattenedGroupPermissions = allGroupPermissions.flat();
-                        const existingPermissionIds = new Set();
 
-                        // 单次遍历处理：同时收集基础权限和展开子权限
-                        for (const perm of flattenedGroupPermissions) {
-                                // 避免重复处理
-                                if (existingPermissionIds.has(perm.id)) continue;
-
-                                // 添加基础权限
-                                groupPermissionsFlat.push(perm);
-                                existingPermissionIds.add(perm.id);
-
-                                // 如果是父权限，立即展开所有子权限
-                                const permInTree = findPermissionInTree(allPermissionsTree, perm.id);
-                                if (permInTree && hasChildren(permInTree)) {
-                                        const allChildren = flattenPermissionTree([permInTree]);
-                                        for (const child of allChildren) {
-                                                if (child.id !== perm.id && !existingPermissionIds.has(child.id)) {
-                                                        groupPermissionsFlat.push(child);
-                                                        existingPermissionIds.add(child.id);
-                                                }
-                                        }
-                                }
-                        }
+                        // 处理权限组权限：去重并展开子权限
+                        groupPermissionsFlat = processGroupPermissions(flattenedGroupPermissions, allPermissionsTree);
                 } catch (e) {
                         logger.error('获取权限组权限失败:', e);
-                        // 发生错误时不阻止操作，保持默认的 result 值
                 }
         }
 
@@ -1273,10 +1217,8 @@ async function checkPermissionConflicts(selectedPermission, allPermissionsTree, 
 
         // 检查冲突
         const conflict = checkPermissionConflict(selectedPermission, allExistingPermissions, codeMap);
-        result = {
-                hasConflict: conflict.conflict,
-                reason: conflict.reason
-        };
+        result.hasConflict = conflict.conflict;
+        result.reason = conflict.reason;
 
         return result;
 }
@@ -1323,7 +1265,7 @@ function expandGroupPermissions(groupPermissions, allPermissionsTree) {
         const expandedPermissions = [];
         const existingIds = new Set();
 
-        // 单次遍历处理：同时收集基础权限和展开子权限
+        // 单次遍历处理：基础权限收集，子权限通过递归展开
         for (const perm of groupPermissions) {
                 const shouldProcess = !existingIds.has(perm.id);
                 if (shouldProcess) {
@@ -1331,19 +1273,11 @@ function expandGroupPermissions(groupPermissions, allPermissionsTree) {
                         expandedPermissions.push(perm);
                         existingIds.add(perm.id);
 
-                        // 如果是父权限，立即展开所有子权限
+                        // 如果是父权限，递归展开所有子权限
                         const permInTree = findPermissionInTree(allPermissionsTree, perm.id);
                         const isParentPermission = permInTree && hasChildren(permInTree);
                         if (isParentPermission) {
-                                const allChildren = flattenPermissionTree([permInTree]);
-                                for (const child of allChildren) {
-                                        const isDifferentChild = child.id !== perm.id;
-                                        const isNewChild = !existingIds.has(child.id);
-                                        if (isDifferentChild && isNewChild) {
-                                                expandedPermissions.push(child);
-                                                existingIds.add(child.id);
-                                        }
-                                }
+                                expandChildrenRecursively(permInTree, existingIds, expandedPermissions);
                         }
                 }
         }
@@ -1351,6 +1285,22 @@ function expandGroupPermissions(groupPermissions, allPermissionsTree) {
         result.permissions = expandedPermissions;
         result.ids = existingIds;
         return result;
+}
+
+// 递归展开子权限
+function expandChildrenRecursively(parentNode, existingIds, resultArray) {
+        if (parentNode.children && parentNode.children.length > 0) {
+                for (const child of parentNode.children) {
+                        const isDifferentChild = child.id !== parentNode.id;
+                        const isNewChild = !existingIds.has(child.id);
+                        if (isDifferentChild && isNewChild) {
+                                resultArray.push(child);
+                                existingIds.add(child.id);
+                                // 递归处理更深层的子权限
+                                expandChildrenRecursively(child, existingIds, resultArray);
+                        }
+                }
+        }
 }
 
 // 检查权限冲突
@@ -1447,12 +1397,4 @@ async function doAddGroup() {
 
 // 初始加载
 loadRoles();
-
-onMounted(() => {
-        window.addEventListener('resize', handleResize);
-});
-
-onUnmounted(() => {
-        window.removeEventListener('resize', handleResize);
-});
 </script>

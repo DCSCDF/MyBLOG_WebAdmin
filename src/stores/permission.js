@@ -51,6 +51,62 @@ export const usePermissionStore = defineStore('permission', () => {
 	 * @param {number} params.pageSize - 页面大小
 	 * @returns {Promise<Array>} 权限列表
 	 */
+	// 辅助函数：处理参数默认值
+	const getCurrentPage = (params) => {
+		const hasCurrentPage = params.currentPage !== undefined;
+		return hasCurrentPage ? params.currentPage : pagination.value.current;
+	};
+	
+	const getPageSize = (params) => {
+		const hasPageSize = params.pageSize !== undefined;
+		return hasPageSize ? params.pageSize : pagination.value.pageSize;
+	};
+	
+	const getKeyword = (params) => {
+		const hasKeywordParam = params.keyword !== undefined;
+		return hasKeywordParam ? params.keyword : queryParams.value.keyword;
+	};
+	
+	// 辅助函数：构建请求参数
+	const buildRequestParams = (currentPage, pageSize, keyword) => {
+		const requestParams = { currentPage, pageSize };
+		const hasValidKeyword = keyword != null && String(keyword).trim().length > 0;
+		if (hasValidKeyword) {
+			requestParams.keyword = String(keyword).trim();
+		}
+		return requestParams;
+	};
+	
+	// 辅助函数：验证响应数据
+	const validateResponse = (response) => {
+		const isSuccessResponse = response.success === true && response.data != null;
+		if (!isSuccessResponse) {
+			throw new Error(response.errorMsg || '获取权限列表失败');
+		}
+		return response.data;
+	};
+	
+	// 辅助函数：格式化权限数据
+	const formatPermissionData = (permissionData) => {
+		return permissionData.map((item, index) => ({
+			...item,
+			key: item.id,
+			order: item.sortOrder || (index + 1)
+		}));
+	};
+	
+	// 辅助函数：更新状态
+	const updatePermissionState = (formattedData, paginationData, currentPage, pageSize) => {
+		permissions.value = formattedData;
+		pagination.value = { 
+			current: paginationData.current ?? currentPage,
+			pageSize: paginationData.size ?? pageSize,
+			total: paginationData.total || 0,
+			pages: paginationData.pages ?? 0
+		};
+		filterOptions.value = paginationData.filterOptions ?? {};
+	};
+	
 	/**
 	 * 分页获取权限列表（支持 keyword 模糊匹配 code/name/description）
 	 * @param {Object} params - { currentPage?, pageSize?, keyword? }
@@ -58,34 +114,27 @@ export const usePermissionStore = defineStore('permission', () => {
 	const fetchPermissions = async (params = {}) => {
 		loading.value = true;
 		try {
-			const currentPage = params.currentPage ?? pagination.value.current;
-			const pageSize = params.pageSize ?? pagination.value.pageSize;
-			const keyword = params.keyword !== undefined ? params.keyword : queryParams.value.keyword;
-			const requestParams = { currentPage, pageSize };
-			if (keyword != null && String(keyword).trim() !== '') {
-				requestParams.keyword = String(keyword).trim();
-			}
+			// 处理参数
+			const currentPage = getCurrentPage(params);
+			const pageSize = getPageSize(params);
+			const keyword = getKeyword(params);
+			
+			// 构建请求参数
+			const requestParams = buildRequestParams(currentPage, pageSize, keyword);
 			logger.log('获取权限列表请求参数:', requestParams);
+			
+			// 发送请求并验证响应
 			const response = await permissionApi.permissionList(requestParams);
-			if (response.success !== true || !response.data) {
-				throw new Error(response.errorMsg || '获取权限列表失败');
-			}
-			const paginationData = response.data;
+			const paginationData = validateResponse(response);
+			
+			// 处理数据
 			const permissionData = paginationData.records || [];
-			const total = paginationData.total || 0;
-			const current = paginationData.current ?? currentPage;
-			const size = paginationData.size ?? pageSize;
-			const pages = paginationData.pages ?? 0;
-			const options = paginationData.filterOptions ?? {};
-			const formattedData = permissionData.map((item, index) => ({
-				...item,
-				key: item.id,
-				order: item.sortOrder || (index + 1)
-			}));
-			permissions.value = formattedData;
-			pagination.value = { current, pageSize: size, total, pages };
-			filterOptions.value = options;
-			logger.log('权限列表获取成功，总数:', total);
+			const formattedData = formatPermissionData(permissionData);
+			
+			// 更新状态
+			updatePermissionState(formattedData, paginationData, currentPage, pageSize);
+			logger.log('权限列表获取成功，总数:', paginationData.total || 0);
+			
 			return formattedData;
 		} catch (error) {
 			logger.error('获取权限列表失败:', error);

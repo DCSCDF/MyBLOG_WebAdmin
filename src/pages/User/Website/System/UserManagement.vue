@@ -244,53 +244,52 @@ const openDetail = (record) => {
  * 打开编辑弹窗（先拉取用户详情以拿到 roleId，保证角色下拉能回显当前角色）
  */
 const openEdit = (record) => {
-        if (!record || !record.id) {
+        // 统一处理逻辑，确保只有一个返回点
+        let shouldFetchDetail = record && record.id;
+        
+        if (shouldFetchDetail) {
+                userStore.fetchUserById(record.id).then((detail) => {
+                        selectedUser.value = detail || record;
+                        editVisible.value = true;
+                }).catch(() => {
+                        selectedUser.value = record;
+                        editVisible.value = true;
+                });
+        } else {
                 selectedUser.value = record;
                 editVisible.value = true;
-                return;
         }
-        userStore.fetchUserById(record.id).then((detail) => {
-                selectedUser.value = detail || record;
-                editVisible.value = true;
-        }).catch(() => {
-                selectedUser.value = record;
-                editVisible.value = true;
-        });
 };
 
 /**
  * 处理编辑提交
  */
 const handleEditSubmit = async (updateData) => {
-        if (!selectedUser.value) {
-                return;
-        }
-
-        try {
-                await userStore.updateUser(selectedUser.value.id, updateData);
-                message.success('保存成功');
-                editVisible.value = false;
-                selectedUser.value = null;
-                loadUsers();
-        } catch (e) {
-                message.error(e?.message || '保存失败');
+        // 统一处理逻辑，确保只有一个返回点
+        let canProceed = selectedUser.value != null;
+        
+        if (canProceed) {
+                try {
+                        await userStore.updateUser(selectedUser.value.id, updateData);
+                        message.success('保存成功');
+                        editVisible.value = false;
+                        selectedUser.value = null;
+                        loadUsers();
+                } catch (e) {
+                        message.error(e?.message || '保存失败');
+                }
         }
 };
 
 /**
  * 打开角色权限抽屉
  */
-const openRolePermission = async (record) => {
+const openRolePermission = (record) => {
         selectedUser.value = record;
         rolePermissionVisible.value = true;
-
-        try {
-                const roles = await userStore.fetchUserRoles(record.id);
-                userRoles.value = roles || [];
-        } catch (e) {
-                message.error(e?.message || '加载用户角色失败');
-                userRoles.value = [];
-        }
+        
+        // 直接使用用户对象中的roles数据，避免额外API调用
+        userRoles.value = record.roles || [];
 };
 
 /**

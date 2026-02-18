@@ -61,17 +61,13 @@
 </template>
 
 <script setup>
-import {computed, ref, watch} from 'vue';
+import { computed } from 'vue';
+import { formatDate } from '../../../utils/formatDate.js';
+import { useDrawerWidth } from '../../../composables/useDrawerWidth.js';
 
 const props = defineProps({
-        open: {
-                type: Boolean,
-                default: false
-        },
-        user: {
-                type: Object,
-                default: null
-        }
+        open: { type: Boolean, default: false },
+        user: { type: Object, default: null }
 });
 
 const emit = defineEmits(['update:open', 'close']);
@@ -81,46 +77,9 @@ const visible = computed({
         set: (val) => emit('update:open', val)
 });
 
-const windowWidth = ref(window.innerWidth);
-const drawerWidth = computed(() => windowWidth.value < 768 ? 350 : 600);
+const { drawerWidth } = useDrawerWidth();
 
-const handleResize = () => {
-        windowWidth.value = window.innerWidth;
-};
-
-const handleClose = () => {
+function handleClose() {
         emit('close');
-};
-
-/**
- * 格式化日期时间
- * @param {string|Date} val - 日期值
- * @returns {string} 格式化后的日期字符串
- */
-function formatDate(val) {
-        let result = '-';
-        if (val) {
-                try {
-                        result = new Date(val).toLocaleString('zh-CN', {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit'
-                        });
-                } catch (e) {
-                        result = String(val);
-                }
-        }
-        return result;
 }
-
-watch(() => props.open, (newVal) => {
-        if (newVal) {
-                window.addEventListener('resize', handleResize);
-        } else {
-                window.removeEventListener('resize', handleResize);
-        }
-});
 </script>

@@ -50,10 +50,6 @@
                                                                         {{ role.description }}
                                                                 </p>
                                                         </div>
-                                                        <a-tag :bordered="false"
-                                                               :color="role.status === 1 ? 'green' : 'red'">
-                                                                {{ role.status === 1 ? '启用' : '禁用' }}
-                                                        </a-tag>
                                                 </div>
 
                                                 <!-- 权限和权限组加载状态 -->
@@ -65,26 +61,36 @@
                                                 <!-- 权限和权限组内容 -->
                                                 <template v-else>
                                                         <!-- 权限组列表 -->
-                                                        <!--							<div class="mb-4">-->
-                                                        <!--								<div class="mb-2 text-sm font-medium text-gray-700">权限组</div>-->
-                                                        <!--								<template v-if="rolePermissionGroups[role.id]?.length > 0">-->
-                                                        <!--									<a-table-->
-                                                        <!--										:columns="groupColumns"-->
-                                                        <!--										:data-source="rolePermissionGroups[role.id]"-->
-                                                        <!--										:pagination="false"-->
-                                                        <!--										:scroll="{ x: 400 }"-->
-                                                        <!--										row-key="id"-->
-                                                        <!--										size="small"-->
-                                                        <!--										table-layout="fixed">-->
-                                                        <!--										<template #bodyCell="{ column, record }">-->
-                                                        <!--											<template v-if="column.key === 'description'">-->
-                                                        <!--												<span class="text-gray-500">{{ record.description || '-' }}</span>-->
-                                                        <!--											</template>-->
-                                                        <!--										</template>-->
-                                                        <!--									</a-table>-->
-                                                        <!--								</template>-->
-                                                        <!--								<div v-else class="text-gray-400 text-sm py-2">没有权限查看</div>-->
-                                                        <!--							</div>-->
+                                                        <div class="mb-4">
+                                                                <div class="mb-2 text-sm font-medium text-gray-700">
+                                                                        权限组
+                                                                </div>
+                                                                <template
+                                                                    v-if="rolePermissionGroups[role.id]?.length > 0">
+                                                                        <a-table
+                                                                            :columns="groupColumns"
+                                                                            :data-source="rolePermissionGroups[role.id]"
+                                                                            :pagination="false"
+                                                                            :scroll="{ x: 400 }"
+                                                                            row-key="id"
+                                                                            size="small"
+                                                                            table-layout="fixed">
+                                                                                <template
+                                                                                    #bodyCell="{ column, record }">
+                                                                                        <template
+                                                                                            v-if="column.key === 'description'">
+                                                                                                <span
+                                                                                                    class="text-gray-500">{{
+                                                                                                                record.description || '-'
+                                                                                                        }}</span>
+                                                                                        </template>
+                                                                                </template>
+                                                                        </a-table>
+                                                                </template>
+                                                                <div v-else class="text-gray-400 text-sm py-2">
+                                                                        没有权限
+                                                                </div>
+                                                        </div>
 
                                                         <!-- 权限列表 -->
                                                         <div>
@@ -93,7 +99,7 @@
                                                                 </div>
                                                                 <div v-if="rolePermissions[role.id]?.length === 0"
                                                                      class="text-gray-400 text-sm py-2">
-                                                                        没有权限查看
+                                                                        没有权限
                                                                 </div>
                                                                 <a-table
                                                                     v-else
@@ -126,7 +132,8 @@
 </template>
 
 <script setup>
-import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
+import {computed, ref, watch} from 'vue';
+import {useDrawerWidth} from '../../../composables/useDrawerWidth.js';
 import {isSuperAdminRole, useRoleStore} from '../../../stores/role.js';
 import {usePermissionGroupStore} from '../../../stores/permissiongroup.js';
 import logger from '../../../utils/logger.js';
@@ -156,8 +163,7 @@ const visible = computed({
         set: (val) => emit('update:open', val)
 });
 
-const windowWidth = ref(window.innerWidth);
-const drawerWidth = computed(() => windowWidth.value < 768 ? 350 : 600);
+const { drawerWidth } = useDrawerWidth();
 
 const loadingPermissions = ref(false);
 const rolePermissionsLoading = ref({});
@@ -188,46 +194,48 @@ const permissionColumns = [
  * @param {number} roleId - 角色ID
  */
 const loadRolePermissions = async (roleId) => {
-        if (rolePermissionsLoading.value[roleId]) {
-                return;
-        }
+        // 使用单一返回点模式，消除多余循环
+        if (!rolePermissionsLoading.value[roleId]) {
+                rolePermissionsLoading.value[roleId] = true;
+                try {
+                        // 获取角色权限详情
+                        const roleDetail = await roleStore.fetchPermissionsDetail(roleId);
 
-        rolePermissionsLoading.value[roleId] = true;
-        try {
-                // 获取角色权限详情
-                const roleDetail = await roleStore.fetchPermissionsDetail(roleId);
+                        // 存储权限组
+                        rolePermissionGroups.value[roleId] = roleDetail.permissionGroups || [];
 
-                // 存储权限组
-                rolePermissionGroups.value[roleId] = roleDetail.permissionGroups || [];
-
-                // 加载权限组中的权限ID
-                const groupPermissionIds = new Set();
-                if (roleDetail.permissionGroups && roleDetail.permissionGroups.length > 0) {
-                        const promises = roleDetail.permissionGroups.map(group =>
-                            permissionGroupStore.fetchGroupPermissions(group.id).catch(() => [])
-                        );
-                        const results = await Promise.all(promises);
-                        results.forEach(permissions => {
-                                permissions.forEach(permission => {
+                        // 加载权限组中的权限ID（使用扁平化处理）
+                        const groupPermissionIds = new Set();
+                        if (roleDetail.permissionGroups && roleDetail.permissionGroups.length > 0) {
+                                // 收集所有权限组ID
+                                const groupIds = roleDetail.permissionGroups.map(group => group.id);
+                                
+                                // 并行获取所有权限组的权限
+                                const groupPromises = groupIds.map(groupId => 
+                                    permissionGroupStore.fetchGroupPermissions(groupId).catch(() => [])
+                                );
+                                const groupResults = await Promise.all(groupPromises);
+                                
+                                // 使用 flat() 扁平化后单次循环
+                                const allPermissions = groupResults.flat();
+                                for (const permission of allPermissions) {
                                         groupPermissionIds.add(permission.id);
-                                });
-                        });
+                                }
+                        }
+                        permissionIdsFromGroups.value[roleId] = groupPermissionIds;
+
+                        // 处理权限列表，标记来源
+                        rolePermissions.value[roleId] = (roleDetail.permissions || []).map(permission => ({
+                                ...permission,
+                                fromGroup: groupPermissionIds.has(permission.id)
+                        }));
+                } catch (e) {
+                        logger.error('加载角色权限失败:', e);
+                        rolePermissions.value[roleId] = [];
+                        rolePermissionGroups.value[roleId] = [];
+                } finally {
+                        rolePermissionsLoading.value[roleId] = false;
                 }
-                permissionIdsFromGroups.value[roleId] = groupPermissionIds;
-
-                // 处理权限列表，标记来源
-                const permissions = (roleDetail.permissions || []).map(permission => ({
-                        ...permission,
-                        fromGroup: groupPermissionIds.has(permission.id)
-                }));
-
-                rolePermissions.value[roleId] = permissions;
-        } catch (e) {
-                logger.error('加载角色权限失败:', e);
-                rolePermissions.value[roleId] = [];
-                rolePermissionGroups.value[roleId] = [];
-        } finally {
-                rolePermissionsLoading.value[roleId] = false;
         }
 };
 
@@ -235,26 +243,18 @@ const loadRolePermissions = async (roleId) => {
  * 加载所有角色的权限
  */
 const loadAllRolePermissions = async () => {
-        if (!props.roles || props.roles.length === 0) {
-                return;
+        // 使用单一返回点模式
+        if (props.roles && props.roles.length > 0) {
+                loadingPermissions.value = true;
+                try {
+                        const promises = props.roles.map(role => loadRolePermissions(role.id));
+                        await Promise.all(promises);
+                } catch (e) {
+                        logger.error('加载角色权限失败:', e);
+                } finally {
+                        loadingPermissions.value = false;
+                }
         }
-
-        loadingPermissions.value = true;
-        try {
-                const promises = props.roles.map(role => loadRolePermissions(role.id));
-                await Promise.all(promises);
-        } catch (e) {
-                logger.error('加载角色权限失败:', e);
-        } finally {
-                loadingPermissions.value = false;
-        }
-};
-
-/**
- * 处理窗口大小变化
- */
-const handleResize = () => {
-        windowWidth.value = window.innerWidth;
 };
 
 /**
@@ -278,13 +278,5 @@ watch(() => props.roles, (newRoles) => {
         if (props.open && newRoles && newRoles.length > 0) {
                 loadAllRolePermissions();
         }
-});
-
-onMounted(() => {
-        window.addEventListener('resize', handleResize);
-});
-
-onUnmounted(() => {
-        window.removeEventListener('resize', handleResize);
 });
 </script>

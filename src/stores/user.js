@@ -57,49 +57,125 @@ export const useUserStore = defineStore('user', () => {
 	const userRolesLoading = ref(false);
 
 	/**
+	 * 构建请求参数
+	 * @param {Object} params - 输入参数
+	 * @returns {Object} 处理后的请求参数
+	 */
+	const buildRequestParams = (params) => {
+		const safeParams = params || {};
+		
+		const currentPage = safeParams.currentPage ?? pagination.value.current;
+		const pageSize = safeParams.pageSize ?? pagination.value.pageSize;
+		const keyword = safeParams.keyword ?? queryParams.value.keyword;
+		const status = safeParams.status !== undefined ? safeParams.status : queryParams.value.status;
+
+		const requestParams = {
+			currentPage,
+			pageSize
+		};
+
+		// 只有当 keyword 存在时才添加到请求参数中
+		if (hasValue(keyword)) {
+			requestParams.keyword = keyword;
+		}
+		
+		// 只有当 status 已定义时才添加到请求参数中
+		if (isDefined(status)) {
+			requestParams.status = status;
+		}
+
+		return requestParams;
+	};
+
+	/**
+	 * 处理 API 响应数据
+	 * @param {Object} response - API 响应
+	 * @param {number} pageSize - 当前页面大小
+	 */
+	const processApiResponse = (response, pageSize) => {
+		const {records = [], total = 0, current = 1, size = pageSize, pages = 0, filterOptions: options = {}} = response.data;
+		
+		users.value = records.map((item) => ({...item, key: item.id}));
+		pagination.value = { current, pageSize: size, total, pages };
+		filterOptions.value = options;
+		
+		logger.log('用户列表获取成功，总数:', total);
+	};
+
+	/**
+	 * 处理 API 错误
+	 * @param {Error} error - 错误对象
+	 */
+	const handleApiError = (error) => {
+		logger.error('获取用户列表失败:', error);
+		users.value = [];
+		pagination.value.total = 0;
+		throw error;
+	};
+
+	/**
+	 * 检查值是否存在（非空、非undefined、非null）
+	 * @param {*} value - 待检查的值
+	 * @returns {boolean}
+	 */
+	const hasValue = (value) => {
+		return value !== null && value !== undefined && value !== '';
+	};
+
+	/**
+	 * 检查值是否已定义
+	 * @param {*} value - 待检查的值
+	 * @returns {boolean}
+	 */
+	const isDefined = (value) => {
+		return value !== undefined;
+	};
+
+	/**
 	 * 分页获取用户列表
 	 * @param {Object} params - { currentPage, pageSize, keyword?, status? }
 	 * @returns {Promise<Array>}
 	 */
-	const fetchUsers = async (params = {}) => {
+	const fetchUsers = async (params) => {
+		let result = null;
 		loading.value = true;
+		
 		try {
-			const currentPage = params.currentPage ?? pagination.value.current;
-			const pageSize = params.pageSize ?? pagination.value.pageSize;
-			const keyword = params.keyword ?? queryParams.value.keyword;
-			const status = params.status !== undefined ? params.status : queryParams.value.status;
-
-			const requestParams = {
-				currentPage,
-				pageSize
-			};
-
-			if (keyword) {
-				requestParams.keyword = keyword;
+			const requestParams = buildRequestParams(params);
+			const response = await userApi.list(requestParams);
+			
+			// 使用正向条件判断
+			if (isValidResponse(response)) {
+				processApiResponse(response, requestParams.pageSize);
+				result = users.value;
+			} else {
+				throw new Error(getErrorMessage(response));
 			}
-			if (status !== undefined) {
-				requestParams.status = status;
-			}
-
-			const res = await userApi.list(requestParams);
-			if (res.success !== true || !res.data) {
-				throw new Error(res.errorMsg || '获取用户列表失败');
-			}
-
-			const {records = [], total = 0, current = 1, size = pageSize, pages = 0, filterOptions: options = {}} = res.data;
-			users.value = (records || []).map((item) => ({...item, key: item.id}));
-			pagination.value = { current, pageSize: size, total, pages };
-			filterOptions.value = options;
-			logger.log('用户列表获取成功，总数:', total);
-			return users.value;
 		} catch (error) {
-			logger.error('获取用户列表失败:', error);
-			users.value = [];
-			pagination.value.total = 0;
-			throw error;
+			handleApiError(error);
 		} finally {
 			loading.value = false;
 		}
+		
+		return result;
+	};
+
+	/**
+	 * 验证 API 响应是否有效
+	 * @param {Object} response - API 响应
+	 * @returns {boolean}
+	 */
+	const isValidResponse = (response) => {
+		return response.success === true && response.data !== null && response.data !== undefined;
+	};
+
+	/**
+	 * 获取错误消息
+	 * @param {Object} response - API 响应
+	 * @returns {string}
+	 */
+	const getErrorMessage = (response) => {
+		return response.errorMsg || '获取用户列表失败';
 	};
 
 	/**

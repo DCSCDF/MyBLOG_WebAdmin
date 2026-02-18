@@ -29,7 +29,6 @@ export default defineConfig(({mode}) => {
 		}
 	})
 
-
 	return {
 		define: {
 			'process.env': env

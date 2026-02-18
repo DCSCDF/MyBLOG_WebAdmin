@@ -325,11 +325,13 @@
 
 <script setup>
 
-import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
+import {computed, onMounted, ref, watch} from 'vue';
 import {SearchOutlined} from '@ant-design/icons-vue';
 import {message} from 'ant-design-vue';
+import {useDrawerWidth} from '../../../composables/useDrawerWidth.js';
 import {usePermissionGroupStore} from '../../../stores/permissiongroup.js';
 import {usePermissionStore} from '../../../stores/permission.js';
+import {formatDate} from '../../../utils/formatDate.js';
 import logger from '../../../utils/logger.js';
 
 // 添加权限弹窗：表格列
@@ -341,15 +343,7 @@ const addPermissionTableColumns = [
 const permissionGroupStore = usePermissionGroupStore();
 const permissionStore = usePermissionStore();
 
-// 响应式抽屉宽度
-const windowWidth = ref(window.innerWidth);
-const drawerWidth = computed(() => windowWidth.value < 768 ? 350 : 600);
-
-// 窗口大小变化处理
-const handleResize = () => {
-        windowWidth.value = window.innerWidth;
-};
-
+const {drawerWidth} = useDrawerWidth();
 
 const tableData = computed(() => permissionGroupStore.currentPermissionGroups);
 const loading = computed(() => permissionGroupStore.loading);
@@ -392,9 +386,11 @@ const permissionTableColumns = computed(() => {
                 {title: '权限编码', dataIndex: 'code', key: 'code', width: 150, ellipsis: true},
                 {title: '权限名称', dataIndex: 'name', key: 'name', width: 150, ellipsis: true}
         ];
+
         if (selectedGroup.value && !selectedGroup.value.isSystem) {
                 cols.push({title: '操作', key: 'action', width: 80});
         }
+
         return cols;
 });
 
@@ -425,16 +421,19 @@ const addPermissionSearchKeyword = ref('');
 const addPermissionTableData = computed(() => {
         const list = permissionOptions.value || [];
         const kw = (addPermissionSearchKeyword.value || '').trim().toLowerCase();
-        if (!kw) return list;
-        return list.filter(p => {
-                const code = (p.code || '').toLowerCase();
-                const name = (p.name || '').toLowerCase();
-                return code.includes(kw) || name.includes(kw);
-        });
+
+        // 统一返回点：使用三元运算符
+        return kw
+            ? list.filter(p => {
+                    const code = (p.code || '').toLowerCase();
+                    const name = (p.name || '').toLowerCase();
+                    return code.includes(kw) || name.includes(kw);
+            })
+            : list;
 });
 
 function onAddPermissionRowSelect(selectedRowKeys) {
-        selectedPermissionId.value = selectedRowKeys && selectedRowKeys[0] ? selectedRowKeys[0] : null;
+        selectedPermissionId.value = selectedRowKeys?.[0] ?? null;
 }
 
 // 新增权限组相关
@@ -452,33 +451,21 @@ const createRules = {
         ]
 };
 
-function formatDate(val) {
-        let result = '-';
-        if (val) {
-                try {
-                        result = new Date(val).toLocaleString('zh-CN', {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit'
-                        });
-                } catch (e) {
-                        result = String(val);
-                }
-        }
-        return result;
-}
-
 /** 加载权限组列表（带分页与 keyword/status/isSystem） */
+// 辅助函数：检查值是否有效（非null且非空字符串）
+const isValidValue = (value) => value != null && value !== '';
+
 function loadTableData() {
+        // 使用辅助函数简化逻辑
+        const statusParam = isValidValue(searchStatus.value) ? searchStatus.value : undefined;
+        const isSystemParam = isValidValue(searchIsSystem.value) ? searchIsSystem.value : undefined;
+
         permissionGroupStore.fetchPermissionGroups({
                 currentPage: permissionGroupStore.pagination.current,
                 pageSize: permissionGroupStore.pagination.pageSize,
                 keyword: searchKeyword.value?.trim() || undefined,
-                status: (searchStatus.value != null && searchStatus.value !== '') ? searchStatus.value : undefined,
-                isSystem: (searchIsSystem.value != null && searchIsSystem.value !== '') ? searchIsSystem.value : undefined
+                status: statusParam,
+                isSystem: isSystemParam
         }).catch((e) => {
                 message.error(e?.message || '加载权限组列表失败');
         });
@@ -494,8 +481,8 @@ function handleSearch() {
         permissionGroupStore.updatePagination({current: 1});
         permissionGroupStore.updateQueryParams({
                 keyword: searchKeyword.value?.trim() ?? '',
-                status: (searchStatus.value != null && searchStatus.value !== '') ? searchStatus.value : undefined,
-                isSystem: (searchIsSystem.value != null && searchIsSystem.value !== '') ? searchIsSystem.value : undefined
+                status: isValidValue(searchStatus.value) ? searchStatus.value : undefined,
+                isSystem: isValidValue(searchIsSystem.value) ? searchIsSystem.value : undefined
         });
         loadTableData();
 }
@@ -533,74 +520,65 @@ function openEdit(record) {
 
 // 验证编辑表单
 function validateEditForm() {
-        let isValid = true;
-        let errorMessage = '';
-
         if (!editForm.value?.name || !editForm.value.name.trim()) {
-                isValid = false;
-                errorMessage = '请填写权限组名称';
-        } else if (editForm.value.name.length > 50) {
-                // 名称长度限制：最大 50 字符
-                isValid = false;
-                errorMessage = '权限组名称不能超过 50 个字符';
-        } else if (editForm.value.description && editForm.value.description.length > 200) {
-                // 描述长度限制：最大 200 字符
-                isValid = false;
-                errorMessage = '权限组描述不能超过 200 个字符';
+                return { isValid: false, errorMessage: '请填写权限组名称' };
+        }
+        
+        if (editForm.value.name.length > 50) {
+                return { isValid: false, errorMessage: '权限组名称不能超过 50 个字符' };
+        }
+        
+        if (editForm.value.description && editForm.value.description.length > 200) {
+                return { isValid: false, errorMessage: '权限组描述不能超过 200 个字符' };
         }
 
-        return {isValid, errorMessage};
+        return { isValid: true, errorMessage: '' };
 }
 
 async function submitEdit() {
         const validation = validateEditForm();
-        let shouldProceed = validation.isValid;
-
-        if (!shouldProceed) {
+        
+        if (!validation.isValid) {
                 message.warning(validation.errorMessage);
-        } else {
-                editSubmitting.value = true;
-                try {
-                        await permissionGroupStore.updatePermissionGroup(editForm.value.id, {
-                                name: editForm.value.name.trim(),
-                                description: editForm.value.description?.trim() || '',
-                                sortOrder: editForm.value.sortOrder ?? 0,
-                                status: editForm.value.status ?? 1
-                        });
-                        message.success('保存成功');
-                        editVisible.value = false;
-                        editForm.value = null;
-                        loadTableData();
-                } catch (e) {
-                        message.error(e?.message || '保存失败');
-                        shouldProceed = false;
-                } finally {
-                        editSubmitting.value = false;
-                }
+                return false;
         }
-
-        return shouldProceed;
+        
+        editSubmitting.value = true;
+        try {
+                await permissionGroupStore.updatePermissionGroup(editForm.value.id, {
+                        name: editForm.value.name.trim(),
+                        description: editForm.value.description?.trim() || '',
+                        sortOrder: editForm.value.sortOrder ?? 0,
+                        status: editForm.value.status ?? 1
+                });
+                message.success('保存成功');
+                editVisible.value = false;
+                editForm.value = null;
+                loadTableData();
+                return true;
+        } catch (e) {
+                message.error(e?.message || '保存失败');
+                return false;
+        } finally {
+                editSubmitting.value = false;
+        }
 }
 
 async function onDelete(record) {
-        let canDelete = !record.isSystem;
-
-        if (!canDelete) {
-                // 系统内置权限组不可删除（虽然按钮已隐藏，但这里再加一层保护）
+        if (record.isSystem) {
                 message.warning('系统内置权限组不可删除');
-        } else {
-                try {
-                        await permissionGroupStore.deletePermissionGroup(record.id);
-                        message.success('删除成功');
-                        loadTableData();
-                } catch (e) {
-                        message.error(e?.message || '删除失败');
-                        canDelete = false;
-                }
+                return false;
         }
-
-        // 统一返回点
-        return canDelete;
+        
+        try {
+                await permissionGroupStore.deletePermissionGroup(record.id);
+                message.success('删除成功');
+                loadTableData();
+                return true;
+        } catch (e) {
+                message.error(e?.message || '删除失败');
+                return false;
+        }
 }
 
 function openPermissionDrawer(record) {
@@ -685,8 +663,7 @@ watch(showAddPermission, (open) => {
                 selectedPermissionId.value = null;
                 permissionOptionsLoading.value = true;
                 permissionStore.fetchPermissions({currentPage: 1, pageSize: 500}).then(() => {
-                        const permissions = permissionStore.currentPermissions || [];
-                        permissionOptions.value = permissions;
+                        permissionOptions.value = permissionStore.currentPermissions || [];
                 }).catch((e) => {
                         logger.error(e);
                         message.error('加载权限列表失败');
@@ -750,10 +727,5 @@ async function removePermission(permissionId) {
 
 onMounted(() => {
         loadTableData();
-        window.addEventListener('resize', handleResize);
-});
-
-onUnmounted(() => {
-        window.removeEventListener('resize', handleResize);
 });
 </script>
