@@ -29,16 +29,6 @@ interface ImportMetaEnv {
      * 是否开启调试模式
      */
     readonly VITE_DEBUG_MODE?: string;
-
-    /**
-     * 应用标题
-     */
-    readonly VITE_APP_TITLE?: string;
-
-    /**
-     * 当前运行模式
-     */
-    readonly MODE?: string;
 }
 
 interface ImportMeta {
