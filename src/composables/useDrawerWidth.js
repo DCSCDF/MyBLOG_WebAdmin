@@ -1,8 +1,11 @@
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import {computed, onMounted, onUnmounted, ref} from 'vue';
 
 /**
  * 响应式抽屉宽度：小屏 350px，大屏 600px；需在组件内监听 resize。
- * @returns {{ windowWidth: Ref<number>, drawerWidth: ComputedRef<number>, handleResize: () => void }}
+ * @returns {Object} 返回包含响应式属性的对象
+ * @returns {import('vue').Ref<number>} returns.windowWidth - 窗口宽度响应式引用
+ * @returns {import('vue').ComputedRef<number>} returns.drawerWidth - 抽屉宽度计算属性
+ * @returns {Function} returns.handleResize - 处理窗口大小变化的函数
  */
 export function useDrawerWidth() {
 	const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1024);
@@ -19,5 +22,7 @@ export function useDrawerWidth() {
 		window.removeEventListener('resize', handleResize);
 	});
 
-	return { windowWidth, drawerWidth, handleResize };
+	// 虽然 handleResize 在这里被定义，但在某些使用场景中可能不需要直接调用
+	// 保留它是为了保持 API 的一致性
+	return {windowWidth, drawerWidth};
 }

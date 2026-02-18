@@ -520,65 +520,67 @@ function openEdit(record) {
 
 // 验证编辑表单
 function validateEditForm() {
+        let result = {isValid: true, errorMessage: ''};
+
         if (!editForm.value?.name || !editForm.value.name.trim()) {
-                return { isValid: false, errorMessage: '请填写权限组名称' };
-        }
-        
-        if (editForm.value.name.length > 50) {
-                return { isValid: false, errorMessage: '权限组名称不能超过 50 个字符' };
-        }
-        
-        if (editForm.value.description && editForm.value.description.length > 200) {
-                return { isValid: false, errorMessage: '权限组描述不能超过 200 个字符' };
+                result = {isValid: false, errorMessage: '请填写权限组名称'};
+        } else if (editForm.value.name.length > 50) {
+                result = {isValid: false, errorMessage: '权限组名称不能超过 50 个字符'};
+        } else if (editForm.value.description && editForm.value.description.length > 200) {
+                result = {isValid: false, errorMessage: '权限组描述不能超过 200 个字符'};
         }
 
-        return { isValid: true, errorMessage: '' };
+        return result;
 }
 
 async function submitEdit() {
-        const validation = validateEditForm();
+        let result = false;
         
+        const validation = validateEditForm();
+
         if (!validation.isValid) {
                 message.warning(validation.errorMessage);
-                return false;
+        } else {
+                editSubmitting.value = true;
+                try {
+                        await permissionGroupStore.updatePermissionGroup(editForm.value.id, {
+                                name: editForm.value.name.trim(),
+                                description: editForm.value.description?.trim() || '',
+                                sortOrder: editForm.value.sortOrder ?? 0,
+                                status: editForm.value.status ?? 1
+                        });
+                        message.success('保存成功');
+                        editVisible.value = false;
+                        editForm.value = null;
+                        loadTableData();
+                        result = true;
+                } catch (e) {
+                        message.error(e?.message || '保存失败');
+                } finally {
+                        editSubmitting.value = false;
+                }
         }
         
-        editSubmitting.value = true;
-        try {
-                await permissionGroupStore.updatePermissionGroup(editForm.value.id, {
-                        name: editForm.value.name.trim(),
-                        description: editForm.value.description?.trim() || '',
-                        sortOrder: editForm.value.sortOrder ?? 0,
-                        status: editForm.value.status ?? 1
-                });
-                message.success('保存成功');
-                editVisible.value = false;
-                editForm.value = null;
-                loadTableData();
-                return true;
-        } catch (e) {
-                message.error(e?.message || '保存失败');
-                return false;
-        } finally {
-                editSubmitting.value = false;
-        }
+        return result;
 }
 
 async function onDelete(record) {
+        let result = false;
+        
         if (record.isSystem) {
                 message.warning('系统内置权限组不可删除');
-                return false;
+        } else {
+                try {
+                        await permissionGroupStore.deletePermissionGroup(record.id);
+                        message.success('删除成功');
+                        loadTableData();
+                        result = true;
+                } catch (e) {
+                        message.error(e?.message || '删除失败');
+                }
         }
         
-        try {
-                await permissionGroupStore.deletePermissionGroup(record.id);
-                message.success('删除成功');
-                loadTableData();
-                return true;
-        } catch (e) {
-                message.error(e?.message || '删除失败');
-                return false;
-        }
+        return result;
 }
 
 function openPermissionDrawer(record) {
