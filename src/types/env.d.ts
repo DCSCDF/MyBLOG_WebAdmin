@@ -29,6 +29,8 @@ interface ImportMetaEnv {
      * 是否开启调试模式
      */
     readonly VITE_DEBUG_MODE?: string;
+
+    readonly VITE_USE_MOCK?: boolean;
 }
 
 interface ImportMeta {
