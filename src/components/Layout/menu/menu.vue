@@ -64,14 +64,14 @@
                                 </h1>
 
                         </div>
-                        <a-menu :openKeys="state.openKeys" v-model:selectedKeys="state.selectedKeys"
-                                :inline-collapsed="collapsed"
+                        <a-menu v-model:selectedKeys="state.selectedKeys" :inline-collapsed="collapsed"
                                 :items="items"
+                                :openKeys="state.openKeys"
                                 class="flex-1 !overflow-y-auto !bg-transparent  !p-1 !border-0 "
                                 mode="inline"
                                 theme="light"
-                                @update:openKeys="handleOpenChange"
-                                @click="handleMenuClick">
+                                @click="handleMenuClick"
+                                @update:openKeys="handleOpenChange">
 
 
                         </a-menu>
@@ -155,26 +155,33 @@ watch(isMobile, (newIsMobile) => {
 
 // 递归查找菜单项
 const findMenuItem = (items, key) => {
+        let result = null;
+        
+        // 遍历所有菜单项
         for (let item of items) {
+                // 直接匹配当前项
                 if (item.key === key) {
-                        return item;
+                        result = item;
+                        break;
                 }
-                
-                if (item.children) {
+
+                // 递归查找子菜单
+                if (item.children?.length) {
                         const found = findMenuItem(item.children, key);
                         if (found) {
-                                return found;
+                                result = found;
+                                break;
                         }
                 }
         }
-        
-        return null;
+
+        return result;
 };
 
 // 获取目标 key 的所有父级 key（用于保持展开）
 const getParentKeys = (items, targetKey, parentKeys = []) => {
         let result = [];
-        
+
         for (let item of items) {
                 const newParentKeys = [...parentKeys, item.key];
                 if (item.key === targetKey) {
@@ -189,14 +196,14 @@ const getParentKeys = (items, targetKey, parentKeys = []) => {
                         }
                 }
         }
-        
+
         return result;
 };
 
 // 根据路由路径查找对应的菜单项（优先返回最深层的匹配，避免父子同 route 时选中父级）
 const findMenuItemByRoute = (items, routePath) => {
         let result = null;
-        
+
         for (let item of items) {
                 if (item.children?.length) {
                         const found = findMenuItemByRoute(item.children, routePath);
@@ -210,7 +217,7 @@ const findMenuItemByRoute = (items, routePath) => {
                         break;
                 }
         }
-        
+
         return result;
 };
 
@@ -221,16 +228,13 @@ const updateSelectedKeys = () => {
 
         if (matchedItem) {
                 state.selectedKeys = [matchedItem.key];
-
-                // 仅在非移动端展开父级菜单
-                if (!isMobile.value) {
-                        const parentKeys = getParentKeys(items, matchedItem.key);
+                const parentKeys = getParentKeys(items, matchedItem.key);
+                state.preOpenKeys = parentKeys;
+                // 仅非移动端且侧栏未折叠时展开子菜单；折叠时保持收起，不展开弹窗
+                if (!isMobile.value && !props.collapsed) {
                         state.openKeys = parentKeys;
-                        state.preOpenKeys = parentKeys;
                 } else {
-                        // 移动端不展开任何子菜单
                         state.openKeys = [];
-                        state.preOpenKeys = [];
                 }
         } else {
                 // 如果没有匹配到，默认选中第一个菜单
@@ -243,21 +247,26 @@ const updateSelectedKeys = () => {
         }
 };
 
-// 电脑端：拦截 openKeys，始终保留当前选中项所在父级展开（避免点击子项误收起）
+// 电脑端：保留当前选中项父级展开；折叠时仅响应用户点击展开，不自动合并 keepOpen
 const handleOpenChange = (newOpenKeys) => {
-        if (isMobile.value) {
-                state.openKeys = newOpenKeys;
-                state.preOpenKeys = newOpenKeys;
-        } else {
+        // 默认情况下更新 openKeys 和 preOpenKeys
+        let openKeysToUpdate = newOpenKeys;
+        let preOpenKeysToUpdate = newOpenKeys;
+        
+        // 移动端或折叠状态下直接使用新的 openKeys
+        if (!isMobile.value && !props.collapsed) {
                 const selectedKey = state.selectedKeys[0];
                 const matchedByRoute = findMenuItemByRoute(items, route.path);
                 const keepOpen = selectedKey
-                        ? getParentKeys(items, selectedKey)
-                        : (matchedByRoute ? getParentKeys(items, matchedByRoute.key) : []);
+                    ? getParentKeys(items, selectedKey)
+                    : (matchedByRoute ? getParentKeys(items, matchedByRoute.key) : []);
                 const merged = [...new Set([...newOpenKeys, ...keepOpen])];
-                state.openKeys = merged;
-                state.preOpenKeys = merged;
+                openKeysToUpdate = merged;
+                preOpenKeysToUpdate = merged;
         }
+        
+        state.openKeys = openKeysToUpdate;
+        state.preOpenKeys = preOpenKeysToUpdate;
 };
 
 // 处理菜单点击事件
@@ -283,7 +292,7 @@ onMounted(() => {
 // 完全由当前路由驱动选中与展开状态（含刷新后恢复）
 watch(() => route.path, () => {
         updateSelectedKeys();
-}, { immediate: true });
+}, {immediate: true});
 
 onUnmounted(() => {
         if (cleanupResizeListener) {
