@@ -1,5 +1,20 @@
 <!--
   - [UserDetailDrawer.vue]
+  - -------------------------------------------------------------------------------
+  - This software is licensed under the MIT License.
+  - However, any distribution or modification must retain this copyright notice.
+  - See LICENSE for full terms.
+  - -------------------------------------------------------------------------------
+  - author: "Jiu Liu"
+  - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
+  - license: "MIT"
+  - license_exception: "Mandatory attribution retention"
+  - UpdateTime: 2026/2/18 09:46
+  -
+  -->
+
+<!--
+  - [UserDetailDrawer.vue]
   - 用户详情抽屉组件：展示用户的基础信息
   -->
 
@@ -61,13 +76,13 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { formatDate } from '../../../utils/formatDate.js';
-import { useDrawerWidth } from '../../../composables/useDrawerWidth.js';
+import {computed} from 'vue';
+import {formatDate} from '../../../utils/formatDate.js';
+import {useDrawerWidth} from '../../../composables/useDrawerWidth.js';
 
 const props = defineProps({
-        open: { type: Boolean, default: false },
-        user: { type: Object, default: null }
+        open: {type: Boolean, default: false},
+        user: {type: Object, default: null}
 });
 
 const emit = defineEmits(['update:open', 'close']);
@@ -77,7 +92,7 @@ const visible = computed({
         set: (val) => emit('update:open', val)
 });
 
-const { drawerWidth } = useDrawerWidth();
+const {drawerWidth} = useDrawerWidth();
 
 function handleClose() {
         emit('close');

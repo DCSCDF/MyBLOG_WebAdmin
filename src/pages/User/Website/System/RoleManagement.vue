@@ -9,7 +9,7 @@
   - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
   - license: "MIT"
   - license_exception: "Mandatory attribution retention"
-  - UpdateTime: 2026/2/17 22:26
+  - UpdateTime: 2026/2/18 10:33
   -
   -->
 
@@ -215,7 +215,7 @@
             @close="onPermissionDrawerClose">
                 <template v-if="permissionRole">
                         <div class="mb-4 text-gray-600 text-sm">{{
-                                        permissionRole.name
+                                permissionRole.name
                                 }}（{{ permissionRole.code }}）
                         </div>
                         <div class="mb-3 p-2 bg-blue-50 rounded text-xs text-gray-600">
@@ -253,7 +253,7 @@
                                                                         <a-tag :bordered="false"
                                                                                :color="record.fromGroup ? 'blue' : 'green'">
                                                                                 {{
-                                                                                        record.fromGroup ? '来自权限组' : '直接添加'
+                                                                                record.fromGroup ? '来自权限组' : '直接添加'
                                                                                 }}
                                                                         </a-tag>
                                                                 </template>

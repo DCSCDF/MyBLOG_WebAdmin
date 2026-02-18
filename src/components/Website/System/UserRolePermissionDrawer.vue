@@ -1,5 +1,20 @@
 <!--
   - [UserRolePermissionDrawer.vue]
+  - -------------------------------------------------------------------------------
+  - This software is licensed under the MIT License.
+  - However, any distribution or modification must retain this copyright notice.
+  - See LICENSE for full terms.
+  - -------------------------------------------------------------------------------
+  - author: "Jiu Liu"
+  - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
+  - license: "MIT"
+  - license_exception: "Mandatory attribution retention"
+  - UpdateTime: 2026/2/18 10:23
+  -
+  -->
+
+<!--
+  - [UserRolePermissionDrawer.vue]
   - 用户角色权限展示抽屉组件：展示用户的角色及其权限和权限组
   -->
 
@@ -36,14 +51,14 @@
                                                         <div>
                                                                 <div class="flex items-center gap-2">
                                                                         <h3 class="font-semibold text-base">{{
-                                                                                        role.name
+                                                                                role.name
                                                                                 }}</h3>
                                                                         <a-tag v-if="isSuperAdminRole(role)"
                                                                                :bordered="false" color="red">超级管理员
                                                                         </a-tag>
                                                                 </div>
                                                                 <p class="text-xs text-gray-500 mt-1">{{
-                                                                                role.code
+                                                                        role.code
                                                                         }}</p>
                                                                 <p v-if="role.description"
                                                                    class="text-xs text-gray-400 mt-1">
@@ -116,7 +131,8 @@
                                                                                         <a-tag :bordered="false"
                                                                                                :color="record.fromGroup ? 'blue' : 'green'">
                                                                                                 {{
-                                                                                                        record.fromGroup ? '来自权限组' : '直接添加'
+                                                                                                record.fromGroup ?
+                                                                                                '来自权限组' : '直接添加'
                                                                                                 }}
                                                                                         </a-tag>
                                                                                 </template>
@@ -163,7 +179,7 @@ const visible = computed({
         set: (val) => emit('update:open', val)
 });
 
-const { drawerWidth } = useDrawerWidth();
+const {drawerWidth} = useDrawerWidth();
 
 const loadingPermissions = ref(false);
 const rolePermissionsLoading = ref({});
@@ -209,13 +225,13 @@ const loadRolePermissions = async (roleId) => {
                         if (roleDetail.permissionGroups && roleDetail.permissionGroups.length > 0) {
                                 // 收集所有权限组ID
                                 const groupIds = roleDetail.permissionGroups.map(group => group.id);
-                                
+
                                 // 并行获取所有权限组的权限
-                                const groupPromises = groupIds.map(groupId => 
+                                const groupPromises = groupIds.map(groupId =>
                                     permissionGroupStore.fetchGroupPermissions(groupId).catch(() => [])
                                 );
                                 const groupResults = await Promise.all(groupPromises);
-                                
+
                                 // 使用 flat() 扁平化后单次循环
                                 const allPermissions = groupResults.flat();
                                 for (const permission of allPermissions) {

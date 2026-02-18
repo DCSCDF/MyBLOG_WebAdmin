@@ -1,3 +1,18 @@
+/*
+ * [formatDate.js]
+ * --------------------------------------------------------------------------------
+ * This software is licensed under the MIT License.
+ * However, any distribution or modification must retain this copyright notice.
+ * See LICENSE for full terms.
+ * --------------------------------------------------------------------------------
+ * author: "Jiu Liu"
+ * author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
+ * license: "MIT"
+ * license_exception: "Mandatory attribution retention"
+ * UpdateTime: 2026/2/18 10:50
+ *
+ */
+
 /**
  * 统一日期格式化：返回可展示的字符串，无效值返回 '-'
  * @param {string|number|Date} val
@@ -5,7 +20,7 @@
  */
 export function formatDate(val) {
 	let result = '-';
-	
+
 	if (val) {
 		try {
 			result = new Date(val).toLocaleString('zh-CN', {
@@ -20,6 +35,6 @@ export function formatDate(val) {
 			result = String(val);
 		}
 	}
-	
+
 	return result;
 }

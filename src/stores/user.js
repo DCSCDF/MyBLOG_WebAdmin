@@ -9,7 +9,7 @@
  * author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
  * license: "MIT"
  * license_exception: "Mandatory attribution retention"
- * UpdateTime: 2026/2/17
+ * UpdateTime: 2026/2/18 10:50
  *
  */
 
@@ -63,7 +63,7 @@ export const useUserStore = defineStore('user', () => {
 	 */
 	const buildRequestParams = (params) => {
 		const safeParams = params || {};
-		
+
 		const currentPage = safeParams.currentPage ?? pagination.value.current;
 		const pageSize = safeParams.pageSize ?? pagination.value.pageSize;
 		const keyword = safeParams.keyword ?? queryParams.value.keyword;
@@ -78,7 +78,7 @@ export const useUserStore = defineStore('user', () => {
 		if (hasValue(keyword)) {
 			requestParams.keyword = keyword;
 		}
-		
+
 		// 只有当 status 已定义时才添加到请求参数中
 		if (isDefined(status)) {
 			requestParams.status = status;
@@ -93,12 +93,19 @@ export const useUserStore = defineStore('user', () => {
 	 * @param {number} pageSize - 当前页面大小
 	 */
 	const processApiResponse = (response, pageSize) => {
-		const {records = [], total = 0, current = 1, size = pageSize, pages = 0, filterOptions: options = {}} = response.data;
-		
+		const {
+			records = [],
+			total = 0,
+			current = 1,
+			size = pageSize,
+			pages = 0,
+			filterOptions: options = {}
+		} = response.data;
+
 		users.value = records.map((item) => ({...item, key: item.id}));
-		pagination.value = { current, pageSize: size, total, pages };
+		pagination.value = {current, pageSize: size, total, pages};
 		filterOptions.value = options;
-		
+
 		logger.log('用户列表获取成功，总数:', total);
 	};
 
@@ -139,11 +146,11 @@ export const useUserStore = defineStore('user', () => {
 	const fetchUsers = async (params) => {
 		let result = null;
 		loading.value = true;
-		
+
 		try {
 			const requestParams = buildRequestParams(params);
 			const response = await userApi.list(requestParams);
-			
+
 			// 使用正向条件判断
 			if (isValidResponse(response)) {
 				processApiResponse(response, requestParams.pageSize);
@@ -156,7 +163,7 @@ export const useUserStore = defineStore('user', () => {
 		} finally {
 			loading.value = false;
 		}
-		
+
 		return result;
 	};
 

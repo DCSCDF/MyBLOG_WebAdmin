@@ -9,7 +9,7 @@
  * author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
  * license: "MIT"
  * license_exception: "Mandatory attribution retention"
- * UpdateTime: 2026/2/15 21:38
+ * UpdateTime: 2026/2/18 00:43
  *
  */
 
@@ -43,7 +43,7 @@ class RsaEncryptor {
 		encryptor.setPublicKey(pemPublicKey);
 
 		const encrypted = encryptor.encrypt(plaintext);
-		
+
 		if (!encrypted) {
 			throw new Error('RSA 加密失败，请检查公钥格式或明文长度');
 		}

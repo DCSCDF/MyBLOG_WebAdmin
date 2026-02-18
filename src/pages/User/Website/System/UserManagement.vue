@@ -1,5 +1,20 @@
 <!--
   - [UserManagement.vue]
+  - -------------------------------------------------------------------------------
+  - This software is licensed under the MIT License.
+  - However, any distribution or modification must retain this copyright notice.
+  - See LICENSE for full terms.
+  - -------------------------------------------------------------------------------
+  - author: "Jiu Liu"
+  - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
+  - license: "MIT"
+  - license_exception: "Mandatory attribution retention"
+  - UpdateTime: 2026/2/18 10:34
+  -
+  -->
+
+<!--
+  - [UserManagement.vue]
   - 用户管理页面：分页列表、详情、编辑、删除、查看角色权限
   - 对应后端接口：/api/user/*
   -->
@@ -246,7 +261,7 @@ const openDetail = (record) => {
 const openEdit = (record) => {
         // 统一处理逻辑，确保只有一个返回点
         let shouldFetchDetail = record && record.id;
-        
+
         if (shouldFetchDetail) {
                 userStore.fetchUserById(record.id).then((detail) => {
                         selectedUser.value = detail || record;
@@ -267,7 +282,7 @@ const openEdit = (record) => {
 const handleEditSubmit = async (updateData) => {
         // 统一处理逻辑，确保只有一个返回点
         let canProceed = selectedUser.value != null;
-        
+
         if (canProceed) {
                 try {
                         await userStore.updateUser(selectedUser.value.id, updateData);
@@ -287,7 +302,7 @@ const handleEditSubmit = async (updateData) => {
 const openRolePermission = (record) => {
         selectedUser.value = record;
         rolePermissionVisible.value = true;
-        
+
         // 直接使用用户对象中的roles数据，避免额外API调用
         userRoles.value = record.roles || [];
 };

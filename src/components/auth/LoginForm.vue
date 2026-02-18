@@ -9,7 +9,7 @@
   - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
   - license: "MIT"
   - license_exception: "Mandatory attribution retention"
-  - UpdateTime: 2026/2/17 07:54
+  - UpdateTime: 2026/2/18 10:19
   -
   -->
 
@@ -155,8 +155,8 @@ const handleLogin = async () => {
 
         try {
                 // 获取验证码验证参数
-                const captchaVerification = captchaRef.value ? 
-                        captchaRef.value.getCaptchaVerification() : null;
+                const captchaVerification = captchaRef.value ?
+                    captchaRef.value.getCaptchaVerification() : null;
 
                 logger.log('Captcha 校验码:', captchaVerification);
                 logger.log('Login 表单数据:', {
@@ -167,7 +167,7 @@ const handleLogin = async () => {
                 });
 
                 const publicKeyResponse = await authApi.publicKey();
-                
+
                 // 处理公钥获取失败的情况
                 if (publicKeyResponse.code !== 200) {
                         handleError('验证码获取失败', publicKeyResponse.errorMsg || '服务器错误');
@@ -182,19 +182,19 @@ const handleLogin = async () => {
                         tempToken: publicKeyResponse.data.tempToken,
                         password: password,
                 };
-                
+
                 logger.log('发送前的对象 ', loginData);
 
                 const loginResponse = await authApi.login(loginData);
                 logger.log('Login 响应:', loginResponse);
-                
+
                 // 处理登录结果
                 if (loginResponse && loginResponse.success === true) {
                         handleLoginSuccess(loginResponse);
                 } else {
                         handleLoginFailure(loginResponse);
                 }
-                
+
         } catch (error) {
                 handleNetworkError(error);
         }
@@ -214,12 +214,12 @@ const handleLoginSuccess = (response) => {
 
         // 使用 Pinia store 管理 token 和用户状态
         authStore.setToken(
-                response.data.token,
-                loginForm.value.remember,
-                {
-                        username: loginForm.value.username,
-                        loginTime: new Date().toISOString()
-                }
+            response.data.token,
+            loginForm.value.remember,
+            {
+                    username: loginForm.value.username,
+                    loginTime: new Date().toISOString()
+            }
         );
 
         logger.log(`${loginForm.value.remember ? '长期' : '会话'}token 设置完成`);

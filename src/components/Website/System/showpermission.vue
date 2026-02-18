@@ -9,7 +9,7 @@
   - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
   - license: "MIT"
   - license_exception: "Mandatory attribution retention"
-  - UpdateTime: 2026/2/17 09:12
+  - UpdateTime: 2026/2/18 09:47
   -
   -->
 <template>
@@ -22,16 +22,17 @@
                 </div>
 
                 <!-- 搜索栏：移动端上下排版，桌面端横排 -->
-                <div class="search-filter-bar mb-4 flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:gap-3">
+                <div
+                    class="search-filter-bar mb-4 flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:gap-3">
                         <div class="w-full md:min-w-[220px] md:max-w-[220px]">
                                 <a-input
                                     v-model:value="searchKeyword"
-                                    placeholder="搜索权限编码/名称/描述"
                                     class="w-full"
+                                    placeholder="搜索权限编码/名称/描述"
                                     @press-enter="handleSearch">
-                                    <template #prefix>
-                                            <SearchOutlined/>
-                                    </template>
+                                        <template #prefix>
+                                                <SearchOutlined/>
+                                        </template>
                                 </a-input>
                         </div>
                         <div class="flex shrink-0 gap-2 w-full md:w-auto justify-end md:justify-start">
@@ -117,10 +118,10 @@
         </a-card>
 </template>
 <script setup>
-import { computed, onMounted, ref } from 'vue';
-import { SearchOutlined } from '@ant-design/icons-vue';
-import { usePermissionStore } from '../../../stores/permission.js';
-import { formatDate } from '../../../utils/formatDate.js';
+import {computed, onMounted, ref} from 'vue';
+import {SearchOutlined} from '@ant-design/icons-vue';
+import {usePermissionStore} from '../../../stores/permission.js';
+import {formatDate} from '../../../utils/formatDate.js';
 import logger from '../../../utils/logger.js';
 
 const permissionStore = usePermissionStore();
@@ -197,16 +198,16 @@ const handleTableChange = (pagination) => {
 
 /** 搜索：回第一页并带 keyword */
 const handleSearch = () => {
-        permissionStore.updatePagination({ current: 1 });
-        permissionStore.updateQueryParams({ keyword: searchKeyword.value.trim() });
+        permissionStore.updatePagination({current: 1});
+        permissionStore.updateQueryParams({keyword: searchKeyword.value.trim()});
         loadTableData();
 };
 
 /** 重置：清空关键词并刷新 */
 const handleReset = () => {
         searchKeyword.value = '';
-        permissionStore.updatePagination({ current: 1 });
-        permissionStore.updateQueryParams({ keyword: '' });
+        permissionStore.updatePagination({current: 1});
+        permissionStore.updateQueryParams({keyword: ''});
         loadTableData();
 };
 

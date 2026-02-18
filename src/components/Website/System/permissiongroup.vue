@@ -9,7 +9,7 @@
   - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
   - license: "MIT"
   - license_exception: "Mandatory attribution retention"
-  - UpdateTime: 2026/2/17 22:26
+  - UpdateTime: 2026/2/18 11:02
   -
   -->
 
@@ -535,7 +535,7 @@ function validateEditForm() {
 
 async function submitEdit() {
         let result = false;
-        
+
         const validation = validateEditForm();
 
         if (!validation.isValid) {
@@ -560,13 +560,13 @@ async function submitEdit() {
                         editSubmitting.value = false;
                 }
         }
-        
+
         return result;
 }
 
 async function onDelete(record) {
         let result = false;
-        
+
         if (record.isSystem) {
                 message.warning('系统内置权限组不可删除');
         } else {
@@ -579,7 +579,7 @@ async function onDelete(record) {
                         message.error(e?.message || '删除失败');
                 }
         }
-        
+
         return result;
 }
 

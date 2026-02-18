@@ -9,7 +9,7 @@
  * author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
  * license: "MIT"
  * license_exception: "Mandatory attribution retention"
- * UpdateTime: 2026/2/17 07:21
+ * UpdateTime: 2026/2/18 10:49
  *
  */
 
@@ -81,15 +81,22 @@ export const useRoleStore = defineStore('role', () => {
 		try {
 			const normalizedParams = normalizeFetchParams(params);
 			const requestParams = buildRequestParams(normalizedParams);
-			
+
 			const res = await roleApi.list(requestParams);
 			validateApiResponse(res);
-			
-			const { records = [], total = 0, current = 1, size = normalizedParams.pageSize, pages = 0, filterOptions: options = {} } = res.data;
-			
-			updateRoleState(records, { current, pageSize: size, total, pages }, options);
+
+			const {
+				records = [],
+				total = 0,
+				current = 1,
+				size = normalizedParams.pageSize,
+				pages = 0,
+				filterOptions: options = {}
+			} = res.data;
+
+			updateRoleState(records, {current, pageSize: size, total, pages}, options);
 			logger.log('角色列表获取成功，总数:', total);
-			
+
 			return roles.value;
 		} catch (error) {
 			handleFetchError(error);
@@ -110,8 +117,8 @@ export const useRoleStore = defineStore('role', () => {
 		const keyword = params.keyword !== undefined ? params.keyword : queryParams.value.keyword;
 		const status = params.status !== undefined ? params.status : queryParams.value.status;
 		const isSystem = params.isSystem !== undefined ? params.isSystem : queryParams.value.isSystem;
-		
-		return { currentPage, pageSize, keyword, status, isSystem };
+
+		return {currentPage, pageSize, keyword, status, isSystem};
 	};
 
 	/**
@@ -120,24 +127,24 @@ export const useRoleStore = defineStore('role', () => {
 	 * @returns {Object} 请求参数对象
 	 */
 	const buildRequestParams = (normalizedParams) => {
-		const { currentPage, pageSize, keyword, status, isSystem } = normalizedParams;
-		const requestParams = { currentPage, pageSize };
-		
+		const {currentPage, pageSize, keyword, status, isSystem} = normalizedParams;
+		const requestParams = {currentPage, pageSize};
+
 		// 添加关键字参数
 		if (hasValidKeyword(keyword)) {
 			requestParams.keyword = String(keyword).trim();
 		}
-		
+
 		// 添加状态参数
 		if (status !== undefined) {
 			requestParams.status = status;
 		}
-		
+
 		// 添加系统标识参数
 		if (isSystem !== undefined) {
 			requestParams.isSystem = isSystem;
 		}
-		
+
 		return requestParams;
 	};
 
@@ -157,7 +164,7 @@ export const useRoleStore = defineStore('role', () => {
 	 */
 	const validateApiResponse = (response) => {
 		const isValidResponse = response.success === true && response.data !== null && response.data !== undefined;
-		
+
 		if (!isValidResponse) {
 			throw new Error(response.errorMsg || '获取角色列表失败');
 		}
@@ -170,7 +177,7 @@ export const useRoleStore = defineStore('role', () => {
 	 * @param {Object} filterOptions - 过滤选项
 	 */
 	const updateRoleState = (records, paginationData, filterOptions) => {
-		roles.value = (records || []).map((item) => ({ ...item, key: item.id }));
+		roles.value = (records || []).map((item) => ({...item, key: item.id}));
 		pagination.value = paginationData;
 		filterOptions.value = filterOptions;
 	};

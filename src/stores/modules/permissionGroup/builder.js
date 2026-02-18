@@ -9,16 +9,16 @@
  * author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
  * license: "MIT"
  * license_exception: "Mandatory attribution retention"
- * UpdateTime: 2026/2/18 10:45
+ * UpdateTime: 2026/2/18 10:41
  *
  */
 
-import { 
-	getPageConfig, 
-	getSearchConfig, 
-	isValidKeyword, 
-	isValidStatus, 
-	isValidSystemFlag 
+import {
+	getPageConfig,
+	getSearchConfig,
+	isValidKeyword,
+	isValidStatus,
+	isValidSystemFlag
 } from './config.js';
 
 /**

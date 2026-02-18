@@ -9,7 +9,7 @@
   - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
   - license: "MIT"
   - license_exception: "Mandatory attribution retention"
-  - UpdateTime: 2026/2/2 18:23
+  - UpdateTime: 2026/2/18 10:18
   -
   -->
 
@@ -327,7 +327,7 @@ function handleRegisterSuccess(registerRes) {
  * @returns {Promise<Object>} 注册结果对象
  */
 async function executeRegisterFlow() {
-        const result = { success: false, data: null, error: null };
+        const result = {success: false, data: null, error: null};
         let shouldContinue = true;
 
         // 验证码验证
@@ -362,9 +362,9 @@ async function executeRegisterFlow() {
         // 构建请求载荷和执行注册
         if (shouldContinue) {
                 const payload = buildRegisterPayload(
-                        publicKeyRes.data.publicKey,
-                        publicKeyRes.data.tempToken,
-                        validateCaptcha().data
+                    publicKeyRes.data.publicKey,
+                    publicKeyRes.data.tempToken,
+                    validateCaptcha().data
                 );
                 logger.log('注册请求参数（已脱敏）:', {
                         username: payload.username,
@@ -406,13 +406,13 @@ function handleRegisterResult(result) {
  */
 async function handleRegister() {
         let shouldProceed = validateRegisterPreconditions();
-        
+
         if (shouldProceed) {
                 registerLoading.value = true;
-                
+
                 // 执行注册流程
                 const result = await executeRegisterFlow();
-                
+
                 // 处理结果
                 handleRegisterResult(result);
         }

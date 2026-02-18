@@ -1,3 +1,18 @@
+<!--
+  - [RoleDetailDrawer.vue]
+  - -------------------------------------------------------------------------------
+  - This software is licensed under the MIT License.
+  - However, any distribution or modification must retain this copyright notice.
+  - See LICENSE for full terms.
+  - -------------------------------------------------------------------------------
+  - author: "Jiu Liu"
+  - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
+  - license: "MIT"
+  - license_exception: "Mandatory attribution retention"
+  - UpdateTime: 2026/2/18 09:48
+  -
+  -->
+
 <template>
         <a-drawer
             v-model:open="visible"
@@ -38,7 +53,8 @@
                         <a-divider/>
                         <div class="flex flex-col gap-1">
                                 <span class="font-medium text-gray-900 text-sm">状态：</span>
-                                <span class="text-gray-600 text-sm break-all">{{ role.status === 1 ? '启用' : '禁用' }}</span>
+                                <span
+                                    class="text-gray-600 text-sm break-all">{{ role.status === 1 ? '启用' : '禁用' }}</span>
                         </div>
                         <a-divider/>
                         <div class="flex flex-col gap-1">
@@ -55,13 +71,13 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { useDrawerWidth } from '../../../../../composables/useDrawerWidth.js';
-import { formatDate } from '../../../../../utils/formatDate.js';
+import {computed} from 'vue';
+import {useDrawerWidth} from '../../../../../composables/useDrawerWidth.js';
+import {formatDate} from '../../../../../utils/formatDate.js';
 
 const props = defineProps({
-        open: { type: Boolean, default: false },
-        role: { type: Object, default: null }
+        open: {type: Boolean, default: false},
+        role: {type: Object, default: null}
 });
 
 const emit = defineEmits(['update:open', 'close']);
@@ -71,7 +87,7 @@ const visible = computed({
         set: (val) => emit('update:open', val)
 });
 
-const { drawerWidth } = useDrawerWidth();
+const {drawerWidth} = useDrawerWidth();
 
 function handleClose() {
         emit('close');

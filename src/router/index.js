@@ -9,7 +9,7 @@
  * author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
  * license: "MIT"
  * license_exception: "Mandatory attribution retention"
- * UpdateTime: 2026/2/3 18:23
+ * UpdateTime: 2026/2/18 09:51
  *
  */
 
@@ -18,7 +18,7 @@ import {createRouter, createWebHistory} from 'vue-router'
 // 导入页面组件
 import Login from '../pages/Login.vue';
 import Layout from '../layout/Layout.vue';
-import { useAuthStore } from '../stores/auth.js';
+import {useAuthStore} from '../stores/auth.js';
 import logger from '../utils/logger.js';
 
 import {childRoutes} from "../config/childRoutes.js"
