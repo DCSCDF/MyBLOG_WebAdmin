@@ -156,7 +156,7 @@ watch(isMobile, (newIsMobile) => {
 // 递归查找菜单项
 const findMenuItem = (items, key) => {
         let result = null;
-        
+
         // 遍历所有菜单项
         for (let item of items) {
                 // 直接匹配当前项
@@ -200,7 +200,7 @@ const getParentKeys = (items, targetKey, parentKeys = []) => {
         return result;
 };
 
-// 根据路由路径查找对应的菜单项（优先返回最深层的匹配，避免父子同 route 时选中父级）
+// 根据路由路径查找对应的菜单项
 const findMenuItemByRoute = (items, routePath) => {
         let result = null;
 
@@ -252,7 +252,7 @@ const handleOpenChange = (newOpenKeys) => {
         // 默认情况下更新 openKeys 和 preOpenKeys
         let openKeysToUpdate = newOpenKeys;
         let preOpenKeysToUpdate = newOpenKeys;
-        
+
         // 移动端或折叠状态下直接使用新的 openKeys
         if (!isMobile.value && !props.collapsed) {
                 const selectedKey = state.selectedKeys[0];
@@ -264,7 +264,7 @@ const handleOpenChange = (newOpenKeys) => {
                 openKeysToUpdate = merged;
                 preOpenKeysToUpdate = merged;
         }
-        
+
         state.openKeys = openKeysToUpdate;
         state.preOpenKeys = preOpenKeysToUpdate;
 };
