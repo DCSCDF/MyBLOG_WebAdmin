@@ -186,9 +186,9 @@
                     cancel-text="取消"
                     ok-text="保存"
                     title="编辑权限组"
+                    @afterClose="handleEditAfterClose"
                     @cancel="handleEditCancel"
-                    @ok="submitEdit"
-                    @afterClose="handleEditAfterClose">
+                    @ok="submitEdit">
                         <a-form v-if="editForm" :model="editForm" :rules="editRules" layout="vertical">
                                 <a-form-item label="权限组名称" name="name" required>
                                         <a-input v-model:value="editForm.name" :maxlength="50"
@@ -222,9 +222,9 @@
                     cancel-text="取消"
                     ok-text="创建"
                     title="新增权限组"
+                    @afterClose="handleCreateAfterClose"
                     @cancel="handleCreateCancel"
-                    @ok="submitCreate"
-                    @afterClose="handleCreateAfterClose">
+                    @ok="submitCreate">
                         <a-form v-if="createForm" :model="createForm" :rules="createRules" layout="vertical">
                                 <a-form-item label="权限组名称" name="name" required>
                                         <a-input v-model:value="createForm.name" :maxlength="50"
@@ -303,7 +303,9 @@
                     title="添加权限"
                     width="560px"
                     @cancel="selectedPermissionId = null; addPermissionSearchKeyword = ''"
-                    @ok="doAddPermission">
+                    @ok="() => {
+                        doAddPermission();
+                    }">
                         <a-input
                             v-model:value="addPermissionSearchKeyword"
                             allow-clear
@@ -662,6 +664,26 @@ function onPermissionDrawerClose() {
         selectedPermissionId.value = null;
 }
 
+// 编辑权限组弹窗取消处理
+function handleEditCancel() {
+        editVisible.value = false;
+}
+
+// 编辑权限组弹窗完全关闭后的处理
+function handleEditAfterClose() {
+        editForm.value = null;
+}
+
+// 新增权限组弹窗取消处理
+function handleCreateCancel() {
+        createVisible.value = false;
+}
+
+// 新增权限组弹窗完全关闭后的处理
+function handleCreateAfterClose() {
+        createForm.value = null;
+}
+
 watch(showAddPermission, (open) => {
         if (open) {
                 selectedPermissionId.value = null;
@@ -690,19 +712,34 @@ async function doAddPermission() {
         } else {
                 addPermissionLoading.value = true;
                 try {
-                        await permissionGroupStore.addPermissionToGroup(selectedGroup.value.id, selectedPermissionId.value);
-                        message.success('添加成功');
-                        showAddPermission.value = false;
-                        selectedPermissionId.value = null;
-                        await permissionGroupStore.fetchGroupPermissions(selectedGroup.value.id);
+                        const result = await permissionGroupStore.addPermissionToGroup(selectedGroup.value.id, selectedPermissionId.value);
+                        logger.log('Store返回结果:', result);
+                        logger.log('结果类型:', typeof result);
+
+                        if (result === true) {
+                                logger.log('添加成功');
+                                message.success('添加成功');
+                                showAddPermission.value = false;
+                                selectedPermissionId.value = null;
+                                await permissionGroupStore.fetchGroupPermissions(selectedGroup.value.id);
+                        } else if (result && typeof result === 'object' && result.success === false) {
+                                // Store方法返回错误对象，显示具体的错误信息
+                                message.error(result.message || '添加权限失败');
+
+                                canAdd = false;
+                        } else {
+                                // 其他失败情况
+                                message.error('添加权限失败');
+                                canAdd = false;
+                        }
                 } catch (e) {
                         message.error(e?.message || '添加失败');
                         canAdd = false;
                 } finally {
+                        logger.log('设置loading为false');
                         addPermissionLoading.value = false;
                 }
         }
-
         return canAdd;
 }
 
@@ -717,12 +754,19 @@ async function removePermission(permissionId) {
                 canRemove = false;
         } else {
                 try {
-                        await permissionGroupStore.removePermissionFromGroup(selectedGroup.value.id, permissionId);
-                        message.success('已移除');
-                        await permissionGroupStore.fetchGroupPermissions(selectedGroup.value.id);
+                        const result = await permissionGroupStore.removePermissionFromGroup(selectedGroup.value.id, permissionId);
+                        if (result === true) {
+                                message.success('已移除');
+                                await permissionGroupStore.fetchGroupPermissions(selectedGroup.value.id);
+                        } else if (result && typeof result === 'object' && result.success === false) {
+                                // Store方法返回错误对象，显示具体的错误信息
+                                message.error(result.message || '移除权限失败');
+                        } else {
+                                // 其他失败情况
+                                message.error('移除权限失败');
+                        }
                 } catch (e) {
                         message.error(e?.message || '移除失败');
-                        canRemove = false;
                 }
         }
 

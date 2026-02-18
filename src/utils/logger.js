@@ -38,7 +38,6 @@ const logEnvironmentInfo = () => {
 	console.log('%c- API地址:', 'color: #2196F3;', import.meta.env.VITE_API_BASE_URL);
 };
 
-// 注意：环境信息输出已移至 App.vue 中手动调用，避免重复输出
 
 const logger = {
 	/**
@@ -54,9 +53,9 @@ const logger = {
 	 * 在开发环境或VITE_SHOW_CONSOLE_LOGS为' true '时输出
 	 */
 	log: (...args) => {
-		// 当明确设置为 false 时不输出，否则在开发环境或设置为 true 时输出
-		const showLogs = import.meta.env.VITE_SHOW_CONSOLE_LOGS !== 'false' &&
-		    (import.meta.env.VITE_SHOW_CONSOLE_LOGS === 'true' || import.meta.env.MODE === 'development');
+		// 只有当明确设置为 true 时才输出，或者在开发环境且未明确禁用时输出
+		const showLogs = import.meta.env.VITE_SHOW_CONSOLE_LOGS === 'true' ||
+		    (import.meta.env.MODE === 'development' && import.meta.env.VITE_SHOW_CONSOLE_LOGS !== 'false');
 		if (showLogs) {
 			console.log(...args);
 		}
@@ -66,19 +65,23 @@ const logger = {
 	 * 在开发环境或VITE_SHOW_CONSOLE_LOGS为' true '时输出
 	 */
 	warn: (...args) => {
-		// 当明确设置为 false 时不输出，否则在开发环境或设置为 true 时输出
-		const showLogs = import.meta.env.VITE_SHOW_CONSOLE_LOGS !== 'false' &&
-		    (import.meta.env.VITE_SHOW_CONSOLE_LOGS === 'true' || import.meta.env.MODE === 'development');
+		// 只有当明确设置为 true 时才输出，或者在开发环境且未明确禁用时输出
+		const showLogs = import.meta.env.VITE_SHOW_CONSOLE_LOGS === 'true' ||
+		    (import.meta.env.MODE === 'development' && import.meta.env.VITE_SHOW_CONSOLE_LOGS !== 'false');
 		if (showLogs) {
 			console.warn(...args);
 		}
 	},
 	/**
 	 * 错误信息输出
-	 * 错误信息总是输出，因为错误通常需要立即关注
 	 */
 	error: (...args) => {
-		console.error(...args);
+		// 只有当明确设置为 true 时才输出，或者在开发环境且未明确禁用时输出
+		const showLogs = import.meta.env.VITE_SHOW_CONSOLE_LOGS === 'true' ||
+		    (import.meta.env.MODE === 'development' && import.meta.env.VITE_SHOW_CONSOLE_LOGS !== 'false');
+		if (showLogs) {
+			console.error(...args);
+		}
 	},
 	/**
 	 * 调试信息输出

@@ -88,8 +88,6 @@ service.interceptors.response.use(
 
 	    // 根据新的统一返回格式处理响应
 	    if (success === false) {
-		    // 处理业务错误
-		    console.error('API Error:', errorMsg);
 		    isError = true;
 		    errorObj = new Error(errorMsg || '请求失败');
 
@@ -118,9 +116,6 @@ service.interceptors.response.use(
     error => {
 	    // 初始化错误处理变量
 	    let finalError = error;
-
-	    // 响应错误时的处理
-	    console.error('Network Error:', error);
 
 	    // 如果是HTTP状态码错误，提取相关信息
 	    if (error.response) {

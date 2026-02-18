@@ -265,26 +265,16 @@ export const useUserStore = defineStore('user', () => {
 	 * @returns {Promise<Object|boolean>}
 	 */
 	const updateUser = async (id, body) => {
-		let result;
-
-		try {
-			const res = await userApi.update(id, body);
-			if (res.success === true) {
-				logger.log('用户信息修改成功:', id);
-				result = res.data || true;
-			} else {
-				// API 响应失败，记录错误并返回 false
-				const errorMessage = res.errorMsg || '修改用户信息失败';
-				logger.error(errorMessage);
-				result = false;
-			}
-		} catch (error) {
-			// 处理网络错误或其他意外错误
-			logger.error('修改用户信息失败:', error);
-			result = false;
+		const res = await userApi.update(id, body);
+		if (res.success === true) {
+			logger.log('用户信息修改成功:', id);
+			return res.data || true;
+		} else {
+			// API 响应失败，抛出错误让上层捕获
+			const errorMessage = res.errorMsg || '修改用户信息失败';
+			logger.error(errorMessage);
+			throw new Error(errorMessage);
 		}
-
-		return result;
 	};
 
 	/**

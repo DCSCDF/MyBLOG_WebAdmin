@@ -232,23 +232,31 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 	 * @returns {Promise<boolean>}
 	 */
 	const addPermissionToGroup = async (groupId, permissionId) => {
+		logger.log('groupId:', groupId, 'permissionId:', permissionId);
+
 		let result;
 
 		try {
 			const res = await permissionGroupApi.addPermission(groupId, {permissionId});
+			logger.log('API响应:', res);
+
 			if (res.success === true) {
 				logger.log('权限组添加权限成功:', groupId, permissionId);
 				result = true;
 			} else {
 				// API 响应失败，记录错误并返回 false
 				const errorMsg = res.errorMsg || '添加权限失败';
-				logger.error('添加权限失败:', errorMsg);
-				result = false;
+				logger.log('API返回失败，错误信息:', errorMsg);
+				// 将错误信息存储到结果中，便于组件显示具体错误
+				result = {success: false, message: errorMsg};
 			}
 		} catch (error) {
 			// 处理网络错误或其他意外错误
-			logger.error('权限组添加权限异常:', error);
-			result = false;
+			logger.error('捕获到异常:', error);
+			// 将异常信息包装成错误对象返回
+			const errorMsg = error?.message || '网络异常，请稍后重试';
+			logger.log('包装异常信息:', errorMsg);
+			result = {success: false, message: errorMsg};
 		}
 
 		return result;
@@ -272,12 +280,15 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 				// API 响应失败，记录错误并返回 false
 				const errorMsg = res.errorMsg || '移除权限失败';
 				logger.error('移除权限失败:', errorMsg);
-				result = false;
+				// 将错误信息存储到结果中，便于组件显示具体错误
+				result = {success: false, message: errorMsg};
 			}
 		} catch (error) {
 			// 处理网络错误或其他意外错误
 			logger.error('权限组移除权限异常:', error);
-			result = false;
+			// 将异常信息包装成错误对象返回
+			const errorMsg = error?.message || '网络异常，请稍后重试';
+			result = {success: false, message: errorMsg};
 		}
 
 		return result;

@@ -130,6 +130,7 @@
 
         <!-- 编辑用户弹窗 -->
         <UserEditModal
+            ref="userEditModalRef"
             v-model:open="editVisible"
             :user="selectedUser"
             @cancel="selectedUser = null"
@@ -191,6 +192,7 @@ const editVisible = ref(false);
 const rolePermissionVisible = ref(false);
 const selectedUser = ref(null);
 const userRoles = ref([]);
+const userEditModalRef = ref(null);
 
 /**
  * 加载用户列表
@@ -285,16 +287,33 @@ const handleEditSubmit = async (updateData) => {
 
         if (canProceed) {
                 try {
-                        await userStore.updateUser(selectedUser.value.id, updateData);
-                        message.success('保存成功');
-                        editVisible.value = false;
-                        selectedUser.value = null;
-                        loadUsers();
+                        const result = await userStore.updateUser(selectedUser.value.id, updateData);
+                        
+                        // 检查更新结果，只有当result不为false时才算成功
+                        if (result !== false) {
+                                message.success('保存成功');
+                                editVisible.value = false;
+                                selectedUser.value = null;
+                                loadUsers();
+                                // 调用子组件的刷新方法
+                                if (userEditModalRef.value) {
+                                        userEditModalRef.value.handleParentSuccess();
+                                }
+                        } else {
+                                // updateUser返回false表示更新失败，但没有抛出异常
+                                message.error('保存失败');
+                        }
                 } catch (e) {
+                        // 捕获异常情况（如网络错误、API抛出的错误等）
                         message.error(e?.message || '保存失败');
                 }
         }
 };
+
+/**
+ * 处理编辑成功后的回调
+ */
+
 
 /**
  * 打开角色权限抽屉

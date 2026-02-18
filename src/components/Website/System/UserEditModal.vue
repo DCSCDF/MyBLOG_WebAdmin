@@ -75,6 +75,7 @@
 import {computed, ref, watch} from 'vue';
 import {message} from 'ant-design-vue';
 import {useRoleStore} from '../../../stores/role.js';
+import {useRouter} from 'vue-router';
 
 const props = defineProps({
         open: {
@@ -87,8 +88,9 @@ const props = defineProps({
         }
 });
 
-const emit = defineEmits(['update:open', 'submit', 'cancel']);
+const emit = defineEmits(['update:open', 'submit', 'cancel', 'success']);
 
+const router = useRouter();
 const roleStore = useRoleStore();
 const roleListLoading = ref(false);
 const roleOptions = ref([]);
@@ -164,7 +166,7 @@ const loadRoles = async () => {
                         value: role.id
                 }));
         } catch (e) {
-                console.error('加载角色列表失败:', e);
+                logger.error('加载角色列表失败:', e);
         } finally {
                 roleListLoading.value = false;
         }
@@ -338,10 +340,30 @@ const handleSubmit = async () => {
         }
 };
 
+/**
+ * 刷新当前页面
+ */
+const refreshPage = () => {
+        // 使用 Vue Router 刷新当前路由
+        router.go(0);
+};
+
 watch(() => props.open, (newVal) => {
         if (newVal) {
                 initForm();
                 loadRoles();
         }
+});
+
+// 监听父组件发出的成功事件，在保存成功时刷新页面
+const handleParentSuccess = () => {
+        setTimeout(() => {
+                refreshPage();
+        }, 100);
+};
+
+// 暴露方法给父组件调用
+defineExpose({
+        handleParentSuccess
 });
 </script>
