@@ -196,7 +196,14 @@ const handleLogin = async () => {
                 }
 
         } catch (error) {
-                handleNetworkError(error);
+                // 区分业务错误和网络异常
+                if (error instanceof Error) {
+                        // 这是由响应拦截器抛出的业务错误
+                        handleBusinessError(error);
+                } else {
+                        // 网络异常或其他系统错误
+                        handleNetworkError(error);
+                }
         }
 };
 
@@ -245,6 +252,14 @@ const handleLoginFailure = (response) => {
                 code: response.code,
                 data: response.data
         });
+};
+
+// 处理业务错误（由响应拦截器抛出的Error对象）
+const handleBusinessError = (error) => {
+        logger.error('Login 业务错误:', error.message);
+        
+        // 显示真实的业务错误信息
+        handleError('登录失败', error.message);
 };
 
 // 处理网络异常
