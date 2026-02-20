@@ -13,16 +13,6 @@
  *
  */
 
-/*
- * [role.js]
- * --------------------------------------------------------------------------------
- * 角色状态管理 Store
- * 管理角色列表、详情、修改、删除及角色关联的权限/权限组
- * 超级管理员角色与 schema 中 sys_role 初始化一致：
- *   INSERT INTO sys_role (code, name, description, is_super_admin, is_system, sort_order, status)
- *   VALUES ('SUPER_ADMIN', '超级管理员', '拥有系统所有权限，只能有一个', 1, 1, 100, 1)
- * --------------------------------------------------------------------------------
- */
 
 /** 超级管理员角色编码（唯一，拥有系统所有权限） */
 export const SUPER_ADMIN_ROLE_CODE = 'SUPER_ADMIN';

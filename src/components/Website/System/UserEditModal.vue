@@ -13,11 +13,6 @@
   -
   -->
 
-<!--
-  - [UserEditModal.vue]
-  - 编辑用户弹窗组件：修改用户昵称、头像、角色
-  -->
-
 <template>
         <a-modal
             v-model:open="visible"

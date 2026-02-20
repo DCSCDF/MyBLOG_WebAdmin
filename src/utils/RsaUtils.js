@@ -13,7 +13,6 @@
  *
  */
 
-// rsaEncryptor.js
 import JSEncrypt from 'jsencrypt';
 
 /**

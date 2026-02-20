@@ -13,11 +13,6 @@
   -
   -->
 
-<!--
-  - [UserDetailDrawer.vue]
-  - 用户详情抽屉组件：展示用户的基础信息
-  -->
-
 <template>
         <a-drawer
             v-model:open="visible"

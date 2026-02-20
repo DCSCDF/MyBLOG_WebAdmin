@@ -13,12 +13,6 @@
   -
   -->
 
-<!--
-  - [UserManagement.vue]
-  - 用户管理页面：分页列表、详情、编辑、删除、查看角色权限
-  - 对应后端接口：/api/user/*
-  -->
-
 <template>
         <a-card>
                 <div class="mb-4 flex items-center justify-between">
@@ -288,7 +282,7 @@ const handleEditSubmit = async (updateData) => {
         if (canProceed) {
                 try {
                         const result = await userStore.updateUser(selectedUser.value.id, updateData);
-                        
+
                         // 检查更新结果，只有当result不为false时才算成功
                         if (result !== false) {
                                 message.success('保存成功');
