@@ -139,8 +139,8 @@ export const childRoutes = [
 		children: [
 			{
 				key: 'sub4',
-				label: '系统管理',
-				title: '系统管理',
+				label: '用户管理',
+				title: '用户管理',
 				route: '/user/website/system/user',
 				path: '/system',
 				children: [
@@ -179,37 +179,37 @@ export const childRoutes = [
 					},
 				],
 			},
-			{
-				key: 'sub3_1',
-				label: '页面管理',
-				title: '页面管理',
-				route: '/user/website/page',
-				path: '/user/website/page',
-				name: 'page',
-				component: () => import('../pages/User/Dashboard/Dashboard.vue'),
-				meta: {title: '页面管理'},
-				description: '管理自定义静态页面（如关于页、友链页）'
-			},
+			// {
+			// 	key: 'sub3_1',
+			// 	label: '页面管理',
+			// 	title: '页面管理',
+			// 	route: '/user/website/page',
+			// 	path: '/user/website/page',
+			// 	name: 'page',
+			// 	component: () => import('../pages/User/Dashboard/Dashboard.vue'),
+			// 	meta: {title: '页面管理'},
+			// 	description: '管理自定义静态页面（如关于页、友链页）'
+			// },
 			{
 				key: 'sub3_2',
-				label: '站点SEO',
-				title: '站点SEO',
+				label: '站点全局SEO',
+				title: '站点全局SEO',
 				route: '/user/website/seo',
 				path: '/user/website/seo',
 				name: 'seo',
-				component: () => import('../pages/User/Dashboard/Dashboard.vue'),
-				meta: {title: '站点SEO'},
+				component: () => import('../pages/User/Website/System/SeoManagement.vue'),
+				meta: {title: '站点全局SEO'},
 				description: '配置搜索引擎优化相关参数'
 			},
 			{
 				key: 'sub3_3',
-				label: '站点信息',
-				title: '站点信息',
+				label: '站点配置',
+				title: '站点配置',
 				route: '/user/website/SiteInfo',
 				path: '/user/website/SiteInfo',
 				name: 'SiteInfo',
 				component: () => import('../pages/User/Dashboard/Dashboard.vue'),
-				meta: {title: '站点信息'},
+				meta: {title: '站点配置'},
 				description: '设置网站名称、Logo、备案号等基本信息'
 			},
 		],
