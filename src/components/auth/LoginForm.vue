@@ -224,7 +224,14 @@ const handleLoginSuccess = (response) => {
             response.data.token,
             loginForm.value.remember,
             {
-                    username: loginForm.value.username,
+                    id: response.data.user?.id,
+                    username: response.data.user?.username || loginForm.value.username,
+                    nickname: response.data.user?.nickname,
+                    email: response.data.user?.email,
+                    avatarUrl: response.data.user?.avatarUrl,
+                    status: response.data.user?.status,
+                    createTime: response.data.user?.createTime,
+                    updateTime: response.data.user?.updateTime,
                     loginTime: new Date().toISOString()
             }
         );

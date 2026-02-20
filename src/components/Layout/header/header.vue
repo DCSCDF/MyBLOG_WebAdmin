@@ -110,16 +110,26 @@ onMounted(async () => {
 
         try {
                 const response = await authApi.profile();
-                logger.log("用户信息", response);
+                logger.log("用户信息响应:", response);
 
-                // 更新 store 中的用户资料
-                authStore.updateUserProfile({
-                        nickname: response.data.nickname,
-                        email: response.data.email,
-                        avatarUrl: response.data.avatarUrl
-                });
+                // 正确处理API返回的数据结构 {data: {...用户信息...}}
+                if (response && response.data) {
+                        // 更新 store 中的用户资料
+                        authStore.updateUserProfile({
+                                id: response.data.id,
+                                username: response.data.username,
+                                nickname: response.data.nickname,
+                                email: response.data.email,
+                                avatarUrl: response.data.avatarUrl,
+                                status: response.data.status,
+                                createTime: response.data.createTime,
+                                updateTime: response.data.updateTime
+                        });
 
-                logger.log("用户信息已更新到 store");
+                        logger.log("用户信息已更新到 store");
+                } else {
+                        logger.warn("用户信息响应格式不正确");
+                }
         } catch (error) {
                 logger.error("获取用户信息失败", error);
         }

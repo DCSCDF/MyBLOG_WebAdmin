@@ -33,6 +33,9 @@ export const authApi = {
 		return request.post(`${AUTH_BASE_PATH}/login`, data);
 	},
 
+	/**
+	 * 获取当前登录用户资料
+	 */
 	profile: async () => {
 		return request.post(`${AUTH_BASE_PATH}/profile`)
 	},
@@ -48,6 +51,38 @@ export const authApi = {
 	 */
 	register: (data) => {
 		return request.post(`${AUTH_BASE_PATH}/register`, data);
-	}
+	},
+
+	/**
+	 * 修改密码
+	 * @param {Object} data - { old_password, new_password } 加密后的原密码和新密码
+	 */
+	updatePassword: (data) => {
+		return request.post(`${AUTH_BASE_PATH}/update-password`, data);
+	},
+
+	/**
+	 * 修改昵称
+	 * @param {Object} data - { nickname }
+	 */
+	updateNickname: (data) => {
+		return request.post(`${AUTH_BASE_PATH}/update-nickname`, data);
+	},
+
+	/**
+	 * 修改头像 URL
+	 * @param {Object} data - { avatarUrl }
+	 */
+	updateAvatarUrl: (data) => {
+		return request.post(`${AUTH_BASE_PATH}/update-avatar-url`, data);
+	},
+
+	/**
+	 * 修改邮箱
+	 * @param {Object} data - { email }
+	 */
+	updateEmail: (data) => {
+		return request.post(`${AUTH_BASE_PATH}/update-email`, data);
+	},
 
 };
