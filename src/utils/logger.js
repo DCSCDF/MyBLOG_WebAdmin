@@ -40,6 +40,7 @@ const logEnvironmentInfo = () => {
 
 
 const logger = {
+	
 	/**
 	 * 输出当前环境信息
 	 * 显示运行模式、日志配置、API地址等关键信息
@@ -60,6 +61,7 @@ const logger = {
 			console.log(...args);
 		}
 	},
+
 	/**
 	 * 警告信息输出
 	 * 在开发环境或VITE_SHOW_CONSOLE_LOGS为' true '时输出
@@ -72,6 +74,7 @@ const logger = {
 			console.warn(...args);
 		}
 	},
+
 	/**
 	 * 错误信息输出
 	 */
@@ -83,6 +86,7 @@ const logger = {
 			console.error(...args);
 		}
 	},
+
 	/**
 	 * 调试信息输出
 	 * 仅在开发环境且VITE_SHOW_CONSOLE_LOGS为'true'同时VITE_DEBUG_MODE为' true '时输出
