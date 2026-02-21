@@ -24,8 +24,8 @@
                 </span>
                         </div>
                         <div :style="{ padding: mode == 'pop' ? '15px' : '0' }" class="verifybox-bottom">
-                                <!-- 验证码容器 -->
-                                <component :is="componentType" v-if="componentType" ref="instance"
+                                <!-- 验证码容器：仅弹窗显示时挂载，避免未点击「开始验证」就请求 get -->
+                                <component :is="componentType" v-if="showBox && componentType" ref="instance"
                                            :arith="arith"
                                            :barSize="barSize" :blockSize="blockSize" :captchaType="captchaType"
                                            :explain="explain"
@@ -107,14 +107,13 @@ export default {
                  * @description 刷新
                  * */
                 const refresh = () => {
-                        console.log(instance.value);
-                        if (instance.value.refresh) {
+                        if (instance.value && instance.value.refresh) {
                                 instance.value.refresh()
                         }
                 }
                 const closeBox = () => {
                         clickShow.value = false
-                        refresh();
+                        // 不在此处调用 refresh，关闭后子组件会销毁，下次打开会重新挂载并自动请求 get
                 }
                 const show = () => {
                         if (mode.value == "pop") {

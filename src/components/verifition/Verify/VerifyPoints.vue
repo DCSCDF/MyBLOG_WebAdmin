@@ -66,6 +66,7 @@
 import {resetSize} from './../utils/util'
 import {aesEncrypt} from "./../utils/ase"
 import {reqCheck, reqGet} from "../../../api/user/auth/captchaApi.js"
+import logger from '../../../utils/logger.js'
 import {getCurrentInstance, nextTick, onMounted, reactive, ref, toRefs} from 'vue';
 
 export default {
@@ -179,13 +180,11 @@ export default {
                                                         barAreaBorderColor.value = '#5cb85c'
                                                         text.value = '验证成功'
                                                         bindingClick.value = false
-                                                        if (mode.value == 'pop') {
-                                                                setTimeout(() => {
-                                                                        proxy.$parent.clickShow = false;
-                                                                        refresh();
-                                                                }, 1500)
-                                                        }
-                                                        proxy.$parent.$emit('success', {captchaVerification})
+                                                        // 验证成功：关闭弹窗并通知父组件，不再调用 refresh 避免多余 get
+                                                        setTimeout(() => {
+                                                                proxy.$parent.closeBox()
+                                                                proxy.$parent.$emit('success', {captchaVerification})
+                                                        }, 1000)
                                                 } else {
                                                         proxy.$parent.$emit('error', proxy)
                                                         barAreaColor.value = '#d9534f'

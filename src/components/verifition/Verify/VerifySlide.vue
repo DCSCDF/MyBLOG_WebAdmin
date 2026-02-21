@@ -70,6 +70,7 @@
 import {aesEncrypt} from "./../utils/ase"
 import {resetSize} from './../utils/util'
 import {reqCheck, reqGet} from "../../../api/user/auth/captchaApi.js"
+import logger from '../../../utils/logger.js'
 import {computed, getCurrentInstance, nextTick, onMounted, reactive, ref, toRefs, watch} from 'vue';
 //  "captchaType":"blockPuzzle",
 export default {
@@ -225,7 +226,6 @@ export default {
                         } else {           //兼容移动端
                                 var x = e.touches[0].pageX;
                         }
-                        console.log(barArea);
                         startLeft.value = Math.floor(x - barArea.value.getBoundingClientRect().left);
                         startMoveTime.value = +new Date();    //开始滑动的时间
                         if (isEnd.value == false) {
@@ -287,13 +287,7 @@ export default {
                                                 iconColor.value = '#fff'
                                                 iconClass.value = 'icon-check'
                                                 showRefresh.value = false
-                                                isEnd.value = true;
-                                                if (mode.value == 'pop') {
-                                                        setTimeout(() => {
-                                                                proxy.$parent.clickShow = false;
-                                                                refresh();
-                                                        }, 1500)
-                                                }
+                                                isEnd.value = true
                                                 passFlag.value = true
                                                 tipWords.value = `${((endMovetime.value - startMoveTime.value) / 1000).toFixed(2)}s验证成功`
                                                 var captchaVerification = secretKey.value ? aesEncrypt(backToken.value + '---' + JSON.stringify({
@@ -303,9 +297,10 @@ export default {
                                                         x: moveLeftDistance,
                                                         y: 5.0
                                                 })
+                                                // 验证成功：仅关闭弹窗并通知父组件，不再调用 refresh 避免多余 get
                                                 setTimeout(() => {
                                                         tipWords.value = ""
-                                                        proxy.$parent.closeBox();
+                                                        proxy.$parent.closeBox()
                                                         proxy.$parent.$emit('success', {captchaVerification})
                                                 }, 1000)
                                         } else {
@@ -326,8 +321,7 @@ export default {
                                                 }, 1000)
                                         }
                                 }).catch(error => {
-                                        // 处理验证失败的情况
-                                        console.error('验证码验证失败:', error);
+                                        logger.error('验证码验证失败:', error)
                                         moveBlockBackgroundColor.value = '#d9534f'
                                         leftBarBorderColor.value = '#d9534f'
                                         iconColor.value = '#fff'
