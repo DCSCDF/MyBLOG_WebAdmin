@@ -9,7 +9,7 @@
   - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
   - license: "MIT"
   - license_exception: "Mandatory attribution retention"
-  - UpdateTime: 2026/2/18 09:48
+  - UpdateTime: 2026/2/18 11:52
   -
   -->
 
@@ -54,7 +54,9 @@
                         <div class="flex flex-col gap-1">
                                 <span class="font-medium text-gray-900 text-sm">状态：</span>
                                 <span
-                                    class="text-gray-600 text-sm break-all">{{ role.status === 1 ? '启用' : '禁用' }}</span>
+                                    class="text-gray-600 text-sm break-all">{{
+                                                role.status === 1 ? '启用' : '禁用'
+                                        }}</span>
                         </div>
                         <a-divider/>
                         <div class="flex flex-col gap-1">
@@ -72,8 +74,8 @@
 
 <script setup>
 import {computed} from 'vue';
-import {useDrawerWidth} from '../../../../../composables/useDrawerWidth.js';
-import {formatDate} from '../../../../../utils/formatDate.js';
+import {useDrawerWidth} from '../../../composables/useDrawerWidth.js';
+import {formatDate} from '../../../utils/formatDate.js';
 
 const props = defineProps({
         open: {type: Boolean, default: false},

@@ -17,7 +17,7 @@
         <div class="flex flex-col h-screen overflow-hidden">
                 <!-- 遮罩层 -->
                 <div
-                    v-show="windowWidth < 768"
+                    v-show="windowWidth < 1024"
                     :class="{
                         'opacity-0 pointer-events-none': !mobileSidebarOpen,
                         'opacity-50': mobileSidebarOpen
@@ -27,17 +27,17 @@
                 </div>
 
                 <!-- 侧边栏菜单  -->
-                <div :class="windowWidth >= 768 ?
+                <div :class="windowWidth >= 1024 ?
                                (collapsed ? 'left-0 translate-x-0 w-20' : 'left-0 translate-x-0 w-60') :
                                 (mobileSidebarOpen ? 'left-0 translate-x-0 w-70 z-60' : '-translate-x-full w-70 z-60')"
                      class="fixed h-full top-0 bottom-0 transition-all duration-300 ease-in-out z-10">
                         <div class="relative h-full">
                                 <Menu
-                                    :collapsed="windowWidth >= 768 ? collapsed : (!mobileSidebarOpen)"
+                                    :collapsed="windowWidth >= 1024 ? collapsed : (!mobileSidebarOpen)"
                                     :toggleCollapsed="toggleCollapsed"></Menu>
                                 <!-- 移动端关闭按钮 -->
                                 <button
-                                    v-if="windowWidth < 768 && mobileSidebarOpen"
+                                    v-if="windowWidth < 1024 && mobileSidebarOpen"
                                     class="absolute top-3 right-6 z-50 bg-white rounded-full border border-gray-200 p-3  w-8 h-8 flex items-center justify-center md:hidden"
                                     @click="toggleMobileSidebar">
                                         <CloseOutlined/>
@@ -49,11 +49,11 @@
                 <div
                     :class="[
                         'flex-1 transition-all duration-300 ease-in-out z-0 overflow-hidden',
-                        windowWidth >= 768 ? (collapsed ? 'ml-20' : 'ml-60') : 'ml-0'
+                        windowWidth >= 1024 ? (collapsed ? 'ml-20' : 'ml-60') : 'ml-0'
                     ]"
                 >
                         <Header
-                            :class="windowWidth >= 768 ? (collapsed ? 'left-20 right-0' : 'left-60 right-0') : 'left-0 right-0'"
+                            :class="windowWidth >= 1024 ? (collapsed ? 'left-20 right-0' : 'left-60 right-0') : 'left-0 right-0'"
                             :collapsed="collapsed"
                             class="fixed top-0 transition-all duration-300 ease-in-out z-20"
                             @toggle-collapsed="toggleCollapsed"
@@ -80,7 +80,7 @@
 <script setup>
 import {RouterView} from 'vue-router'
 import Header from '../components/Layout/header/header.vue';
-import {onMounted, onUnmounted, ref, computed} from 'vue';
+import {computed, onMounted, onUnmounted, ref} from 'vue';
 import Menu from "../components/Layout/menu/menu.vue";
 import {CloseOutlined} from '@ant-design/icons-vue';
 import Breadcrumb from "../components/Layout/header/breadcrumb.vue";

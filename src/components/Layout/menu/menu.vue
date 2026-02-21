@@ -17,7 +17,7 @@
         <!-- 左侧菜单容器 -->
 
         <div
-            :class="['relative !backdrop-blur-md bg-white/80 md:bg-transparent flex flex-col transition-all duration-300 ease-in-out h-full border-r border-gray-200', collapsed ? 'w-20' : 'w-60']">
+            :class="['relative !backdrop-blur-md bg-white/80 lg:bg-transparent flex flex-col transition-all duration-300 ease-in-out h-full border-r border-gray-200', collapsed ? 'w-20' : 'w-60']">
                 <!-- 菜单区域 -->
                 <div class="flex-1 flex flex-col overflow-y-auto">
                         <div
@@ -247,26 +247,19 @@ const updateSelectedKeys = () => {
         }
 };
 
-// 电脑端：保留当前选中项父级展开；折叠时仅响应用户点击展开，不自动合并 keepOpen
+// 处理菜单展开/收起变化
 const handleOpenChange = (newOpenKeys) => {
-        // 默认情况下更新 openKeys 和 preOpenKeys
-        let openKeysToUpdate = newOpenKeys;
-        let preOpenKeysToUpdate = newOpenKeys;
-
         // 移动端或折叠状态下直接使用新的 openKeys
-        if (!isMobile.value && !props.collapsed) {
-                const selectedKey = state.selectedKeys[0];
-                const matchedByRoute = findMenuItemByRoute(items, route.path);
-                const keepOpen = selectedKey
-                    ? getParentKeys(items, selectedKey)
-                    : (matchedByRoute ? getParentKeys(items, matchedByRoute.key) : []);
-                const merged = [...new Set([...newOpenKeys, ...keepOpen])];
-                openKeysToUpdate = merged;
-                preOpenKeysToUpdate = merged;
+        if (isMobile.value || props.collapsed) {
+                state.openKeys = newOpenKeys;
+                state.preOpenKeys = newOpenKeys;
+                return;
         }
-
-        state.openKeys = openKeysToUpdate;
-        state.preOpenKeys = preOpenKeysToUpdate;
+        
+        // 桌面端展开状态：允许用户自由控制菜单展开/收起
+        // 不强制保持选中项父级展开，让用户可以手动折叠任何菜单
+        state.openKeys = newOpenKeys;
+        state.preOpenKeys = newOpenKeys;
 };
 
 // 处理菜单点击事件

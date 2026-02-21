@@ -113,7 +113,6 @@ export const childRoutes = [
 		icon: () => h(SettingOutlined),
 		label: '设置',
 		title: '设置',
-		route: '/user/setting/usersetting',
 		path: '/setting',
 		children: [
 			{
@@ -134,14 +133,12 @@ export const childRoutes = [
 		icon: () => h(DesktopOutlined),
 		label: '网站管理',
 		title: '网站管理',
-		route: '/user/website/system/user',
 		path: '/website',
 		children: [
 			{
 				key: 'sub4',
 				label: '用户管理',
 				title: '用户管理',
-				route: '/user/website/system/user',
 				path: '/system',
 				children: [
 					{
@@ -208,9 +205,9 @@ export const childRoutes = [
 				route: '/user/website/SiteInfo',
 				path: '/user/website/SiteInfo',
 				name: 'SiteInfo',
-				component: () => import('../pages/User/Dashboard/Dashboard.vue'),
+				component: () => import('../pages/User/Website/System/WebsiteSetting.vue'),
 				meta: {title: '站点配置'},
-				description: '设置网站名称、Logo、备案号等基本信息'
+				description: '设置网站名称、备案号等基本信息'
 			},
 		],
 	},

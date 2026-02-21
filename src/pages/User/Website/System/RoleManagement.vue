@@ -130,9 +130,9 @@
             cancel-text="取消"
             ok-text="创建"
             title="新建角色"
+            @afterClose="handleCreateAfterClose"
             @cancel="handleCreateCancel"
-            @ok="submitCreate"
-            @afterClose="handleCreateAfterClose">
+            @ok="submitCreate">
                 <a-form
                     v-if="createForm"
                     :layout="'vertical'"
@@ -178,9 +178,9 @@
             cancel-text="取消"
             ok-text="保存"
             title="编辑角色"
+            @afterClose="handleEditAfterClose"
             @cancel="handleEditCancel"
-            @ok="submitEdit"
-            @afterClose="handleEditAfterClose">
+            @ok="submitEdit">
                 <a-form
                     v-if="editForm"
                     :layout="'vertical'"
@@ -217,7 +217,7 @@
             @close="onPermissionDrawerClose">
                 <template v-if="permissionRole">
                         <div class="mb-4 text-gray-600 text-sm">{{
-                                permissionRole.name
+                                        permissionRole.name
                                 }}（{{ permissionRole.code }}）
                         </div>
                         <div class="mb-3 p-2 bg-blue-50 rounded text-xs text-gray-600">
@@ -255,7 +255,7 @@
                                                                         <a-tag :bordered="false"
                                                                                :color="record.fromGroup ? 'blue' : 'green'">
                                                                                 {{
-                                                                                record.fromGroup ? '来自权限组' : '直接添加'
+                                                                                        record.fromGroup ? '来自权限组' : '直接添加'
                                                                                 }}
                                                                         </a-tag>
                                                                 </template>
@@ -382,7 +382,7 @@ import {usePermissionStore} from '../../../../stores/permission.js';
 import {usePermissionGroupStore} from '../../../../stores/permissiongroup.js';
 import logger from '../../../../utils/logger.js';
 import {buildPermissionTree, checkPermissionConflict, hasChildren} from '../../../../utils/permissionTree.js';
-import RoleDetailDrawer from './components/RoleDetailDrawer.vue';
+import RoleDetailDrawer from '../../../../components/Website/System/RoleDetailDrawer.vue';
 
 const roleStore = useRoleStore();
 const permissionStore = usePermissionStore();

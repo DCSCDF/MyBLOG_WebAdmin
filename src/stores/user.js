@@ -276,26 +276,16 @@ export const useUserStore = defineStore('user', () => {
 	 * @returns {Promise<boolean>}
 	 */
 	const updateUserStatus = async (id, status) => {
-		let result;
-
-		try {
-			const res = await userApi.updateStatus(id, {status});
-			if (res.success === true) {
-				logger.log('用户状态更新成功:', id, status);
-				result = true;
-			} else {
-				// API 响应失败，记录错误并返回 false
-				const errorMessage = res.errorMsg || '更新用户状态失败';
-				logger.error(errorMessage);
-				result = false;
-			}
-		} catch (error) {
-			// 处理网络错误或其他意外错误
-			logger.error('更新用户状态失败:', error);
-			result = false;
+		const res = await userApi.updateStatus(id, {status});
+		if (res.success === true) {
+			logger.log('用户状态更新成功:', id, status);
+			return true;
+		} else {
+			// API 响应失败，抛出错误让上层捕获
+			const errorMessage = res.errorMsg || '更新用户状态失败';
+			logger.error(errorMessage);
+			throw new Error(errorMessage);
 		}
-
-		return result;
 	};
 
 	/**
@@ -304,26 +294,16 @@ export const useUserStore = defineStore('user', () => {
 	 * @returns {Promise<boolean>}
 	 */
 	const deleteUser = async (id) => {
-		let result;
-
-		try {
-			const res = await userApi.delete(id);
-			if (res.success === true) {
-				logger.log('用户删除成功:', id);
-				result = true;
-			} else {
-				// API 响应失败，记录错误并返回 false
-				const errorMessage = res.errorMsg || '删除用户失败';
-				logger.error(errorMessage);
-				result = false;
-			}
-		} catch (error) {
-			// 处理网络错误或其他意外错误
-			logger.error('删除用户失败:', error);
-			result = false;
+		const res = await userApi.delete(id);
+		if (res.success === true) {
+			logger.log('用户删除成功:', id);
+			return true;
+		} else {
+			// API 响应失败，抛出错误让上层捕获
+			const errorMessage = res.errorMsg || '删除用户失败';
+			logger.error(errorMessage);
+			throw new Error(errorMessage);
 		}
-
-		return result;
 	};
 
 	/**

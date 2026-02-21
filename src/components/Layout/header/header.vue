@@ -34,7 +34,7 @@
                                     class="flex rounded-lg transition-colors py-1.5 px-2 hover:bg-gray-200/50"
                                 >
                                         <div class="flex-shrink-0">
-                                                <a-avatar :size="28" :src="profile.avatarUrl">
+                                                <a-avatar :size="32" :src="profile.avatarUrl">
                                                         {{ (profile.nickname || '昵称').charAt(0) }}
                                                 </a-avatar>
                                         </div>

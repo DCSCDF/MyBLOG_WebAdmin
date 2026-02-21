@@ -55,4 +55,30 @@ img, svg, video, canvas, audio, iframe, embed, object {
     background: rgba(155, 155, 155, 0.7);
 }
 
+/* 响应式表格容器样式 */
+.table-wrapper {
+    /* 确保容器不会超出其父元素 */
+    max-width: 100%;
+    width: 100%;
+}
+
+/* 表格内部滚动优化 */
+.table-wrapper ::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-wrapper ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.table-wrapper ::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.table-wrapper ::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
 

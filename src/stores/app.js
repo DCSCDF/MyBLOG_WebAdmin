@@ -26,8 +26,8 @@ export const useAppStore = defineStore('app', () => {
 	const sidebarCollapsed = ref(false);
 	const mobileSidebarOpen = ref(false);
 
-	// 设备检测
-	const isMobile = ref(window.innerWidth < 768);
+	// 设备检测 - LG断点为1024px
+	const isMobile = ref(window.innerWidth < 1024);
 
 	// 主题设置 (暂未使用)
 	// const theme = ref('light'); // 'light' | 'dark'
@@ -80,7 +80,7 @@ export const useAppStore = defineStore('app', () => {
 	 * 更新设备状态
 	 */
 	const updateDeviceStatus = () => {
-		const newIsMobile = window.innerWidth < 768;
+		const newIsMobile = window.innerWidth < 1024;
 
 		// 只有当状态真正改变时才更新和记录日志
 		if (isMobile.value !== newIsMobile) {

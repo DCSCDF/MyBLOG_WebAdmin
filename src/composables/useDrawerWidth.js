@@ -24,7 +24,7 @@ import {computed, onMounted, onUnmounted, ref} from 'vue';
  */
 export function useDrawerWidth() {
 	const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1024);
-	const drawerWidth = computed(() => (windowWidth.value < 768 ? 350 : 600));
+	const drawerWidth = computed(() => (windowWidth.value < 1024 ? 350 : 600));
 
 	function handleResize() {
 		windowWidth.value = window.innerWidth;
