@@ -88,8 +88,14 @@
                                                 </div>
                                                 <div class="w-full">
                                                         <a-input-group class="max-w-md !px-0 !flex" compact>
-                                                                <a-date-picker disabled picker="month"/>
+                                                                <a-date-picker
+                                                                    :value="userProfile.createTime ? dayjs(userProfile.createTime) : null"
+                                                                    disabled
+                                                                    format="YYYY-MM-DD HH:mm:ss"
+                                                                    picker="date"
+                                                                />
                                                         </a-input-group>
+
                                                         <div
                                                             class="text-xs text-gray-400 mt-1"
                                                             style="border-inline-end-width: 0 !important;">
@@ -246,6 +252,7 @@ import RsaEncryptor from '../../../utils/RsaUtils.js';
 import {useRouter} from 'vue-router';
 import {useDrawerWidth} from '../../../composables/useDrawerWidth.js';
 import {SettingOutlined} from '@ant-design/icons-vue';
+import dayjs from 'dayjs';
 
 const authStore = useAuthStore();
 const router = useRouter();

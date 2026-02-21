@@ -249,17 +249,19 @@ const updateSelectedKeys = () => {
 
 // 处理菜单展开/收起变化
 const handleOpenChange = (newOpenKeys) => {
+        let openKeysToUpdate = newOpenKeys;
+        let preOpenKeysToUpdate = newOpenKeys;
+        
         // 移动端或折叠状态下直接使用新的 openKeys
-        if (isMobile.value || props.collapsed) {
-                state.openKeys = newOpenKeys;
-                state.preOpenKeys = newOpenKeys;
-                return;
+        if (!(isMobile.value || props.collapsed)) {
+                // 桌面端展开状态：允许用户自由控制菜单展开/收起
+                // 不强制保持选中项父级展开，让用户可以手动折叠任何菜单
+                openKeysToUpdate = newOpenKeys;
+                preOpenKeysToUpdate = newOpenKeys;
         }
         
-        // 桌面端展开状态：允许用户自由控制菜单展开/收起
-        // 不强制保持选中项父级展开，让用户可以手动折叠任何菜单
-        state.openKeys = newOpenKeys;
-        state.preOpenKeys = newOpenKeys;
+        state.openKeys = openKeysToUpdate;
+        state.preOpenKeys = preOpenKeysToUpdate;
 };
 
 // 处理菜单点击事件

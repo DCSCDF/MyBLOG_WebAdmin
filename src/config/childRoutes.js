@@ -202,9 +202,9 @@ export const childRoutes = [
 				key: 'sub3_3',
 				label: '站点配置',
 				title: '站点配置',
-				route: '/user/website/SiteInfo',
-				path: '/user/website/SiteInfo',
-				name: 'SiteInfo',
+				route: '/user/website/siteInfo',
+				path: '/user/website/siteInfo',
+				name: 'siteInfo',
 				component: () => import('../pages/User/Website/System/WebsiteSetting.vue'),
 				meta: {title: '站点配置'},
 				description: '设置网站名称、备案号等基本信息'
