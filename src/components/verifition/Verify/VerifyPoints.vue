@@ -26,9 +26,10 @@
                                         <i class="iconfont icon-refresh"></i>
                                 </div>
                                 <img ref="canvas"
-                                     :src="'data:image/png;base64,'+pointBackImgBase"
+                                     :src="pointBackImgSrc"
                                      alt="" style="width:100%;height:100%;display:block"
-                                     @click="bindingClick?canvasClick($event):undefined">
+                                     @click="bindingClick?canvasClick($event):undefined"
+                                     @error="onPointImgError">
 
                                 <div v-for="(tempPoint, index) in tempPoints" :key="index" :style="{
                         'background-color':'#1abd6c',
@@ -67,7 +68,9 @@ import {resetSize} from './../utils/util'
 import {aesEncrypt} from "./../utils/ase"
 import {reqCheck, reqGet} from "../../../api/user/auth/captchaApi.js"
 import logger from '../../../utils/logger.js'
-import {getCurrentInstance, nextTick, onMounted, reactive, ref, toRefs} from 'vue';
+import {DEFAULT_CAPTCHA_IMAGE_PLACEHOLDER} from '../utils/captchaDefaults.js'
+import {message} from 'ant-design-vue'
+import {computed, getCurrentInstance, nextTick, onMounted, reactive, ref, toRefs} from 'vue';
 
 export default {
         name: 'VerifyPoints',
@@ -126,7 +129,8 @@ export default {
                     barAreaColor = ref(undefined),
                     barAreaBorderColor = ref(undefined),
                     showRefresh = ref(true),
-                    bindingClick = ref(true)
+                    bindingClick = ref(true),
+                    lastGetTime = ref(0)
 
 
                 const init = () => {
@@ -145,13 +149,24 @@ export default {
                         })
                 }
                 onMounted(() => {
-                        // 禁止拖拽
                         init()
                         proxy.$el.onselectstart = function () {
                                 return false
                         }
                 })
                 const canvas = ref(null)
+
+                const pointBackImgSrc = computed(() => {
+                        const v = pointBackImgBase.value
+                        if (!v) return DEFAULT_CAPTCHA_IMAGE_PLACEHOLDER
+                        return v.startsWith('data:') ? v : 'data:image/png;base64,' + v
+                })
+                const setDefaultPointImage = () => {
+                        pointBackImgBase.value = DEFAULT_CAPTCHA_IMAGE_PLACEHOLDER
+                }
+                const onPointImgError = () => {
+                        setDefaultPointImage()
+                }
                 const canvasClick = (e) => {
                         checkPosArr.push(getMousePos(canvas, e));
                         if (num.value == checkNum.value) {
@@ -230,18 +245,23 @@ export default {
                         showRefresh.value = true
                 }
 
-                // 请求背景图片和验证图片
+                // 请求背景图片和验证图片（带防抖，避免 429）
                 function getPictrue() {
-                        let data = {
-                                captchaType: captchaType.value
-                        }
+                        const now = Date.now()
+                        // if (now - lastGetTime.value < CAPTCHA_GET_MIN_INTERVAL_MS) {
+                        //         const msg = '请求过于频繁，请稍后再试'
+                        //         text.value = msg
+                        //         message.warning(msg)
+                        //         setDefaultPointImage()
+                        //         return
+                        // }
+                        lastGetTime.value = now
+
+                        const data = {captchaType: captchaType.value}
                         reqGet(data).then(response => {
-                                // 注意：由于响应拦截器已经处理了数据结构，
-                                // 实际的数据在 response.data 中
-                                const res = response.data || response;
+                                const res = response.data || response
 
                                 if (res.repCode == "0000") {
-                                        // 检查关键字段是否存在且不为null
                                         if (!res.repData ||
                                             !res.repData.originalImageBase64 ||
                                             !res.repData.token ||
@@ -249,22 +269,26 @@ export default {
                                             !res.repData.wordList ||
                                             !Array.isArray(res.repData.wordList) ||
                                             res.repData.wordList.length === 0) {
-                                                text.value = "验证码数据不完整，请刷新重试";
-                                                logger.error('点选验证码数据缺失:', res);
-                                                return;
+                                                text.value = "验证码数据不完整，请刷新重试"
+                                                logger.error('点选验证码数据缺失:', res)
+                                                setDefaultPointImage()
+                                                return
                                         }
-
                                         pointBackImgBase.value = res.repData.originalImageBase64
                                         backToken.value = res.repData.token
                                         secretKey.value = res.repData.secretKey
                                         poinTextList.value = res.repData.wordList
                                         text.value = '请依次点击【' + poinTextList.value.join(",") + '】'
                                 } else {
-                                        text.value = res.repMsg || "获取验证码失败";
+                                        text.value = res.repMsg || "获取验证码失败"
+                                        setDefaultPointImage()
                                 }
                         }).catch(error => {
-                                text.value = "网络请求失败，请检查网络连接";
-                                logger.error('获取点选验证码图片失败:', error);
+                                const msg = error && error.message ? error.message : '网络请求失败，请检查网络连接'
+                                text.value = msg
+                                message.warning(msg)
+                                logger.error('获取点选验证码图片失败:', error)
+                                setDefaultPointImage()
                         })
                 }
 
@@ -284,6 +308,8 @@ export default {
                         checkPosArr,
                         num,
                         pointBackImgBase,
+                        pointBackImgSrc,
+                        onPointImgError,
                         poinTextList,
                         backToken,
                         setSize,

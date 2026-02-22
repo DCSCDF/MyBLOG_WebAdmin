@@ -25,7 +25,6 @@
  * request.post('/api/user/login', data).then(res => {...});
  */
 import axios from 'axios';
-import {handleAjCaptchaResponse} from '../config/captchaInterceptor.js'; // 导入验证码响应处理函数
 import {handleApi} from '../config/apiInterceptor.js';
 import {useAuthStore} from '../stores/auth.js';
 // 使用环境变量设置请求的基础URL，支持不同环境下的API地址配置
@@ -79,12 +78,7 @@ service.interceptors.response.use(
 	    let errorObj = null;
 
 	    // 提取响应中的数据
-	    const {data, success, errorMsg, code, repCode} = response.data;
-
-	    // 处理验证码响应码（保持原有逻辑）
-	    if (repCode) {
-		    handleAjCaptchaResponse(repCode);
-	    }
+	    const {data, success, errorMsg, code} = response.data;
 
 	    // 根据新的统一返回格式处理响应
 	    if (success === false) {

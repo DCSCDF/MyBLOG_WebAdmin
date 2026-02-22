@@ -20,8 +20,8 @@
                 >
                         <div :style="{width: setSize.imgWidth,
                                                    height: setSize.imgHeight,}" class="verify-img-panel">
-                                <img :src="'data:image/png;base64,'+backImgBase" alt=""
-                                     style="width:100%;height:100%;display:block">
+                                <img :src="backImgSrc" alt=""
+                                     style="width:100%;height:100%;display:block" @error="onBackImgError">
                                 <div v-show="showRefresh" class="verify-refresh" @click="refresh"><i
                                     class="iconfont icon-refresh"></i>
                                 </div>
@@ -54,8 +54,9 @@
                                   'background-size': setSize.imgWidth + ' ' + setSize.imgHeight,
                                   }"
                                              class="verify-sub-block">
-                                                <img :src="'data:image/png;base64,'+blockBackImgBase" alt=""
-                                                     style="width:100%;height:100%;display:block;-webkit-user-drag:none;">
+                                                <img :src="blockImgSrc" alt=""
+                                                     style="width:100%;height:100%;display:block;-webkit-user-drag:none;"
+                                                     @error="onBlockImgError">
                                         </div>
                                 </div>
                         </div>
@@ -71,6 +72,8 @@ import {aesEncrypt} from "./../utils/ase"
 import {resetSize} from './../utils/util'
 import {reqCheck, reqGet} from "../../../api/user/auth/captchaApi.js"
 import logger from '../../../utils/logger.js'
+import {DEFAULT_CAPTCHA_BLOCK_PLACEHOLDER, DEFAULT_CAPTCHA_IMAGE_PLACEHOLDER} from '../utils/captchaDefaults.js'
+import {message} from 'ant-design-vue'
 import {computed, getCurrentInstance, nextTick, onMounted, reactive, ref, toRefs, watch} from 'vue';
 //  "captchaType":"blockPuzzle",
 export default {
@@ -156,6 +159,7 @@ export default {
                     status = ref(false),	    //鼠标状态
                     isEnd = ref(false),		//是够验证完成
                     showRefresh = ref(true),
+                    lastGetTime = ref(0),    // 上次请求 get 的时间，用于防抖 429
                     transitionLeft = ref(''),
                     transitionWidth = ref(''),
                     startLeft = ref(0)
@@ -163,6 +167,28 @@ export default {
                 const barArea = computed(() => {
                         return proxy.$el.querySelector('.verify-bar-area')
                 })
+
+                const backImgSrc = computed(() => {
+                        const v = backImgBase.value
+                        if (!v) return DEFAULT_CAPTCHA_IMAGE_PLACEHOLDER
+                        return v.startsWith('data:') ? v : 'data:image/png;base64,' + v
+                })
+                const blockImgSrc = computed(() => {
+                        const v = blockBackImgBase.value
+                        if (!v) return DEFAULT_CAPTCHA_BLOCK_PLACEHOLDER
+                        return v.startsWith('data:') ? v : 'data:image/png;base64,' + v
+                })
+
+                const setDefaultImages = () => {
+                        backImgBase.value = DEFAULT_CAPTCHA_IMAGE_PLACEHOLDER
+                        blockBackImgBase.value = '' // 滑块块用空串即可，blockImgSrc 会走透明占位图
+                }
+                const onBackImgError = () => {
+                        setDefaultImages()
+                }
+                const onBlockImgError = () => {
+                        setDefaultImages()
+                }
 
                 function init() {
                         text.value = explain.value
@@ -248,16 +274,14 @@ export default {
                                         var x = e.touches[0].pageX;
                                 }
                                 var bar_area_left = barArea.value.getBoundingClientRect().left;
-                                var move_block_left = x - bar_area_left //小方块相对于父元素的left值
-                                if (move_block_left >= barArea.value.offsetWidth - parseInt(parseInt(blockSize.value.width) / 2) - 2) {
-                                        move_block_left = barArea.value.offsetWidth - parseInt(parseInt(blockSize.value.width) / 2) - 2;
-                                }
-                                if (move_block_left <= 0) {
-                                        move_block_left = parseInt(parseInt(blockSize.value.width) / 2);
-                                }
-                                //拖动后小方块的left值
-                                moveBlockLeft.value = (move_block_left - startLeft.value) + "px"
-                                leftBarWidth.value = (move_block_left - startLeft.value) + "px"
+                                var cursorLeft = x - bar_area_left // 光标相对于滑槽的 left
+                                var barWidth = barArea.value.offsetWidth
+                                var blockW = parseInt(blockSize.value.width, 10) || parseInt(barSize.value.height, 10)
+                                // 用真实光标位置算位移，再限制在 [0, 最大右移]：向左拖不会出现负值，避免误触发校验
+                                var delta = cursorLeft - startLeft.value
+                                var clamped = Math.max(0, Math.min(barWidth - blockW, delta))
+                                moveBlockLeft.value = clamped + "px"
+                                leftBarWidth.value = clamped + "px"
                         }
                 }
 
@@ -266,8 +290,13 @@ export default {
                         endMovetime.value = +new Date();
                         //判断是否重合
                         if (status.value && isEnd.value == false) {
-                                var moveLeftDistance = parseInt((moveBlockLeft.value || '').replace('px', ''));
-                                moveLeftDistance = moveLeftDistance * 310 / parseInt(setSize.imgWidth)
+                                var moveLeftDistance = parseInt((moveBlockLeft.value || '').replace('px', ''), 10) || 0;
+                                moveLeftDistance = moveLeftDistance * 310 / parseInt(setSize.imgWidth, 10)
+                                // 未向右滑动或滑动距离过小则不提交校验，避免向左轻滑误触发
+                                if (moveLeftDistance <= 0) {
+                                        status.value = false
+                                        return
+                                }
                                 let data = {
                                         captchaType: captchaType.value,
                                         "pointJson": secretKey.value ? aesEncrypt(JSON.stringify({
@@ -364,46 +393,59 @@ export default {
                         }, 300)
                 }
 
-                // 请求背景图片和验证图片
+                // 请求背景图片和验证图片（带防抖，避免 429）
                 function getPictrue() {
-                        let data = {
-                                captchaType: captchaType.value
-                        }
+                        const now = Date.now()
+                        // if (now - lastGetTime.value < CAPTCHA_GET_MIN_INTERVAL_MS) {
+                        //         const msg = '请求过于频繁，请稍后再试'
+                        //         tipWords.value = msg
+                        //         message.warning(msg)
+                        //         setDefaultImages()
+                        //         return
+                        // }
+                        lastGetTime.value = now
+
+                        const data = {captchaType: captchaType.value}
                         reqGet(data).then(response => {
-                                // 注意：由于响应拦截器已经处理了数据结构，
-                                // 实际的数据在 response.data 中
-                                const res = response.data || response;
+                                const res = response.data || response
 
                                 if (res.repCode == "0000") {
-                                        // 检查关键字段是否存在且不为null
                                         if (!res.repData ||
                                             !res.repData.originalImageBase64 ||
                                             !res.repData.jigsawImageBase64 ||
                                             !res.repData.token ||
                                             !res.repData.secretKey) {
-                                                tipWords.value = "验证码数据不完整，请刷新重试";
-                                                logger.error('验证码数据缺失:', res);
-                                                return;
+                                                tipWords.value = "验证码数据不完整，请刷新重试"
+                                                logger.error('验证码数据缺失:', res)
+                                                setDefaultImages()
+                                                return
                                         }
-
                                         backImgBase.value = res.repData.originalImageBase64
                                         blockBackImgBase.value = res.repData.jigsawImageBase64
                                         backToken.value = res.repData.token
                                         secretKey.value = res.repData.secretKey
                                 } else {
-                                        tipWords.value = res.repMsg || "获取验证码失败";
+                                        tipWords.value = res.repMsg || "获取验证码失败"
+                                        setDefaultImages()
                                 }
                         }).catch(error => {
-                                tipWords.value = "网络请求失败，请检查网络连接";
-                                logger.error('获取验证码图片失败:', error);
+                                const msg = error && error.message ? error.message : '网络请求失败，请检查网络连接'
+                                tipWords.value = msg
+                                message.warning(msg)
+                                logger.error('获取验证码图片失败:', error)
+                                setDefaultImages()
                         })
                 }
 
                 return {
-                        secretKey,           //后端返回的ase加密秘钥
-                        passFlag,         //是否通过的标识
-                        backImgBase,      //验证码背景图片
-                        blockBackImgBase, //验证滑块的背景图片
+                        secretKey,
+                        passFlag,
+                        backImgBase,
+                        blockBackImgBase,
+                        backImgSrc,
+                        blockImgSrc,
+                        onBackImgError,
+                        onBlockImgError,
                         backToken,        //后端返回的唯一token值
                         startMoveTime,    //移动开始的时间
                         endMovetime,      //移动结束的时间
