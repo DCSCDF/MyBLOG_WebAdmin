@@ -57,7 +57,6 @@ export const childRoutes = [
 		icon: () => h(FileTextOutlined),
 		label: '文章',
 		title: '文章',
-		route: '/user/article/create',
 		path: '/article',
 		children: [
 			{
@@ -67,7 +66,7 @@ export const childRoutes = [
 				route: '/user/article/create',
 				path: '/user/article/create',
 				name: 'articlecreate',
-				component: () => import('../pages/User/Dashboard/Dashboard.vue'),
+				component: () => import('../pages/User/Article/NewArticle.vue'),
 				meta: {title: '新建文章'},
 				description: '撰写并发布新的博客文章'
 			},
@@ -78,7 +77,7 @@ export const childRoutes = [
 				route: '/user/article/manage',
 				path: '/user/article/manage',
 				name: 'articlemanage',
-				component: () => import('../pages/User/Dashboard/Dashboard.vue'),
+				component: () => import('../pages/User/Article/ListArticle.vue'),
 				meta: {title: '管理文章'},
 				description: '编辑、删除或查看已发布的文章'
 			},
@@ -92,7 +91,7 @@ export const childRoutes = [
 		route: '/user/category',
 		path: '/user/category',
 		name: 'category',
-		component: () => import('../pages/User/Dashboard/Dashboard.vue'),
+		component: () => import('../pages/User/Category/Category.vue'),
 		meta: {title: '分类'},
 		description: '管理文章的分类标签体系'
 	},
@@ -104,7 +103,7 @@ export const childRoutes = [
 		route: '/user/message',
 		path: '/user/message',
 		name: 'message',
-		component: () => import('../pages/User/Dashboard/Dashboard.vue'),
+		component: () => import('../pages/User/Message/Message.vue'),
 		meta: {title: '留言'},
 		description: '查看和回复访客留言'
 	},
