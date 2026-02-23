@@ -108,6 +108,18 @@ export const childRoutes = [
 		description: '查看和回复访客留言'
 	},
 	{
+		key: '5',
+		icon: () => h(MessageOutlined),
+		label: '外链',
+		title: '外链',
+		route: '/user/links',
+		path: '/user/links',
+		name: 'links',
+		component: () => import('../pages/User/Links/LinksSetting.vue'),
+		meta: {title: '外链'},
+		description: '网站的友情链接/外部链接'
+	},
+	{
 		key: 'sub2',
 		icon: () => h(SettingOutlined),
 		label: '设置',

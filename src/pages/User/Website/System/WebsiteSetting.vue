@@ -23,11 +23,10 @@
                                     :items="items"
                                     :mode="menuMode"
                                     :open-keys="state.openKeys"
-                                    class="w-full h-full"
+                                    class=" h-full"
                                     @click="handleMenuClick"
                                     @openChange="onOpenChange"
-
-                                ></a-menu>
+                                />
                         </div>
 
                         <!-- 右侧内容区域 -->
