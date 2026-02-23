@@ -73,7 +73,7 @@
 <script setup>
 import {computed} from 'vue';
 import {formatDate} from '../../../utils/formatDate.js';
-import {useDrawerWidth} from '../../../composables/useDrawerWidth.js';
+import {useDrawerWidth} from '../../../utils/useDrawerWidth.js';
 
 const props = defineProps({
         open: {type: Boolean, default: false},

@@ -332,7 +332,7 @@
 import {computed, onMounted, ref, watch} from 'vue';
 import {SearchOutlined} from '@ant-design/icons-vue';
 import {message} from 'ant-design-vue';
-import {useDrawerWidth} from '../../../composables/useDrawerWidth.js';
+import {useDrawerWidth} from '../../../utils/useDrawerWidth.js';
 import {usePermissionGroupStore} from '../../../stores/permissiongroup.js';
 import {usePermissionStore} from '../../../stores/permission.js';
 import {formatDate} from '../../../utils/formatDate.js';

@@ -19,6 +19,7 @@
                         <a-image
                             :height="150"
                             :preview="false"
+                            :src="currentAvatarUrl"
                             :width="150"
                             class="rounded-md border-4 border-gray-200 transition-all duration-300 hover:border-blue-400 hover:scale-105"
                             fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ
@@ -47,9 +48,8 @@
                                     MNNSdAhJyNSiECRCjUbEPNCRAhZ6NSiAARCjXbUHMCRMjZqBQiQIRCzTbUnAARcjYqhQgQoVCzDTUnQIScjUohAkQo1GxDzQkQIWejUogAEQo121
                                     BzAkTI2agUIkCEQs021JwAEXI2KoUIEKFQsw01J0CEnI1KIQJEKNRsQ80JECFno1KIABEKNdtQcwJEyNmoFCJAhELNNtScABFyNiqFCBChULMNNSdAhJyNSi
                                     EC/wGgKKC4YMA4TAAAAABJRU5ErkJggg=="
-                            :src="currentAvatarUrl"
                         />
-                        <a-divider />
+                        <a-divider/>
                         <a-button
                             type="primary"
                             @click="openAvatarDrawer">
@@ -87,8 +87,8 @@
                                                 取消
                                         </a-button>
                                         <a-button
-                                            type="primary"
                                             :loading="avatarSubmitting"
+                                            type="primary"
                                             @click="handleAvatarSubmit"
                                         >
                                                 保存
@@ -104,7 +104,7 @@ import {computed, ref} from 'vue';
 import {message} from 'ant-design-vue';
 import {useAuthStore} from '../../../stores/auth.js';
 import {authApi} from '../../../api/user/auth/authApi.js';
-import {useDrawerWidth} from '../../../composables/useDrawerWidth.js';
+import {useDrawerWidth} from '../../../utils/useDrawerWidth.js';
 
 const authStore = useAuthStore();
 const {drawerWidth} = useDrawerWidth();
@@ -174,9 +174,9 @@ function handleAvatarCancel() {
 
 async function handleAvatarSubmit() {
         let result = null;
-        
+
         if (!avatarFormRef.value) {
-                result = { success: false, error: '表单引用不存在' };
+                result = {success: false, error: '表单引用不存在'};
         } else {
                 try {
                         avatarSubmitting.value = true;
@@ -198,17 +198,17 @@ async function handleAvatarSubmit() {
                         });
 
                         avatarDrawerVisible.value = false;
-                        result = { success: true };
+                        result = {success: true};
                 } catch (e) {
                         if (e instanceof Error) {
                                 message.error(e.message || '头像修改失败');
                         }
-                        result = { success: false, error: e.message || '头像修改失败' };
+                        result = {success: false, error: e.message || '头像修改失败'};
                 } finally {
                         avatarSubmitting.value = false;
                 }
         }
-        
+
         return result;
 }
 </script>

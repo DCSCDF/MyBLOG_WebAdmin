@@ -249,7 +249,7 @@ import {computed, onMounted, reactive, ref} from 'vue';
 import {message} from 'ant-design-vue';
 import {SettingOutlined} from '@ant-design/icons-vue';
 import {configApi} from '../../../api/system/configApi.js';
-import {useDrawerWidth} from '../../../composables/useDrawerWidth.js';
+import {useDrawerWidth} from '../../../utils/useDrawerWidth.js';
 
 const {drawerWidth} = useDrawerWidth();
 
@@ -460,7 +460,7 @@ function updateFormData(configValue) {
 
 async function handleEditSubmit() {
         let isValid = canSubmit();
-        
+
         if (isValid) {
                 try {
                         editSubmitting.value = true;

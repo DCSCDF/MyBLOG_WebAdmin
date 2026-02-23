@@ -33,7 +33,8 @@
                                                         </div>
                                                         <div class="w-full">
                                                                 <a-input-group class="max-w-md !px-0 !flex" compact>
-                                                                        <a-input v-model:value="form.siteName" disabled/>
+                                                                        <a-input v-model:value="form.siteName"
+                                                                                 disabled/>
                                                                         <a-button class="!text-gray-600"
                                                                                   @click="openEditDrawer('siteName')">
                                                                                 <SettingOutlined/>
@@ -57,8 +58,8 @@
                                                         <div class="w-full">
                                                                 <a-input-group class="max-w-md !px-0 !flex" compact>
                                                                         <a-input v-model:value="form.domain"
-                                                                                 placeholder="myblog.com"
-                                                                                 disabled/>
+                                                                                 disabled
+                                                                                 placeholder="myblog.com"/>
                                                                         <a-button class="!text-gray-600"
                                                                                   @click="openEditDrawer('domain')">
                                                                                 <SettingOutlined/>
@@ -78,8 +79,8 @@
                                                                 <a-input-group class="max-w-md !px-0" compact>
                                                                         <a-textarea v-model:value="form.description"
                                                                                     :rows="3"
-                                                                                    placeholder="请输入网站描述"
-                                                                                    disabled/>
+                                                                                    disabled
+                                                                                    placeholder="请输入网站描述"/>
                                                                 </a-input-group>
                                                                 <div class="mt-2">
                                                                         <a-button class="!text-gray-600"
@@ -100,10 +101,10 @@
                                                         <div class="w-full">
                                                                 <a-input-group class="max-w-md !px-0 !flex" compact>
                                                                         <a-input v-model:value="form.icp"
-                                                                                 placeholder="请输入备案号"
-                                                                                 disabled/>
+                                                                                 disabled
+                                                                                 placeholder="请输入备案号"/>
                                                                         <a-button class="!text-gray-600"
-                                                                                 @click="openEditDrawer('icp')">
+                                                                                  @click="openEditDrawer('icp')">
                                                                                 <SettingOutlined/>
                                                                                 修改
                                                                         </a-button>
@@ -161,7 +162,7 @@ import {computed, onMounted, reactive, ref} from 'vue';
 import {message} from 'ant-design-vue';
 import {SettingOutlined} from '@ant-design/icons-vue';
 import {configApi} from '../../../api/system/configApi.js';
-import {useDrawerWidth} from '../../../composables/useDrawerWidth.js';
+import {useDrawerWidth} from '../../../utils/useDrawerWidth.js';
 
 const {drawerWidth} = useDrawerWidth();
 
@@ -241,22 +242,22 @@ const editRules = computed(() => {
 function loadSystemConfig() {
         loading.value = true;
         configApi
-                .systemList({keys: BASIC_KEYS})
-                .then((res) => {
-                        const list = res?.data || [];
-                        list.forEach((item) => {
-                                const field = KEY_TO_FIELD[item.configKey];
-                                if (field && form.hasOwnProperty(field)) {
-                                        form[field] = item.configValue ?? '';
-                                }
-                        });
-                })
-                .catch((e) => {
-                        message.error(e?.message || '加载网站基本设置失败');
-                })
-                .finally(() => {
-                        loading.value = false;
-                });
+            .systemList({keys: BASIC_KEYS})
+            .then((res) => {
+                    const list = res?.data || [];
+                    list.forEach((item) => {
+                            const field = KEY_TO_FIELD[item.configKey];
+                            if (field && form.hasOwnProperty(field)) {
+                                    form[field] = item.configValue ?? '';
+                            }
+                    });
+            })
+            .catch((e) => {
+                    message.error(e?.message || '加载网站基本设置失败');
+            })
+            .finally(() => {
+                    loading.value = false;
+            });
 }
 
 function openEditDrawer(field) {

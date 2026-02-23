@@ -250,7 +250,7 @@ import {useAuthStore} from '../../../stores/auth.js';
 import {authApi} from '../../../api/user/auth/authApi.js';
 import RsaEncryptor from '../../../utils/RsaUtils.js';
 import {useRouter} from 'vue-router';
-import {useDrawerWidth} from '../../../composables/useDrawerWidth.js';
+import {useDrawerWidth} from '../../../utils/useDrawerWidth.js';
 import {SettingOutlined} from '@ant-design/icons-vue';
 import dayjs from 'dayjs';
 

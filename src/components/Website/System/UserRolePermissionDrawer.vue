@@ -51,14 +51,14 @@
                                                         <div>
                                                                 <div class="flex items-center gap-2">
                                                                         <h3 class="font-semibold text-base">{{
-                                                                                role.name
+                                                                                        role.name
                                                                                 }}</h3>
                                                                         <a-tag v-if="isSuperAdminRole(role)"
                                                                                :bordered="false" color="red">超级管理员
                                                                         </a-tag>
                                                                 </div>
                                                                 <p class="text-xs text-gray-500 mt-1">{{
-                                                                        role.code
+                                                                                role.code
                                                                         }}</p>
                                                                 <p v-if="role.description"
                                                                    class="text-xs text-gray-400 mt-1">
@@ -131,8 +131,8 @@
                                                                                         <a-tag :bordered="false"
                                                                                                :color="record.fromGroup ? 'blue' : 'green'">
                                                                                                 {{
-                                                                                                record.fromGroup ?
-                                                                                                '来自权限组' : '直接添加'
+                                                                                                        record.fromGroup ?
+                                                                                                            '来自权限组' : '直接添加'
                                                                                                 }}
                                                                                         </a-tag>
                                                                                 </template>
@@ -149,7 +149,7 @@
 
 <script setup>
 import {computed, ref, watch} from 'vue';
-import {useDrawerWidth} from '../../../composables/useDrawerWidth.js';
+import {useDrawerWidth} from '../../../utils/useDrawerWidth.js';
 import {isSuperAdminRole, useRoleStore} from '../../../stores/role.js';
 import {usePermissionGroupStore} from '../../../stores/permissiongroup.js';
 import logger from '../../../utils/logger.js';

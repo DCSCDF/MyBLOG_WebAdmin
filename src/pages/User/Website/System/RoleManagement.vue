@@ -376,7 +376,7 @@
 import {computed, ref, watch} from 'vue';
 import {message} from 'ant-design-vue';
 import {InfoCircleOutlined, SearchOutlined} from '@ant-design/icons-vue';
-import {useDrawerWidth} from '../../../../composables/useDrawerWidth.js';
+import {useDrawerWidth} from '../../../../utils/useDrawerWidth.js';
 import {useRoleStore} from '../../../../stores/role.js';
 import {usePermissionStore} from '../../../../stores/permission.js';
 import {usePermissionGroupStore} from '../../../../stores/permissiongroup.js';
