@@ -20,7 +20,7 @@
  * - VITE_API_BASE_URL: API请求的基础URL地址
  *
  * 使用：
- * import request from '@/utils/request';
+ * import request from '@/VerifyUtils/request';
  * request.get('/api/user/info').then(res => {...});
  * request.post('/api/user/login', data).then(res => {...});
  */

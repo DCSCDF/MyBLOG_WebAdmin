@@ -23,7 +23,7 @@
  * - import.meta.env.MODE: 当前运行环境 (development/production/test)
  *
  * 使用：
- * import logger from '@/utils/logger';
+ * import logger from '@/VerifyUtils/logger';
  * logger.log('普通日志');
  * logger.warn('警告信息');
  * logger.error('错误信息');
@@ -40,7 +40,7 @@ const logEnvironmentInfo = () => {
 
 
 const logger = {
-	
+
 	/**
 	 * 输出当前环境信息
 	 * 显示运行模式、日志配置、API地址等关键信息

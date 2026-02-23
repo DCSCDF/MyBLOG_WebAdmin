@@ -64,13 +64,13 @@
  * VerifyPoints
  * @description 点选
  * */
-import {resetSize} from './../utils/util'
-import {aesEncrypt} from "./../utils/ase"
+import {resetSize, createResponsiveResizer} from '../../../utils/VerifyUtils/util'
+import {aesEncrypt} from "../../../utils/VerifyUtils/ase"
 import {reqCheck, reqGet} from "../../../api/user/auth/captchaApi.js"
 import logger from '../../../utils/logger.js'
-import {DEFAULT_CAPTCHA_IMAGE_PLACEHOLDER} from '../utils/captchaDefaults.js'
+import {DEFAULT_CAPTCHA_IMAGE_PLACEHOLDER} from '../../../utils/VerifyUtils/captchaDefaults.js'
 import {message} from 'ant-design-vue'
-import {computed, getCurrentInstance, nextTick, onMounted, reactive, ref, toRefs} from 'vue';
+import {computed, getCurrentInstance, nextTick, onMounted, onBeforeUnmount, onUnmounted, reactive, ref, toRefs} from 'vue';
 
 export default {
         name: 'VerifyPoints',
@@ -130,7 +130,8 @@ export default {
                     barAreaBorderColor = ref(undefined),
                     showRefresh = ref(true),
                     bindingClick = ref(true),
-                    lastGetTime = ref(0)
+                    lastGetTime = ref(0),
+                    cleanupResizer = null      // 响应式调整器清理函数
 
 
                 const init = () => {
@@ -138,6 +139,7 @@ export default {
                         fontPos.splice(0, fontPos.length)
                         checkPosArr.splice(0, checkPosArr.length)
                         num.value = 1
+                        tempPoints.splice(0, tempPoints.length)
                         getPictrue();
                         nextTick(() => {
                                 let {imgHeight, imgWidth, barHeight, barWidth} = resetSize(proxy)
@@ -145,6 +147,23 @@ export default {
                                 setSize.imgWidth = imgWidth
                                 setSize.barHeight = barHeight
                                 setSize.barWidth = barWidth
+                                
+                                // 创建响应式尺寸调整器
+                                if (cleanupResizer) {
+                                        cleanupResizer();
+                                }
+                                cleanupResizer = createResponsiveResizer(proxy, (newSize) => {
+                                        setSize.imgHeight = newSize.imgHeight;
+                                        setSize.imgWidth = newSize.imgWidth;
+                                        setSize.barHeight = newSize.barHeight;
+                                        setSize.barWidth = newSize.barWidth;
+                                        
+                                        // 清除已点击的点，因为尺寸改变了
+                                        tempPoints.splice(0, tempPoints.length);
+                                        checkPosArr.splice(0, checkPosArr.length);
+                                        num.value = 1;
+                                });
+                                
                                 proxy.$parent.$emit('ready', proxy)
                         })
                 }
@@ -154,6 +173,18 @@ export default {
                                 return false
                         }
                 })
+                
+                // 组件卸载时清理资源
+                const cleanup = () => {
+                        if (cleanupResizer) {
+                                cleanupResizer();
+                                cleanupResizer = null;
+                        }
+                };
+                
+                // 监听组件卸载
+                onBeforeUnmount(cleanup);
+                onUnmounted(cleanup);
                 const canvas = ref(null)
 
                 const pointBackImgSrc = computed(() => {

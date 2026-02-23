@@ -68,13 +68,16 @@
  * VerifySlide
  * @description 滑块
  * */
-import {aesEncrypt} from "./../utils/ase"
-import {resetSize} from './../utils/util'
+import {aesEncrypt} from "../../../utils/VerifyUtils/ase"
+import {resetSize, createResponsiveResizer} from '../../../utils/VerifyUtils/util'
 import {reqCheck, reqGet} from "../../../api/user/auth/captchaApi.js"
 import logger from '../../../utils/logger.js'
-import {DEFAULT_CAPTCHA_BLOCK_PLACEHOLDER, DEFAULT_CAPTCHA_IMAGE_PLACEHOLDER} from '../utils/captchaDefaults.js'
+import {
+        DEFAULT_CAPTCHA_BLOCK_PLACEHOLDER,
+        DEFAULT_CAPTCHA_IMAGE_PLACEHOLDER
+} from '../../../utils/VerifyUtils/captchaDefaults.js'
 import {message} from 'ant-design-vue'
-import {computed, getCurrentInstance, nextTick, onMounted, reactive, ref, toRefs, watch} from 'vue';
+import {computed, getCurrentInstance, nextTick, onMounted, onBeforeUnmount, onUnmounted, reactive, ref, toRefs, watch} from 'vue';
 //  "captchaType":"blockPuzzle",
 export default {
         name: 'VerifySlide',
@@ -162,7 +165,8 @@ export default {
                     lastGetTime = ref(0),    // 上次请求 get 的时间，用于防抖 429
                     transitionLeft = ref(''),
                     transitionWidth = ref(''),
-                    startLeft = ref(0)
+                    startLeft = ref(0),
+                    cleanupResizer = null      // 响应式调整器清理函数
 
                 const barArea = computed(() => {
                         return proxy.$el.querySelector('.verify-bar-area')
@@ -199,6 +203,24 @@ export default {
                                 setSize.imgWidth = imgWidth
                                 setSize.barHeight = barHeight
                                 setSize.barWidth = barWidth
+                                
+                                // 创建响应式尺寸调整器
+                                if (cleanupResizer) {
+                                        cleanupResizer();
+                                }
+                                cleanupResizer = createResponsiveResizer(proxy, (newSize) => {
+                                        setSize.imgHeight = newSize.imgHeight;
+                                        setSize.imgWidth = newSize.imgWidth;
+                                        setSize.barHeight = newSize.barHeight;
+                                        setSize.barWidth = newSize.barWidth;
+                                        
+                                        // 重置滑块位置以适应新尺寸
+                                        moveBlockLeft.value = '0px';
+                                        leftBarWidth.value = undefined;
+                                        transitionLeft.value = '';
+                                        transitionWidth.value = '';
+                                });
+                                
                                 proxy.$parent.$emit('ready', proxy)
                         })
 
@@ -243,6 +265,31 @@ export default {
                                 return false
                         }
                 })
+                
+                // 组件卸载时清理资源
+                const cleanup = () => {
+                        if (cleanupResizer) {
+                                cleanupResizer();
+                                cleanupResizer = null;
+                        }
+                        
+                        window.removeEventListener("touchmove", function (e) {
+                                move(e);
+                        });
+                        window.removeEventListener("mousemove", function (e) {
+                                move(e);
+                        });
+                        window.removeEventListener("touchend", function () {
+                                end();
+                        });
+                        window.removeEventListener("mouseup", function () {
+                                end();
+                        });
+                };
+                
+                // 监听组件卸载
+                onBeforeUnmount(cleanup);
+                onUnmounted(cleanup);
 
                 //鼠标按下
                 function start(e) {
