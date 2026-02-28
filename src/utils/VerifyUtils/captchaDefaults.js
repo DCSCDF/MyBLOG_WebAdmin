@@ -22,7 +22,7 @@ export const DEFAULT_CAPTCHA_IMAGE_PLACEHOLDER =
     encodeURIComponent(
 	'<svg xmlns="http://www.w3.org/2000/svg" width="310" height="155" viewBox="0 0 310 155">' +
 	'<rect width="100%" height="100%" fill="#f0f0f0"/>' +
-	'<text x="50%" y="50%" font-size="14" fill="#999" text-anchor="middle" dy=".3em">加载失败</text>' +
+	'<text x="50%" y="50%" font-size="14" fill="#999" text-anchor="middle" dy=".3em">验证码</text>' +
 	'</svg>'
     )
 
