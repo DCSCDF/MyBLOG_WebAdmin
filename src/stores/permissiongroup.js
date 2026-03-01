@@ -203,26 +203,15 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 	 * @returns {Promise<boolean>}
 	 */
 	const deletePermissionGroup = async (id) => {
-		let result;
-
-		try {
-			const res = await permissionGroupApi.delete(id);
-			if (res.success === true) {
-				logger.log('权限组删除成功:', id);
-				result = true;
-			} else {
-				// API 响应失败，记录错误并返回 false
-				const errorMsg = res.errorMsg || '删除权限组失败';
-				logger.error('删除权限组失败:', errorMsg);
-				result = false;
-			}
-		} catch (error) {
-			// 处理网络错误或其他意外错误
-			logger.error('删除权限组异常:', error);
-			result = false;
+		const res = await permissionGroupApi.delete(id);
+		if (res.success === true) {
+			logger.log('权限组删除成功:', id);
+			return true;
 		}
-
-		return result;
+		// API 返回 success: false，抛出错误让调用方处理
+		const errorMsg = res.errorMsg || '删除权限组失败';
+		logger.error('删除权限组失败:', errorMsg);
+		throw new Error(errorMsg);
 	};
 
 	/**
