@@ -40,7 +40,7 @@
                                         <a-select
                                             v-model:value="searchStatus"
                                             allow-clear
-                                            placeholder="状态">
+                                            placeholder="链接状态">
                                                 <a-select-option
                                                     v-for="opt in statusFilterOptions"
                                                     :key="opt.label"
@@ -89,6 +89,26 @@
                                                 </a-button>
                                                 <a-button size="small" type="link" @click="openEdit(record)">编辑
                                                 </a-button>
+                                                <template v-if="record.status !== 3">
+                                                        <a-button
+                                                            v-if="record.status !== 1"
+                                                            size="small"
+                                                            type="link"
+                                                            @click="handleStatusChange(record, 1)">通过
+                                                        </a-button>
+                                                        <a-button
+                                                            v-if="record.status !== 2"
+                                                            size="small"
+                                                            type="link"
+                                                            @click="handleStatusChange(record, 2)">拒绝
+                                                        </a-button>
+                                                        <a-button
+                                                            v-if="record.status !== 0"
+                                                            size="small"
+                                                            type="link"
+                                                            @click="handleStatusChange(record, 0)">待审核
+                                                        </a-button>
+                                                </template>
                                                 <a-popconfirm
                                                     cancel-text="取消"
                                                     ok-text="确定"
@@ -113,39 +133,55 @@
                                 <div>
                                         <span class="text-gray-500">链接名称：</span>
                                         <span>{{ detailLink.name }}</span>
+                                        <a-divider/>
                                 </div>
+
                                 <div>
                                         <span class="text-gray-500">URL：</span>
                                         <a :href="detailLink.url" rel="noopener noreferrer"
                                            target="_blank">{{ detailLink.url }}</a>
+                                        <a-divider/>
                                 </div>
+
                                 <div v-if="detailLink.summary">
                                         <span class="text-gray-500">简介：</span>
                                         <span>{{ detailLink.summary }}</span>
+                                        <a-divider/>
                                 </div>
+
                                 <div v-if="detailLink.remark">
                                         <span class="text-gray-500">备注：</span>
                                         <span>{{ detailLink.remark }}</span>
+                                        <a-divider/>
                                 </div>
+
                                 <div v-if="detailLink.imageUrl">
                                         <span class="text-gray-500">图片：</span>
                                         <img :src="detailLink.imageUrl" alt="图标"
                                              class="mt-1 h-12 rounded object-cover"/>
+                                        <a-divider/>
                                 </div>
+
                                 <div>
                                         <span class="text-gray-500">排序：</span>
                                         <span>{{ detailLink.sortOrder ?? 0 }}</span>
+                                        <a-divider/>
                                 </div>
+
                                 <div>
                                         <span class="text-gray-500">状态：</span>
                                         <a-tag :bordered="false" :color="statusTagColor(detailLink.status)">
                                                 {{ statusLabel(detailLink.status) }}
                                         </a-tag>
+                                        <a-divider/>
                                 </div>
+
                                 <div>
                                         <span class="text-gray-500">创建时间：</span>
                                         <span>{{ detailLink.createTime }}</span>
+                                        <a-divider/>
                                 </div>
+
                                 <div>
                                         <span class="text-gray-500">更新时间：</span>
                                         <span>{{ detailLink.updateTime }}</span>
@@ -285,7 +321,7 @@ const columns = [
         {title: '排序', dataIndex: 'sortOrder', key: 'sortOrder', width: 70},
         {title: '状态', key: 'status', width: 90},
         {title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 180},
-        {title: '操作', key: 'action', width: 200, fixed: 'right'}
+        {title: '操作', key: 'action', width: 320, fixed: 'right'}
 ];
 
 // 表格分页配置
@@ -510,30 +546,34 @@ const handleEditAfterClose = () => {
  * 提交编辑
  */
 const submitEdit = async () => {
-        let canProceed;
+        let canProceed = false;
         let errorMessage = '';
         const form = editForm.value;
-        const hasForm = Boolean(form);
-        if (hasForm) {
+
+        // 验证表单存在
+        if (!form) {
+                errorMessage = '表单数据不存在';
+        } else if (!form.id) {
+                errorMessage = '友情链接ID不存在';
+        } else {
                 const name = form.name?.trim() ?? '';
                 const url = form.url?.trim() ?? '';
                 const hasName = name.length > 0;
                 const hasUrl = url.length > 0;
                 const validUrl = hasUrl && /^https?:\/\/.+/.test(url);
+
                 if (hasName && hasUrl && validUrl) {
                         canProceed = true;
                 } else {
-                        canProceed = false;
                         errorMessage = hasName ? (hasUrl ? '请输入有效的 http 或 https 链接' : '请输入 URL 地址') : '请输入链接名称';
                 }
-        } else {
-                canProceed = false;
-                errorMessage = '请填写表单';
         }
+
         if (canProceed) {
                 editSubmitting.value = true;
                 try {
                         await friendLinkStore.updateLink(form.id, {
+                                id: form.id,
                                 name: form.name?.trim(),
                                 url: form.url?.trim(),
                                 summary: form.summary?.trim() || undefined,
@@ -552,6 +592,19 @@ const submitEdit = async () => {
                 }
         } else {
                 message.warning(errorMessage);
+        }
+};
+
+/**
+ * 变更友链审核状态（0=待审核，1=已通过，2=已拒绝）
+ */
+const handleStatusChange = async (record, status) => {
+        try {
+                await friendLinkStore.updateLinkStatus(record.id, status);
+                message.success('状态已更新');
+                loadLinks();
+        } catch (e) {
+                message.error(e?.message || '变更状态失败');
         }
 };
 

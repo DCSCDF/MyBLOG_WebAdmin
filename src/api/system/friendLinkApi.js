@@ -59,6 +59,17 @@ export const friendLinkApi = {
 	},
 
 	/**
+	 * 变更友链审核状态（0=待审核，1=已通过，2=已拒绝）
+	 * 需要权限: links:edit
+	 * @param {number} id - 友情链接 ID
+	 * @param {Object} body - { status: 0|1|2 }
+	 * @returns {Promise<{ data: Object }>}
+	 */
+	updateStatus: (id, body) => {
+		return request.put(`${FRIEND_LINK_BASE_PATH}/${id}/status`, body);
+	},
+
+	/**
 	 * 删除友情链接（逻辑删除，status 置为 3）
 	 * 需要权限: links:delete
 	 * @param {number} id - 友情链接 ID

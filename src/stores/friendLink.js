@@ -190,8 +190,20 @@ export const useFriendLinkStore = defineStore('friendLink', () => {
 	 * @returns {Promise<Object|boolean>}
 	 */
 	const updateLink = async (id, body) => {
+
 		const res = await friendLinkApi.update(id, body);
 		return handleApiResult(res, '友情链接修改成功: ' + id, '修改友情链接失败');
+	};
+
+	/**
+	 * 变更友链审核状态（0=待审核，1=已通过，2=已拒绝）
+	 * @param {number} id - 友情链接 ID
+	 * @param {number} status - 0|1|2
+	 * @returns {Promise<Object|boolean>}
+	 */
+	const updateLinkStatus = async (id, status) => {
+		const res = await friendLinkApi.updateStatus(id, {status});
+		return handleApiResult(res, '友链审核状态已更新: ' + id, '变更状态失败');
 	};
 
 	/**
@@ -232,6 +244,7 @@ export const useFriendLinkStore = defineStore('friendLink', () => {
 		fetchLinks,
 		createLink,
 		updateLink,
+		updateLinkStatus,
 		deleteLink,
 		updatePagination,
 		updateQueryParams,
