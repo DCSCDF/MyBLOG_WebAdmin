@@ -25,7 +25,7 @@
                 <!-- 搜索栏：移动端上下排版，桌面端横排 -->
                 <div
                     class="search-filter-bar mb-4 flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:gap-3">
-                        <div class="w-full md:min-w-[220px] md:max-w-[220px]">
+                        <div class="w-full md:min-w-55 md:max-w-55">
                                 <a-input
                                     v-model:value="searchKeyword"
                                     class="w-full"

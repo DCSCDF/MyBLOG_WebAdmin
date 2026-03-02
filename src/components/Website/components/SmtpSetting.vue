@@ -14,7 +14,7 @@
   -->
 
 <template>
-        <div class="min-h-[400px] w-full max-w-full overflow-x-auto">
+        <div class="min-h-100 w-full max-w-full overflow-x-auto">
 
                 <div class="mb-4 flex items-center justify-between lg:mx-2 mt-4 lg:mt-0">
                         <div>
@@ -33,17 +33,17 @@
 
                         <a-spin :spinning="loading">
                                 <a-form class="w-full">
-                                        <a-form-item class="!my-4">
+                                        <a-form-item class="my-4!">
                                                 <div class="lg:flex items-start text-gray-500">
                                                         <div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
                                                                 SMTP服务器
                                                         </div>
                                                         <div class="w-full">
-                                                                <a-input-group class="max-w-md !px-0 !flex" compact>
+                                                                <a-input-group class="max-w-md px-0! flex!" compact>
                                                                         <a-input v-model:value="form.host"
                                                                                  disabled
                                                                                  placeholder="smtp.example.com"/>
-                                                                        <a-button class="!text-gray-600"
+                                                                        <a-button class="text-gray-600!"
                                                                                   @click="openEditDrawer('host')">
                                                                                 <SettingOutlined/>
                                                                                 修改
@@ -53,19 +53,19 @@
                                                 </div>
                                         </a-form-item>
 
-                                        <a-form-item class="!my-4">
+                                        <a-form-item class="my-4!">
                                                 <div class="lg:flex items-start text-gray-500">
                                                         <div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
                                                                 端口号
                                                         </div>
                                                         <div class="w-full">
-                                                                <a-input-group class="max-w-md !px-0 !flex" compact>
+                                                                <a-input-group class="max-w-md px-0! flex!" compact>
                                                                         <a-input-number v-model:value="form.port"
                                                                                         :max="65535"
                                                                                         :min="1"
                                                                                         disabled
                                                                                         placeholder="如：465或587"/>
-                                                                        <a-button class="!text-gray-600"
+                                                                        <a-button class="text-gray-600!"
                                                                                   @click="openEditDrawer('port')">
                                                                                 <SettingOutlined/>
                                                                                 修改
@@ -75,17 +75,17 @@
                                                 </div>
                                         </a-form-item>
 
-                                        <a-form-item class="!my-4">
+                                        <a-form-item class="my-4!">
                                                 <div class="lg:flex items-start text-gray-500">
                                                         <div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
                                                                 用户名
                                                         </div>
                                                         <div class="w-full">
-                                                                <a-input-group class="max-w-md !px-0 !flex" compact>
+                                                                <a-input-group class="max-w-md px-0! flex!" compact>
                                                                         <a-input v-model:value="form.username"
                                                                                  disabled
                                                                                  placeholder="邮箱地址"/>
-                                                                        <a-button class="!text-gray-600"
+                                                                        <a-button class="text-gray-600!"
                                                                                   @click="openEditDrawer('username')">
                                                                                 <SettingOutlined/>
                                                                                 修改
@@ -95,17 +95,17 @@
                                                 </div>
                                         </a-form-item>
 
-                                        <a-form-item class="!my-4">
+                                        <a-form-item class="my-4!">
                                                 <div class="lg:flex items-start text-gray-500">
                                                         <div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
                                                                 密码
                                                         </div>
                                                         <div class="w-full">
-                                                                <a-input-group class="max-w-md !px-0 !flex" compact>
+                                                                <a-input-group class="max-w-md px-0! flex!" compact>
                                                                         <a-input-password v-model:value="form.password"
                                                                                           disabled
                                                                                           placeholder="邮箱密码或授权码"/>
-                                                                        <a-button class="!text-gray-600"
+                                                                        <a-button class="text-gray-600!"
                                                                                   @click="openEditDrawer('password')">
                                                                                 <SettingOutlined/>
                                                                                 修改
@@ -115,17 +115,17 @@
                                                 </div>
                                         </a-form-item>
 
-                                        <a-form-item class="!my-4">
+                                        <a-form-item class="my-4!">
                                                 <div class="lg:flex items-start text-gray-500">
                                                         <div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
                                                                 发件人邮箱
                                                         </div>
                                                         <div class="w-full">
-                                                                <a-input-group class="max-w-md !px-0 !flex" compact>
+                                                                <a-input-group class="max-w-md px-0! flex!" compact>
                                                                         <a-input v-model:value="form.fromEmail"
                                                                                  disabled
                                                                                  placeholder="noreply@example.com"/>
-                                                                        <a-button class="!text-gray-600"
+                                                                        <a-button class="text-gray-600!"
                                                                                   @click="openEditDrawer('fromEmail')">
                                                                                 <SettingOutlined/>
                                                                                 修改
@@ -135,17 +135,17 @@
                                                 </div>
                                         </a-form-item>
 
-                                        <a-form-item class="!my-4">
+                                        <a-form-item class="my-4!">
                                                 <div class="lg:flex items-start text-gray-500">
                                                         <div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
                                                                 发件人名称
                                                         </div>
                                                         <div class="w-full">
-                                                                <a-input-group class="max-w-md !px-0 !flex" compact>
+                                                                <a-input-group class="max-w-md px-0! flex!" compact>
                                                                         <a-input v-model:value="form.fromName"
                                                                                  disabled
                                                                                  placeholder="网站名称"/>
-                                                                        <a-button class="!text-gray-600"
+                                                                        <a-button class="text-gray-600!"
                                                                                   @click="openEditDrawer('fromName')">
                                                                                 <SettingOutlined/>
                                                                                 修改
@@ -155,7 +155,7 @@
                                                 </div>
                                         </a-form-item>
 
-                                        <a-form-item class="!my-4">
+                                        <a-form-item class="my-4!">
                                                 <div class="lg:flex items-center text-gray-500">
                                                         <div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
                                                                 启用SSL
@@ -169,16 +169,16 @@
                                                 </div>
                                         </a-form-item>
 
-                                        <a-form-item class="!my-4">
+                                        <a-form-item class="my-4!">
                                                 <div class="lg:flex items-start text-gray-500">
                                                         <div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
                                                                 测试邮件
                                                         </div>
                                                         <div class="w-full">
-                                                                <a-input-group class="max-w-md !px-0 !flex" compact>
+                                                                <a-input-group class="max-w-md px-0! flex!" compact>
                                                                         <a-input v-model:value="testEmail"
                                                                                  placeholder="输入邮箱地址"/>
-                                                                        <a-button class="ml-2 !text-gray-600"
+                                                                        <a-button class="ml-2 text-gray-600!"
                                                                                   @click="testConnection">
                                                                                 发送
                                                                         </a-button>

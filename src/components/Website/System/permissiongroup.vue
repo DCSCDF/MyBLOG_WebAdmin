@@ -24,7 +24,7 @@
                 </div>
 
                 <div class="search-filter-bar mb-4 flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
-                        <div class="w-full min-w-[200px] max-w-[300px]">
+                        <div class="w-full min-w-50 max-w-75">
                                 <a-input
                                     v-model:value="searchKeyword"
                                     class="w-full"
