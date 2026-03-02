@@ -40,16 +40,16 @@ export const useAuthStore = defineStore('auth', () => {
 				token.value = storedToken;
 				rememberMe.value = storedRemember;
 
-				// 恢复用户资料
-				const storedProfile = localStorage.getItem('user_profile');
-				if (storedProfile) {
-					userProfile.value = JSON.parse(storedProfile);
-				}
+				// // 恢复用户资料
+				// const storedProfile = localStorage.getItem('user_profile');
+				// if (storedProfile) {
+				// 	userProfile.value = JSON.parse(storedProfile);
+				// }
 
 				logger.log('Token 从存储中恢复成功:', {
 					tokenLength: storedToken.length,
 					rememberMe: storedRemember,
-					hasProfile: !!storedProfile
+					// hasProfile: !!storedProfile
 				});
 			} else {
 				logger.log('未找到存储的 token');
@@ -78,17 +78,17 @@ export const useAuthStore = defineStore('auth', () => {
 				localStorage.setItem('remember', 'true');
 				sessionStorage.removeItem('token');
 
-				// 存储用户资料到 localStorage
-				if (profile) {
-					localStorage.setItem('user_profile', JSON.stringify(profile));
-				}
+				// // 存储用户资料到 localStorage
+				// if (profile) {
+				// 	localStorage.setItem('user_profile', JSON.stringify(profile));
+				// }
 
 				logger.log('Token 已保存到 localStorage (记住登录)');
 			} else {
 				sessionStorage.setItem('token', newToken);
 				localStorage.setItem('remember', 'false');
 				localStorage.removeItem('token');
-				localStorage.removeItem('user_profile');
+				// localStorage.removeItem('user_profile');
 
 				logger.log('Token 已保存到 sessionStorage (临时登录)');
 			}
@@ -110,7 +110,7 @@ export const useAuthStore = defineStore('auth', () => {
 			localStorage.removeItem('token');
 			sessionStorage.removeItem('token');
 			localStorage.removeItem('remember');
-			localStorage.removeItem('user_profile');
+			// localStorage.removeItem('user_profile');
 
 			logger.log('Token 和用户信息已清除');
 		} catch (error) {
@@ -126,11 +126,11 @@ export const useAuthStore = defineStore('auth', () => {
 		try {
 			userProfile.value = profile;
 
-			// 如果是记住登录状态，同步更新 localStorage
-			if (rememberMe.value && profile) {
-				localStorage.setItem('user_profile', JSON.stringify(profile));
-				logger.log('用户资料已更新并保存');
-			}
+			// // 如果是记住登录状态，同步更新 localStorage
+			// if (rememberMe.value && profile) {
+			// 	localStorage.setItem('user_profile', JSON.stringify(profile));
+			// 	logger.log('用户资料已更新并保存');
+			// }
 		} catch (error) {
 			logger.error('更新用户资料时发生错误:', error);
 		}

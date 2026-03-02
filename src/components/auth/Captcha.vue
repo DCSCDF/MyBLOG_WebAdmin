@@ -42,72 +42,356 @@
                         </a-button>
                 </div>
         </div>
-        <Verify ref="verify" :captchaType="blockPuzzle" :imgSize="imgSize"
-                :mode="pop" @success="handleVerifySuccess">
-        </Verify>
+        <!-- TAC 验证码挂载占位容器（固定定位，不影响现有外观/布局） -->
+        <div
+            id="captcha-div"
+            class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[100000]"
+        ></div>
+
 </template>
 
 <script setup>
-import {onMounted, onUnmounted, ref} from 'vue'
+import {ref} from 'vue'
 import logger from '../../utils/logger.js'
-import Verify from "../verifition/Verify.vue"
+import request from '../../utils/request.js'
+import {useCaptchaStore} from '../../stores/captcha.js'
+import {
+        DEFAULT_CAPTCHA_BLOCK_PLACEHOLDER,
+        DEFAULT_CAPTCHA_IMAGE_PLACEHOLDER
+} from '../../utils/VerifyUtils/captchaDefaults.js'
+
+// 获取验证码 Store 实例
+const captchaStore = useCaptchaStore()
+
+// 让 TAC 内部请求复用项目 axios（baseURL/拦截器/代理配置）
+// 说明：tac.min.js 默认用 XMLHttpRequest，这里通过 monkey patch 让它走 axios，
+//      这样请求会变成如 http://localhost:5173/api/captcha/get（与项目其它 API 一致）
+if (typeof window !== 'undefined' && window.CaptchaConfig && !window.__TAC_AXIOS_PATCHED__) {
+        window.__TAC_AXIOS_PATCHED__ = true
+        const originalDoSendRequest = window.CaptchaConfig.prototype.doSendRequest
+
+        const mapCaptchaTypeToTacType = (t) => {
+                const type = t ? String(t) : null
+                let result = type
+
+                if (type) {
+                        // 兼容旧/自定义字段：blockPuzzle(滑块拼图)、clickWord(点选)
+                        if (type === 'blockPuzzle' || type === 'slider' || type === 'SLIDER') {
+                                result = 'SLIDER'
+                        } else if (type === 'clickWord' || type === 'wordClick' || type === 'WORD_IMAGE_CLICK') {
+                                result = 'WORD_IMAGE_CLICK'
+                        } else if (type === 'rotate' || type === 'ROTATE') {
+                                result = 'ROTATE'
+                        } else if (type === 'concat' || type === 'CONCAT') {
+                                result = 'CONCAT'
+                        } else if (type === 'DISABLED') {
+                                result = 'DISABLED'
+                        }
+                }
+
+                return result
+        }
 
 
-// 验证码相关配置
-const pop = ref('pop')
-const blockPuzzle = 'blockPuzzle'
-const verify = ref(null)
-verify.value = undefined;
-const isVerified = ref(false)
-const captchaVerification = ref(null)
+        const normalizeTacGetResponse = (payload) => {
+                let result = payload
 
-// 响应式图片尺寸
-const imgSize = ref({width: '330px', height: '155px'})
+                if (payload && typeof payload === 'object') {
+                        const data = payload.data
 
+                        if (data && typeof data === 'object') {
+                                // 支持多种后端返回结构（尽量兜底）
+                                // 兼容嵌套结构：有些后端会返回 { data: { data: {...} } }
+                                const nestedData = data.data && typeof data.data === 'object' ? data.data : null
+                                const repData = data.repData && typeof data.repData === 'object' ? data.repData : null
 
-// 检测屏幕尺寸并设置验证码大小
-const updateImgSize = () => {
-        const screenWidth = window.innerWidth
-        if (screenWidth <= 768) { // 移动设备
-                imgSize.value = {width: '280px', height: '130px'}
-        } else if (screenWidth <= 1024) { // 平板设备
-                imgSize.value = {width: '280px', height: '130px'}
-        } else { // 桌面设备
-                imgSize.value = {width: '330px', height: '155px'}
+                                // 优先从嵌套的 data 中获取，其次从 repData 获取
+                                const sourceData = nestedData || repData || data
+
+                                const rawType = sourceData.type ?? sourceData.captchaType ?? data.type ?? data.captchaType
+                                const tacType = mapCaptchaTypeToTacType(rawType) ?? 'SLIDER'
+
+                                const backgroundImage =
+                                    sourceData.backgroundImage ??
+                                    sourceData.originalImage ??
+                                    data.backgroundImage ??
+                                    data.originalImage
+
+                                const templateImage =
+                                    sourceData.templateImage ??
+                                    sourceData.jigsawImage ??
+                                    data.templateImage ??
+                                    data.jigsawImage
+
+                                const id =
+                                    sourceData.id ??
+                                    sourceData.captchaId ??
+                                    data.id ??
+                                    data.captchaId ??
+                                    // 有些实现会把 token 当作一次性 id
+                                    sourceData.token ??
+                                    data.token ??
+                                    null
+
+                                // 获取图片尺寸信息（用于动态计算拼图块大小）
+                                const backgroundImageWidth = sourceData.backgroundImageWidth ?? data.backgroundImageWidth ?? 1570
+                                const backgroundImageHeight = sourceData.backgroundImageHeight ?? data.backgroundImageHeight ?? 879
+                                const templateImageWidth = sourceData.templateImageWidth ?? data.templateImageWidth ?? 110
+                                const templateImageHeight = sourceData.templateImageHeight ?? data.templateImageHeight ?? 879
+
+                                const normalizedBackground = backgroundImage || DEFAULT_CAPTCHA_IMAGE_PLACEHOLDER
+                                const normalizedTemplate = templateImage || DEFAULT_CAPTCHA_BLOCK_PLACEHOLDER
+
+                                result = {
+                                        ...payload,
+                                        data: {
+                                                ...data,
+                                                ...(nestedData ? nestedData : null),
+                                                ...(repData ? repData : null),
+                                                type: tacType,
+                                                id,
+                                                backgroundImage: normalizedBackground,
+                                                templateImage: normalizedTemplate,
+                                                // 传递图片尺寸信息给 TAC
+                                                backgroundImageWidth,
+                                                backgroundImageHeight,
+                                                templateImageWidth,
+                                                templateImageHeight,
+                                        }
+                                }
+                        }
+                }
+
+                return result
+        }
+
+        window.CaptchaConfig.prototype.doSendRequest = function (cfg) {
+                let resultPromise
+
+                try {
+                        // 使用 axios 实例，保持与项目 API 一致的 baseURL / headers / token / 拦截器
+                        const requestPromise = request({
+                                url: cfg.url,
+                                method: (cfg.method || 'GET').toLowerCase(),
+                                data: cfg.data,
+                                headers: cfg.headers || {}
+                        })
+
+                        resultPromise = requestPromise.then((res) => {
+                                let result
+
+                                // request.js 成功返回结构：{ code, data, success, errorMsg }
+                                // TAC 期望：{ code:200, data:{} } 或 { code:500, msg:'xxx' }
+                                if (res && typeof res === 'object') {
+                                        const basePayload = {
+                                                code: res.code ?? 200,
+                                                data: res.data ?? null,
+                                                msg: res.errorMsg
+                                        }
+
+                                        // 针对验证码相关接口做结构兼容
+                                        if (typeof cfg?.url === 'string') {
+                                                // 生成验证码接口：需要解析嵌套的 data 结构
+                                                if (cfg.url.includes('/api/captcha/get')) {
+                                                        const normalized = normalizeTacGetResponse(basePayload)
+                                                        logger.log('[TAC] captcha/get normalized data:', normalized)
+
+                                                        // 保存验证码数据到 Pinia Store
+                                                        if (normalized.data && typeof normalized.data === 'object') {
+                                                                captchaStore.setCaptchaData(normalized.data)
+                                                        }
+
+                                                        result = normalized
+                                                }
+                                                // 验证验证码接口：需要将内层 data 的 code/msg 提升到外层
+                                                else if (cfg.url.includes('/api/captcha/check')) {
+                                                        const innerData = res.data
+                                                        if (innerData && typeof innerData === 'object' && innerData.code !== undefined) {
+                                                                // 将内层的业务错误码和消息提升，让 TAC 能正确识别失败
+                                                                result = {
+                                                                        code: innerData.code,
+                                                                        msg: innerData.msg || innerData.errorMsg || basePayload.msg || '验证失败',
+                                                                        data: innerData.data || null
+                                                                }
+                                                        } else {
+                                                                result = basePayload
+                                                        }
+                                                } else {
+                                                        result = basePayload
+                                                }
+                                        } else {
+                                                result = basePayload
+                                        }
+                                } else {
+                                        result = res
+                                }
+
+                                return result
+                        }).catch((err) => {
+                                // request.js 会 reject(Error)，转换为 TAC 可识别的结构
+                                return {
+                                        code: 4001,
+                                        msg: err?.message || '请求失败'
+                                }
+                        })
+                } catch (e) {
+                        // 回退到 TAC 原始实现（极端情况下）
+                        resultPromise = originalDoSendRequest.call(this, cfg)
+                }
+
+                return resultPromise
         }
 }
 
-// 初始化时设置尺寸
-updateImgSize()
 
-// 监听窗口大小变化
-onMounted(() => {
-        window.addEventListener('resize', updateImgSize)
-})
-
-onUnmounted(() => {
-        window.removeEventListener('resize', updateImgSize)
-})
+// 验证状态
+const isVerified = ref(false)
+const captchaVerification = ref(null)
+const isLoading = ref(false)
+let tacInstance = null
+const isCaptchaOpen = ref(false)
 
 // 导入 emit 函数
 const emit = defineEmits(['status-change'])
 
-// 验证成功回调
-const handleVerifySuccess = (params) => {
-        // params 是验证码返回的二次验证参数
-        // 通常包含 token，需和登录数据一起提交给后端
-        logger.log('验证码验证成功:', params)
-        isVerified.value = true
-        captchaVerification.value = params
-
-        // 发送状态变化通知给父组件
-        emit('status-change', true)
-}
-
-// 显示验证码弹窗
+// 显示验证码弹窗（TAC）
 const useVerify = () => {
-        if (verify.value) {
-                verify.value.show()
+        let shouldProceed = true
+
+        if (isLoading.value) {
+                shouldProceed = false
+        } else if (isCaptchaOpen.value) {
+                shouldProceed = false
+        } else if (typeof window === 'undefined' || typeof window.TAC !== 'function') {
+                logger.error('TAC 验证码未正确加载：window.TAC 不存在')
+                shouldProceed = false
+        }
+
+        if (shouldProceed) {
+                isLoading.value = true
+
+                // 验证成功回调
+                const handleValidSuccess = (res, _c, tac) => {
+                        logger.log("验证码验证成功回调...", res)
+
+                        try {
+                                tac?.destroyWindow?.()
+                        } catch (e) {
+                                logger.error('销毁 TAC 窗口失败', e)
+                        }
+
+                        // 从 Pinia Store 获取 captchaId（在 get 接口时已保存）
+                        const captchaId = captchaStore.getCaptchaId()
+
+                        logger.log('从 Pinia Store 获取的 captchaId:', captchaId)
+
+                        // 标记为已验证
+                        captchaStore.setVerified()
+
+                        // captchaVerification 应该是 GET 接口返回的 ID
+                        captchaVerification.value = {
+                                captchaVerification: captchaId, // 使用验证码 ID 作为校验码
+                                raw: res
+                        }
+
+                        logger.log('设置后的 captchaVerification.value:', captchaVerification.value)
+
+                        isVerified.value = true
+                        emit('status-change', true)
+                        isCaptchaOpen.value = false
+                }
+
+                // 验证失败回调
+                const handleValidFail = (res, _c, _tac) => {
+                        logger.log("验证码验证失败回调...", res)
+
+                        // 提取错误信息（此时已经从内层 data 提升到外层）
+                        const errorMsg = res?.msg || res?.errorMsg || '验证失败'
+
+                        logger.error(`验证码验证失败：${errorMsg}`, res)
+
+                        // 验证失败后重新加载验证码
+                        try {
+                                _tac?.reloadCaptcha?.()
+                        } catch (e) {
+                                logger.error('重新加载 TAC 验证码失败', e)
+                        }
+                }
+
+                // 刷新按钮回调
+                const handleRefresh = (_el, tac) => {
+                        tac?.reloadCaptcha?.()
+                }
+
+                // 关闭按钮回调
+                const handleClose = (_el, tac) => {
+                        logger.log("关闭按钮触发事件...")
+                        try {
+                                tac?.destroyWindow?.()
+                        } catch (e) {
+                                logger.error('关闭 TAC 窗口失败', e)
+                        }
+                        isCaptchaOpen.value = false
+                }
+
+                /**
+                 * TAC 验证码配置对象
+                 * @type {any}
+                 */
+                const captchaConfig = {
+                        // 使用项目现有后端接口（同 axios 封装的 captchaApi）
+                        requestCaptchaDataUrl: "/api/captcha/get",
+                        validCaptchaUrl: "/api/captcha/check",
+                        bindEl: "#captcha-div",
+                        validSuccess: handleValidSuccess,
+                        validFail: handleValidFail,
+                        btnRefreshFun: handleRefresh,
+                        btnCloseFun: handleClose
+                }
+
+                const styleConfig = {
+                        // 验证码弹窗样式配置
+                        width: 360,           // 弹窗宽度 (px)
+                        height: 280,          // 弹窗高度 (px)
+                        blockSize: 50,        // 拼图块大小 (px) - 默认值，实际会由后端数据动态调整
+                        blockY: 140,          // 拼图块 Y 轴位置 (px)
+                        barHeight: 50,        // 滑动条高度 (px)
+                        barWidth: 320,        // 滑动条宽度 (px)
+                }
+
+                try {
+                        // 防止多次点击叠加多个验证码实例
+                        const box = document.querySelector('#captcha-div')
+                        if (box) {
+                                box.querySelectorAll('#tianai-captcha-parent').forEach((el) => el.remove())
+                                box.innerHTML = ''
+                        }
+                        try {
+                                tacInstance?.destroyWindow?.()
+                        } catch (e) {
+                                // ignore
+                        }
+
+                        tacInstance = new window.TAC(captchaConfig, styleConfig)
+                        tacInstance.init()
+                        isCaptchaOpen.value = true
+
+                        // 防御性兜底：若图片未触发 load 导致 currentCaptchaData 未初始化，避免拖动报错
+                        setTimeout(() => {
+                                try {
+                                        const c = tacInstance?.C
+                                        if (c && c.currentCaptchaData && !Array.isArray(c.currentCaptchaData.trackList)) {
+                                                c.currentCaptchaData.trackList = []
+                                        }
+                                } catch {
+                                        // ignore
+                                }
+                        }, 300)
+                } catch (e) {
+                        logger.error("初始化 TAC 验证码失败", e)
+                } finally {
+                        isLoading.value = false
+                }
         }
 }
 
@@ -122,6 +406,9 @@ const resetVerifyStatus = () => {
         isVerified.value = false
         captchaVerification.value = null
 
+        // 重置 Pinia Store 中的验证码状态
+        captchaStore.resetCaptcha()
+
         // 如果之前是已验证状态，则发送状态变化通知
         if (wasVerified) {
                 emit('status-change', false)
@@ -130,7 +417,9 @@ const resetVerifyStatus = () => {
 
 // 获取验证参数
 const getCaptchaVerification = () => {
-        return captchaVerification.value
+        const verification = captchaStore.getCaptchaVerification()
+        logger.log('getCaptchaVerification 返回:', verification)
+        return verification
 }
 
 // 暴露方法给父组件使用
