@@ -407,8 +407,7 @@ const useVerify = () => {
                         tacInstance.init()
                         isCaptchaOpen.value = true
                         logger.log('TAC 实例创建成功，isCaptchaOpen:', isCaptchaOpen.value)
-
-                        // 防御性兜底
+                        
                         setTimeout(() => {
                                 try {
                                         const c = tacInstance?.C
