@@ -25,7 +25,7 @@
                 <div class="w-full max-w-md">
                         <a-card class="!overflow-hidden shadow-xl !bg-white/80 !backdrop-blur-md">
                                 <!-- 标签页切换 -->
-                                <a-tabs v-model:activeKey="activeTab" class="form-tabs md:!px-5 !pb-5">
+                                <a-tabs v-model:activeKey="activeTab" @change="handleTabChange" class="form-tabs md:!px-5 !pb-5">
                                         <!-- 登陆标签页 -->
                                         <a-tab-pane key="login" tab="登陆">
                                                 <LoginForm/>
@@ -46,5 +46,11 @@ import LoginForm from '../components/auth/LoginForm.vue'
 import RegisterForm from '../components/auth/RegisterForm.vue'
 
 const activeTab = ref('login')
+
+// 切换 tab 时关闭验证码弹窗
+const handleTabChange = () => {
+        // 触发全局事件，通知所有 Captcha 组件关闭弹窗
+        window.dispatchEvent(new CustomEvent('close-captcha'))
+}
 </script>
 

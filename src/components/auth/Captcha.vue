@@ -42,16 +42,10 @@
                         </a-button>
                 </div>
         </div>
-        <!-- TAC 验证码挂载占位容器（固定定位，不影响现有外观/布局） -->
-        <div
-            id="captcha-div"
-            class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[100000]"
-        ></div>
-
 </template>
 
 <script setup>
-import {ref} from 'vue'
+import {onBeforeUnmount, ref} from 'vue'
 import logger from '../../utils/logger.js'
 import request from '../../utils/request.js'
 import {useCaptchaStore} from '../../stores/captcha.js'
@@ -100,8 +94,8 @@ if (typeof window !== 'undefined' && window.CaptchaConfig && !window.__TAC_AXIOS
                         const data = payload.data
 
                         if (data && typeof data === 'object') {
-                                // 支持多种后端返回结构（尽量兜底）
-                                // 兼容嵌套结构：有些后端会返回 { data: { data: {...} } }
+                                // 支持多种后端返回结构
+                                // 兼容嵌套结构后端会返回 { data: { data: {...} } }
                                 const nestedData = data.data && typeof data.data === 'object' ? data.data : null
                                 const repData = data.repData && typeof data.repData === 'object' ? data.repData : null
 
@@ -128,7 +122,7 @@ if (typeof window !== 'undefined' && window.CaptchaConfig && !window.__TAC_AXIOS
                                     sourceData.captchaId ??
                                     data.id ??
                                     data.captchaId ??
-                                    // 有些实现会把 token 当作一次性 id
+
                                     sourceData.token ??
                                     data.token ??
                                     null
@@ -254,129 +248,167 @@ const isCaptchaOpen = ref(false)
 // 导入 emit 函数
 const emit = defineEmits(['status-change'])
 
+// 全局 close-captcha 事件处理函数
+const handleGlobalCloseCaptcha = () => {
+        if (isCaptchaOpen.value) {
+                resetVerifyStatus()
+        }
+}
+
+// 监听全局 close-captcha 事件（用于切换 tab 时关闭弹窗）
+if (typeof window !== 'undefined') {
+        window.addEventListener('close-captcha', handleGlobalCloseCaptcha)
+}
+
+// 验证成功回调
+const handleValidSuccess = (res, _c, tac) => {
+        logger.log("验证码验证成功回调...", res)
+
+        try {
+                tac?.destroyWindow?.()
+        } catch (e) {
+                logger.error('销毁 TAC 窗口失败', e)
+        }
+
+        // 从 Pinia Store 获取 captchaId（在 get 接口时已保存）
+        const captchaId = captchaStore.getCaptchaId()
+
+        logger.log('从 Pinia Store 获取的 captchaId:', captchaId)
+
+        // 标记为已验证
+        captchaStore.setVerified()
+
+        // captchaVerification 应该是 GET 接口返回的 ID
+        captchaVerification.value = {
+                captchaVerification: captchaId, // 使用验证码 ID 作为校验码
+                raw: res
+        }
+
+        logger.log('设置后的 captchaVerification.value:', captchaVerification.value)
+
+        isVerified.value = true
+        emit('status-change', true)
+        isCaptchaOpen.value = false
+}
+
+// 验证失败回调
+const handleValidFail = (res, _c, _tac) => {
+        logger.log("验证码验证失败回调...", res)
+
+        // 提取错误信息（此时已经从内层 data 提升到外层）
+        const errorMsg = res?.msg || res?.errorMsg || '验证失败'
+
+        logger.error(`验证码验证失败：${errorMsg}`, res)
+
+        // 验证失败后重新加载验证码
+        try {
+                _tac?.reloadCaptcha?.()
+        } catch (e) {
+                logger.error('重新加载 TAC 验证码失败', e)
+        }
+}
+
+// 刷新按钮回调
+const handleRefresh = (_el, tac) => {
+        tac?.reloadCaptcha?.()
+}
+
+// 关闭按钮回调
+const handleClose = (_el, tac) => {
+        logger.log("关闭按钮触发事件...")
+        try {
+                tac?.destroyWindow?.()
+        } catch (e) {
+                logger.error('关闭 TAC 窗口失败', e)
+        }
+        isCaptchaOpen.value = false
+}
+
+// 清理旧的验证码实例和容器
+const cleanupOldInstance = () => {
+        try {
+                if (tacInstance) {
+                        tacInstance.destroyWindow?.()
+                        tacInstance = null
+                }
+                const oldTempDiv = document.getElementById('captcha-div-temp')
+                if (oldTempDiv) {
+                        oldTempDiv.remove()
+                }
+        } catch (e) {
+                logger.error('清理旧实例失败', e)
+        }
+}
+
+// 创建临时容器
+const createTempContainer = () => {
+        let tempDiv = document.getElementById('captcha-div-temp')
+        if (!tempDiv) {
+                tempDiv = document.createElement('div')
+                tempDiv.id = 'captcha-div-temp'
+                tempDiv.className = 'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[100000]'
+                document.body.appendChild(tempDiv)
+        }
+        return tempDiv
+}
+
 // 显示验证码弹窗（TAC）
 const useVerify = () => {
         let shouldProceed = true
 
+        logger.log('useVerify 被调用，isCaptchaOpen:', isCaptchaOpen.value)
+
+        // 检查加载状态
         if (isLoading.value) {
+                logger.log('正在加载中，返回')
                 shouldProceed = false
-        } else if (isCaptchaOpen.value) {
-                shouldProceed = false
-        } else if (typeof window === 'undefined' || typeof window.TAC !== 'function') {
+        }
+
+        // 检查 TAC 是否已加载
+        if (shouldProceed && (typeof window === 'undefined' || typeof window.TAC !== 'function')) {
                 logger.error('TAC 验证码未正确加载：window.TAC 不存在')
                 shouldProceed = false
         }
 
+        // 只有满足条件才执行
         if (shouldProceed) {
                 isLoading.value = true
 
-                // 验证成功回调
-                const handleValidSuccess = (res, _c, tac) => {
-                        logger.log("验证码验证成功回调...", res)
+                // 先清理旧的实例和容器
+                cleanupOldInstance()
 
-                        try {
-                                tac?.destroyWindow?.()
-                        } catch (e) {
-                                logger.error('销毁 TAC 窗口失败', e)
-                        }
-
-                        // 从 Pinia Store 获取 captchaId（在 get 接口时已保存）
-                        const captchaId = captchaStore.getCaptchaId()
-
-                        logger.log('从 Pinia Store 获取的 captchaId:', captchaId)
-
-                        // 标记为已验证
-                        captchaStore.setVerified()
-
-                        // captchaVerification 应该是 GET 接口返回的 ID
-                        captchaVerification.value = {
-                                captchaVerification: captchaId, // 使用验证码 ID 作为校验码
-                                raw: res
-                        }
-
-                        logger.log('设置后的 captchaVerification.value:', captchaVerification.value)
-
-                        isVerified.value = true
-                        emit('status-change', true)
-                        isCaptchaOpen.value = false
-                }
-
-                // 验证失败回调
-                const handleValidFail = (res, _c, _tac) => {
-                        logger.log("验证码验证失败回调...", res)
-
-                        // 提取错误信息（此时已经从内层 data 提升到外层）
-                        const errorMsg = res?.msg || res?.errorMsg || '验证失败'
-
-                        logger.error(`验证码验证失败：${errorMsg}`, res)
-
-                        // 验证失败后重新加载验证码
-                        try {
-                                _tac?.reloadCaptcha?.()
-                        } catch (e) {
-                                logger.error('重新加载 TAC 验证码失败', e)
-                        }
-                }
-
-                // 刷新按钮回调
-                const handleRefresh = (_el, tac) => {
-                        tac?.reloadCaptcha?.()
-                }
-
-                // 关闭按钮回调
-                const handleClose = (_el, tac) => {
-                        logger.log("关闭按钮触发事件...")
-                        try {
-                                tac?.destroyWindow?.()
-                        } catch (e) {
-                                logger.error('关闭 TAC 窗口失败', e)
-                        }
-                        isCaptchaOpen.value = false
-                }
-
-                /**
-                 * TAC 验证码配置对象
-                 * @type {any}
-                 */
+                // TAC 验证码配置对象
                 const captchaConfig = {
-                        // 使用项目现有后端接口（同 axios 封装的 captchaApi）
                         requestCaptchaDataUrl: "/api/captcha/get",
                         validCaptchaUrl: "/api/captcha/check",
-                        bindEl: "#captcha-div",
+                        bindEl: "#captcha-div-temp",
                         validSuccess: handleValidSuccess,
                         validFail: handleValidFail,
                         btnRefreshFun: handleRefresh,
                         btnCloseFun: handleClose
                 }
 
+                // 样式配置
                 const styleConfig = {
-                        // 验证码弹窗样式配置
-                        width: 360,           // 弹窗宽度 (px)
-                        height: 280,          // 弹窗高度 (px)
-                        blockSize: 50,        // 拼图块大小 (px) - 默认值，实际会由后端数据动态调整
-                        blockY: 140,          // 拼图块 Y 轴位置 (px)
-                        barHeight: 50,        // 滑动条高度 (px)
-                        barWidth: 320,        // 滑动条宽度 (px)
+                        width: 360,
+                        height: 280,
+                        blockSize: 50,
+                        blockY: 140,
+                        barHeight: 50,
+                        barWidth: 320
                 }
 
                 try {
-                        // 防止多次点击叠加多个验证码实例
-                        const box = document.querySelector('#captcha-div')
-                        if (box) {
-                                box.querySelectorAll('#tianai-captcha-parent').forEach((el) => el.remove())
-                                box.innerHTML = ''
-                        }
-                        try {
-                                tacInstance?.destroyWindow?.()
-                        } catch (e) {
-                                // ignore
-                        }
+                        // 创建临时容器
+                        createTempContainer()
 
+                        logger.log('开始创建 TAC 实例...')
                         tacInstance = new window.TAC(captchaConfig, styleConfig)
                         tacInstance.init()
                         isCaptchaOpen.value = true
+                        logger.log('TAC 实例创建成功，isCaptchaOpen:', isCaptchaOpen.value)
 
-                        // 防御性兜底：若图片未触发 load 导致 currentCaptchaData 未初始化，避免拖动报错
+                        // 防御性兜底
                         setTimeout(() => {
                                 try {
                                         const c = tacInstance?.C
@@ -395,6 +427,28 @@ const useVerify = () => {
         }
 }
 
+// 组件卸载时清理资源（防止切换 tab 时残留）
+onBeforeUnmount(() => {
+        try {
+                if (tacInstance) {
+                        tacInstance.destroyWindow?.()
+                        tacInstance = null
+                }
+                // 移除临时容器
+                const tempDiv = document.getElementById('captcha-div-temp')
+                if (tempDiv) {
+                        tempDiv.remove()
+                }
+                // 移除全局事件监听
+                if (typeof window !== 'undefined') {
+                        window.removeEventListener('close-captcha', handleGlobalCloseCaptcha)
+                }
+        } catch (e) {
+                logger.error('组件卸载时清理 TAC 失败', e)
+        }
+        isCaptchaOpen.value = false
+})
+
 // 获取验证状态
 const getVerifyStatus = () => {
         return isVerified.value
@@ -408,6 +462,22 @@ const resetVerifyStatus = () => {
 
         // 重置 Pinia Store 中的验证码状态
         captchaStore.resetCaptcha()
+
+        // 关闭并清理 TAC 实例
+        try {
+                if (tacInstance) {
+                        tacInstance.destroyWindow?.()
+                        tacInstance = null
+                }
+                // 移除临时容器
+                const tempDiv = document.getElementById('captcha-div-temp')
+                if (tempDiv) {
+                        tempDiv.remove()
+                }
+        } catch (e) {
+                logger.error('重置验证码状态时清理 TAC 失败', e)
+        }
+        isCaptchaOpen.value = false
 
         // 如果之前是已验证状态，则发送状态变化通知
         if (wasVerified) {
