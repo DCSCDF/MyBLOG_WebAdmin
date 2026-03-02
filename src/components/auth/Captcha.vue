@@ -102,36 +102,30 @@ if (typeof window !== 'undefined' && window.CaptchaConfig && !window.__TAC_AXIOS
                                 // 优先从嵌套的 data 中获取，其次从 repData 获取
                                 const sourceData = nestedData || repData || data
 
-                                const rawType = sourceData.type ?? sourceData.captchaType ?? data.type ?? data.captchaType
-                                const tacType = mapCaptchaTypeToTacType(rawType) ?? 'SLIDER'
+                                const rawType = sourceData.type ?? sourceData.captchaType ?? 'SLIDER'
+                                const tacType = mapCaptchaTypeToTacType(rawType)
 
                                 const backgroundImage =
                                     sourceData.backgroundImage ??
                                     sourceData.originalImage ??
-                                    data.backgroundImage ??
-                                    data.originalImage
+                                    DEFAULT_CAPTCHA_IMAGE_PLACEHOLDER
 
                                 const templateImage =
                                     sourceData.templateImage ??
                                     sourceData.jigsawImage ??
-                                    data.templateImage ??
-                                    data.jigsawImage
+                                    DEFAULT_CAPTCHA_BLOCK_PLACEHOLDER
 
                                 const id =
                                     sourceData.id ??
                                     sourceData.captchaId ??
-                                    data.id ??
-                                    data.captchaId ??
-
                                     sourceData.token ??
-                                    data.token ??
                                     null
 
                                 // 获取图片尺寸信息（用于动态计算拼图块大小）
-                                const backgroundImageWidth = sourceData.backgroundImageWidth ?? data.backgroundImageWidth ?? 1570
-                                const backgroundImageHeight = sourceData.backgroundImageHeight ?? data.backgroundImageHeight ?? 879
-                                const templateImageWidth = sourceData.templateImageWidth ?? data.templateImageWidth ?? 110
-                                const templateImageHeight = sourceData.templateImageHeight ?? data.templateImageHeight ?? 879
+                                const backgroundImageWidth = sourceData.backgroundImageWidth ?? 1570
+                                const backgroundImageHeight = sourceData.backgroundImageHeight ?? 879
+                                const templateImageWidth = sourceData.templateImageWidth ?? 110
+                                const templateImageHeight = sourceData.templateImageHeight ?? 879
 
                                 const normalizedBackground = backgroundImage || DEFAULT_CAPTCHA_IMAGE_PLACEHOLDER
                                 const normalizedTemplate = templateImage || DEFAULT_CAPTCHA_BLOCK_PLACEHOLDER
@@ -407,7 +401,7 @@ const useVerify = () => {
                         tacInstance.init()
                         isCaptchaOpen.value = true
                         logger.log('TAC 实例创建成功，isCaptchaOpen:', isCaptchaOpen.value)
-                        
+
                         setTimeout(() => {
                                 try {
                                         const c = tacInstance?.C
