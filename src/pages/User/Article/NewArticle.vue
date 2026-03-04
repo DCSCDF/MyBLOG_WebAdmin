@@ -17,9 +17,9 @@
 
                 <div class="mb-4 flex items-center justify-between">
                         <div>
-                                <h2 class="font-bold text-lg mb-1">新建文档</h2>
+                                <h2 class="font-bold text-lg mb-1">攥写你的文章</h2>
                                 <span
-                                    class="text-sm text-gray-600">在这里编写你的文章，工具栏可以点击空白区域左右拖动。</span>
+                                    class="text-sm text-gray-600">使用 Markdown 语法编写你的文章，工具栏可以点击空白区域左右拖动，攥写完成后点击提交文章来补充标题、分类等信息。</span>
                         </div>
                         <a-button type="primary" @click="">提交文章</a-button>
                 </div>

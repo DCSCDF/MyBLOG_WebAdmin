@@ -311,6 +311,8 @@
                             allow-clear
                             class="mb-3"
                             placeholder="搜索权限编码/名称"/>
+                        <span
+                            class="text-sm text-gray-600">最好是添加父权限，除非你是有特殊需求需要单独给予按钮级别的权限。</span>
                         <a-table
                             :columns="addPermissionTableColumns"
                             :data-source="addPermissionTableData"

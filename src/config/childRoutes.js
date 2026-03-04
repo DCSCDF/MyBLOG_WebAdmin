@@ -110,13 +110,13 @@ export const childRoutes = [
 	{
 		key: '5',
 		icon: () => h(MessageOutlined),
-		label: '外链',
-		title: '外链',
+		label: '网站外链',
+		title: '网站外链',
 		route: '/user/links',
 		path: '/user/links',
 		name: 'links',
 		component: () => import('../pages/User/Links/LinksSetting.vue'),
-		meta: {title: '外链'},
+		meta: {title: '网站外链'},
 		description: '网站的友情链接/外部链接'
 	},
 	{
