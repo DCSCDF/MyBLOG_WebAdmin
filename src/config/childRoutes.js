@@ -47,7 +47,7 @@ export const childRoutes = [
 		title: '仪表盘',
 		route: '/user/dashboard',
 		path: '/user/dashboard',
-		name: 'Dashboard',
+		name: 'dashboard',
 		component: () => import('../pages/User/Dashboard/Dashboard.vue'),
 		meta: {title: '仪表盘'},
 		description: '查看网站/用户概览'
@@ -147,13 +147,13 @@ export const childRoutes = [
 		path: '/website',
 		children: [
 			{
-				key: 'sub4',
+				key: 'sub3_1',
 				label: '用户管理',
 				title: '用户管理',
 				path: '/system',
 				children: [
 					{
-						key: 'sub2_2',
+						key: 'sub3_1_1',
 						label: '账号管理',
 						title: '账号管理',
 						route: '/user/website/system/user',
@@ -164,7 +164,7 @@ export const childRoutes = [
 						description: '管理后台用户账号'
 					},
 					{
-						key: 'sub2_3',
+						key: 'sub3_1_2',
 						label: '角色管理',
 						title: '角色管理',
 						route: '/user/website/system/role',
@@ -175,7 +175,7 @@ export const childRoutes = [
 						description: '配置用户角色及其权限范围'
 					},
 					{
-						key: 'sub2_4',
+						key: 'sub3_1_3',
 						label: '权限管理',
 						title: '权限管理',
 						route: '/user/website/permissionsetting',
@@ -187,19 +187,50 @@ export const childRoutes = [
 					},
 				],
 			},
-			// {
-			// 	key: 'sub3_1',
-			// 	label: '页面管理',
-			// 	title: '页面管理',
-			// 	route: '/user/website/page',
-			// 	path: '/user/website/page',
-			// 	name: 'page',
-			// 	component: () => import('../pages/User/Dashboard/Dashboard.vue'),
-			// 	meta: {title: '页面管理'},
-			// 	description: '管理自定义静态页面（如关于页、友链页）'
-			// },
 			{
 				key: 'sub3_2',
+				label: '内容管理',
+				title: '内容管理',
+				path: '/content',
+				children: [
+					{
+						key: 'sub3_2_1',
+						label: '全局文章管理',
+						title: '全局文章管理',
+						route: '/user/website/content/article',
+						path: '/user/website/content/article',
+						name: 'globalArticle',
+						component: () => import('../pages/User/Dashboard/Dashboard.vue'),
+						meta: {title: '全局文章管理'},
+						description: '管理所有用户的文章'
+					},
+					{
+						key: 'sub3_2_2',
+						label: '全局分类管理',
+						title: '全局分类管理',
+						route: '/user/website/content/category',
+						path: '/user/website/content/category',
+						name: 'globalCategory',
+						component: () => import('../pages/User/Dashboard/Dashboard.vue'),
+						meta: {title: '全局分类管理'},
+						description: '管理所有用户的分类'
+					},
+					{
+						key: 'sub3_2_3',
+						label: '全局评论管理',
+						title: '全局评论管理',
+						route: '/user/website/content/message',
+						path: '/user/website/content/message',
+						name: 'globalMessage',
+						component: () => import('../pages/User/Dashboard/Dashboard.vue'),
+						meta: {title: '全局评论管理'},
+						description: '管理所有用户的评论'
+					}
+				]
+
+			},
+			{
+				key: 'sub3_3',
 				label: '站点全局SEO',
 				title: '站点全局SEO',
 				route: '/user/website/seo',
@@ -210,7 +241,7 @@ export const childRoutes = [
 				description: '配置搜索引擎优化相关参数'
 			},
 			{
-				key: 'sub3_3',
+				key: 'sub3_4',
 				label: '站点配置',
 				title: '站点配置',
 				route: '/user/website/siteInfo',
