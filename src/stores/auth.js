@@ -157,33 +157,38 @@ export const useAuthStore = defineStore('auth', () => {
 	 * @returns {Promise<Array<string>>} 权限编码数组
 	 */
 	const fetchUserPermissions = async () => {
+		let result;
+
 		// 如果已经有权限数据，直接返回
 		if (userPermissions.value && userPermissions.value.length > 0) {
 			logger.log('权限列表已存在，直接返回:', userPermissions.value);
-			return userPermissions.value;
-		}
+			result = userPermissions.value;
+		} else {
+			permissionsLoading.value = true;
+			try {
+				logger.log('开始获取用户权限列表');
+				const response = await authApi.getPermissions();
 
-		permissionsLoading.value = true;
-		try {
-			logger.log('开始获取用户权限列表');
-			const response = await authApi.getPermissions();
-
-			if (response.success && response.data) {
-				userPermissions.value = response.data;
-				logger.log('用户权限列表获取成功:', userPermissions.value);
-				return userPermissions.value;
-			} else {
-				logger.error('获取用户权限列表失败:', response.errorMsg);
+				if (response.success && response.data) {
+					// 类型断言，确保数据类型匹配
+					userPermissions.value = Array.isArray(response.data) ? response.data : [];
+					logger.log('用户权限列表获取成功:', userPermissions.value);
+					result = userPermissions.value;
+				} else {
+					logger.error('获取用户权限列表失败:', response.errorMsg);
+					userPermissions.value = [];
+					result = [];
+				}
+			} catch (error) {
+				logger.error('获取用户权限列表请求异常:', error);
 				userPermissions.value = [];
-				return [];
+				result = [];
+			} finally {
+				permissionsLoading.value = false;
 			}
-		} catch (error) {
-			logger.error('获取用户权限列表请求异常:', error);
-			userPermissions.value = [];
-			return [];
-		} finally {
-			permissionsLoading.value = false;
 		}
+
+		return result;
 	};
 
 	/**

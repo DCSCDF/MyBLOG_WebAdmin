@@ -92,23 +92,29 @@ const authStore = useAuthStore();
 
 // 检查用户是否拥有指定权限
 const hasPermission = (permissionCode, userPermissions) => {
+        let result;
+
         // 如果没有设置权限要求，则默认有权限
         if (!permissionCode) {
-                return true;
+                result = true;
         }
         // 如果用户权限列表为空，返回 false
-        if (!userPermissions || userPermissions.length === 0) {
-                return false;
+        else if (!userPermissions || userPermissions.length === 0) {
+                result = false;
         }
         // 检查权限数组中是否包含该权限
-        return userPermissions.includes(permissionCode);
+        else {
+                result = userPermissions.includes(permissionCode);
+        }
+
+        return result;
 };
 
 // 递归过滤菜单项，只保留有权限的菜单
 const filterMenuByPermission = (routes, userPermissions) => {
         return routes.filter(route => {
                 // 检查当前路由是否有权限
-                const currentRouteHasPermission = hasPermission(route.permission, userPermissions);
+                let shouldKeep = hasPermission(route.permission, userPermissions);
 
                 // 如果有子菜单，递归过滤子菜单
                 if (route.children && route.children.length > 0) {
@@ -116,20 +122,23 @@ const filterMenuByPermission = (routes, userPermissions) => {
                         // 父菜单没有权限，但子菜单有权限的情况下，也需要显示父菜单
                         // 只要子菜单中有任何一个有权限，就保留父菜单
                         if (filteredChildren.length > 0) {
-                                return true;
+                                shouldKeep = true;
                         }
                 }
 
-                return currentRouteHasPermission;
+                return shouldKeep;
         }).map(route => {
+                let result = route;
+                
                 // 递归处理子菜单
                 if (route.children && route.children.length > 0) {
-                        return {
+                        result = {
                                 ...route,
                                 children: filterMenuByPermission(route.children, userPermissions)
                         };
                 }
-                return route;
+                
+                return result;
         });
 };
 

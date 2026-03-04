@@ -111,7 +111,7 @@ export const childRoutes = [
 		name: 'message',
 		component: () => import('../pages/User/Message/Message.vue'),
 		meta: {title: '留言'},
-		description: '查看和回复访客留言',
+		description: '管理我的评论',
 		permission: 'comment:list'
 	},
 	{
