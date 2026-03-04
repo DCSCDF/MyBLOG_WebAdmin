@@ -14,7 +14,17 @@
   -->
 <template>
         <a-card class="md-editor-container">
-                newArticle
+
+                <div class="mb-4 flex items-center justify-between">
+                        <div>
+                                <h2 class="font-bold text-lg mb-1">新建文档</h2>
+                                <span
+                                    class="text-sm text-gray-600">在这里编写你的文章，工具栏可以点击空白区域左右拖动。</span>
+                        </div>
+                        <a-button type="primary" @click="">提交文章</a-button>
+                </div>
+
+
                 <MdEditor v-model="text"/>
         </a-card>
 </template>
@@ -24,7 +34,9 @@ import {ref} from 'vue';
 import {MdEditor} from 'md-editor-v3';
 import 'md-editor-v3/lib/style.css';
 
-const text = ref('开始写作！');
+const text = ref('**开始写作！**');
+
+
 </script>
 
 <style scoped>
