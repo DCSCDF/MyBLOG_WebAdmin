@@ -85,4 +85,13 @@ export const authApi = {
 		return request.post(`${AUTH_BASE_PATH}/update-email`, data);
 	},
 
+	/**
+	 * 获取当前登录用户的权限编码列表
+	 * 用于前端路由、按钮展示等权限控制
+	 * 返回的编码列表已自动展开父权限所包含的全部子权限
+	 */
+	getPermissions: () => {
+		return request.post(`${AUTH_BASE_PATH}/permissions`);
+	},
+
 };

@@ -80,12 +80,86 @@
 </template>
 
 <script setup>
-import {computed, onMounted, onUnmounted, reactive, watch} from 'vue';
+import {computed, onMounted, onUnmounted, reactive, ref, watch} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {childRoutes} from "../../../config/childRoutes.js";
 import {useAppStore} from '../../../stores/app.js';
+import {useAuthStore} from '../../../stores/auth.js';
+import logger from '../../../utils/logger.js';
 
 const appStore = useAppStore();
+const authStore = useAuthStore();
+
+// 检查用户是否拥有指定权限
+const hasPermission = (permissionCode, userPermissions) => {
+        // 如果没有设置权限要求，则默认有权限
+        if (!permissionCode) {
+                return true;
+        }
+        // 如果用户权限列表为空，返回 false
+        if (!userPermissions || userPermissions.length === 0) {
+                return false;
+        }
+        // 检查权限数组中是否包含该权限
+        return userPermissions.includes(permissionCode);
+};
+
+// 递归过滤菜单项，只保留有权限的菜单
+const filterMenuByPermission = (routes, userPermissions) => {
+        return routes.filter(route => {
+                // 检查当前路由是否有权限
+                const currentRouteHasPermission = hasPermission(route.permission, userPermissions);
+
+                // 如果有子菜单，递归过滤子菜单
+                if (route.children && route.children.length > 0) {
+                        const filteredChildren = filterMenuByPermission(route.children, userPermissions);
+                        // 父菜单没有权限，但子菜单有权限的情况下，也需要显示父菜单
+                        // 只要子菜单中有任何一个有权限，就保留父菜单
+                        if (filteredChildren.length > 0) {
+                                return true;
+                        }
+                }
+
+                return currentRouteHasPermission;
+        }).map(route => {
+                // 递归处理子菜单
+                if (route.children && route.children.length > 0) {
+                        return {
+                                ...route,
+                                children: filterMenuByPermission(route.children, userPermissions)
+                        };
+                }
+                return route;
+        });
+};
+
+// 用户权限列表
+const userPermissions = ref([]);
+// 过滤后的菜单项
+const filteredItems = ref([]);
+
+// 获取用户权限并过滤菜单
+const initMenuPermissions = async () => {
+        try {
+                // 检查 pinia 中是否有用户的权限数组
+                if (authStore.userPermissions && authStore.userPermissions.length > 0) {
+                        logger.log('从 Pinia 获取用户权限列表:', authStore.userPermissions);
+                        userPermissions.value = authStore.userPermissions;
+                } else {
+                        // 如果没有，执行获取数组的函数
+                        logger.log('权限列表为空，开始获取用户权限列表');
+                        userPermissions.value = await authStore.fetchUserPermissions();
+                }
+
+                // 过滤菜单项
+                filteredItems.value = filterMenuByPermission(childRoutes, userPermissions.value);
+                logger.log('菜单权限过滤完成，有效菜单项数量:', filteredItems.value.length);
+        } catch (error) {
+                logger.error('获取用户权限失败:', error);
+                // 权限获取失败时，显示所有菜单（降级处理）
+                filteredItems.value = childRoutes;
+        }
+};
 
 const cleanMenuItem = (routeItem) => {
         const {key, label, title, route, icon, children} = routeItem;
@@ -105,7 +179,8 @@ const cleanMenuItem = (routeItem) => {
         return item;
 };
 
-const items = childRoutes.map(cleanMenuItem);
+// 使用过滤后的菜单项
+const items = computed(() => filteredItems.value.map(cleanMenuItem));
 const router = useRouter();
 const route = useRoute();
 
@@ -154,11 +229,11 @@ watch(isMobile, (newIsMobile) => {
 });
 
 // 递归查找菜单项
-const findMenuItem = (items, key) => {
+const findMenuItem = (menuItems, key) => {
         let result = null;
 
         // 遍历所有菜单项
-        for (let item of items) {
+        for (let item of menuItems) {
                 // 直接匹配当前项
                 if (item.key === key) {
                         result = item;
@@ -179,10 +254,10 @@ const findMenuItem = (items, key) => {
 };
 
 // 获取目标 key 的所有父级 key（用于保持展开）
-const getParentKeys = (items, targetKey, parentKeys = []) => {
+const getParentKeys = (menuItems, targetKey, parentKeys = []) => {
         let result = [];
 
-        for (let item of items) {
+        for (let item of menuItems) {
                 const newParentKeys = [...parentKeys, item.key];
                 if (item.key === targetKey) {
                         result = newParentKeys.slice(0, -1);
@@ -201,10 +276,10 @@ const getParentKeys = (items, targetKey, parentKeys = []) => {
 };
 
 // 根据路由路径查找对应的菜单项
-const findMenuItemByRoute = (items, routePath) => {
+const findMenuItemByRoute = (menuItems, routePath) => {
         let result = null;
 
-        for (let item of items) {
+        for (let item of menuItems) {
                 if (item.children?.length) {
                         const found = findMenuItemByRoute(item.children, routePath);
                         if (found) {
@@ -224,11 +299,12 @@ const findMenuItemByRoute = (items, routePath) => {
 // 更新选中状态
 const updateSelectedKeys = () => {
         const currentRoute = route.path;
-        const matchedItem = findMenuItemByRoute(items, currentRoute);
+        const menuItems = items.value;
+        const matchedItem = findMenuItemByRoute(menuItems, currentRoute);
 
         if (matchedItem) {
                 state.selectedKeys = [matchedItem.key];
-                const parentKeys = getParentKeys(items, matchedItem.key);
+                const parentKeys = getParentKeys(menuItems, matchedItem.key);
                 state.preOpenKeys = parentKeys;
                 // 仅非移动端且侧栏未折叠时展开子菜单；折叠时保持收起，不展开弹窗
                 if (!isMobile.value && !props.collapsed) {
@@ -251,7 +327,7 @@ const updateSelectedKeys = () => {
 const handleOpenChange = (newOpenKeys) => {
         let openKeysToUpdate = newOpenKeys;
         let preOpenKeysToUpdate = newOpenKeys;
-        
+
         // 移动端或折叠状态下直接使用新的 openKeys
         if (!(isMobile.value || props.collapsed)) {
                 // 桌面端展开状态：允许用户自由控制菜单展开/收起
@@ -259,14 +335,15 @@ const handleOpenChange = (newOpenKeys) => {
                 openKeysToUpdate = newOpenKeys;
                 preOpenKeysToUpdate = newOpenKeys;
         }
-        
+
         state.openKeys = openKeysToUpdate;
         state.preOpenKeys = preOpenKeysToUpdate;
 };
 
 // 处理菜单点击事件
 const handleMenuClick = (e) => {
-        const selectedItem = findMenuItem(items, e.key);
+        const menuItems = items.value;
+        const selectedItem = findMenuItem(menuItems, e.key);
         if (selectedItem && selectedItem.route) {
                 router.push(selectedItem.route);
                 if (appStore.isMobile) {
@@ -278,9 +355,11 @@ const handleMenuClick = (e) => {
 // 组件挂载时初始化选中状态
 let cleanupResizeListener = null;
 
-onMounted(() => {
+onMounted(async () => {
         appStore.updateDeviceStatus();
         cleanupResizeListener = appStore.startResizeListener();
+        // 初始化用户权限并过滤菜单
+        await initMenuPermissions();
         updateSelectedKeys();
 });
 

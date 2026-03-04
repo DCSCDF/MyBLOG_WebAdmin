@@ -16,6 +16,7 @@
 import {defineStore} from 'pinia';
 import {computed, ref} from 'vue';
 import logger from '../utils/logger.js';
+import {authApi} from '../api/user/auth/authApi.js';
 
 /**
  * 用户认证状态管理 Store
@@ -26,6 +27,10 @@ export const useAuthStore = defineStore('auth', () => {
 	const token = ref(null);
 	const rememberMe = ref(false);
 	const userProfile = ref(null);
+
+	// 用户权限编码列表
+	const userPermissions = ref([]);
+	const permissionsLoading = ref(false);
 
 	/**
 	 * 从存储中初始化 token
@@ -106,6 +111,8 @@ export const useAuthStore = defineStore('auth', () => {
 			token.value = null;
 			rememberMe.value = false;
 			userProfile.value = null;
+			userPermissions.value = [];
+			permissionsLoading.value = false;
 
 			localStorage.removeItem('token');
 			sessionStorage.removeItem('token');
@@ -144,6 +151,50 @@ export const useAuthStore = defineStore('auth', () => {
 		return userProfile.value;
 	};
 
+	/**
+	 * 获取当前登录用户的权限编码列表
+	 * 如果权限列表已存在则直接返回，否则发起请求获取
+	 * @returns {Promise<Array<string>>} 权限编码数组
+	 */
+	const fetchUserPermissions = async () => {
+		// 如果已经有权限数据，直接返回
+		if (userPermissions.value && userPermissions.value.length > 0) {
+			logger.log('权限列表已存在，直接返回:', userPermissions.value);
+			return userPermissions.value;
+		}
+
+		permissionsLoading.value = true;
+		try {
+			logger.log('开始获取用户权限列表');
+			const response = await authApi.getPermissions();
+
+			if (response.success && response.data) {
+				userPermissions.value = response.data;
+				logger.log('用户权限列表获取成功:', userPermissions.value);
+				return userPermissions.value;
+			} else {
+				logger.error('获取用户权限列表失败:', response.errorMsg);
+				userPermissions.value = [];
+				return [];
+			}
+		} catch (error) {
+			logger.error('获取用户权限列表请求异常:', error);
+			userPermissions.value = [];
+			return [];
+		} finally {
+			permissionsLoading.value = false;
+		}
+	};
+
+	/**
+	 * 清除用户权限列表
+	 */
+	const clearUserPermissions = () => {
+		userPermissions.value = [];
+		permissionsLoading.value = false;
+		logger.log('用户权限列表已清除');
+	};
+
 	// 计算属性：是否已登录
 	const isLoggedIn = computed(() => !!token.value);
 
@@ -153,11 +204,16 @@ export const useAuthStore = defineStore('auth', () => {
 	// 计算属性：是否记住登录
 	const isRememberMe = computed(() => rememberMe.value);
 
+	// 计算属性：是否有用户权限
+	const hasUserPermissions = computed(() => userPermissions.value && userPermissions.value.length > 0);
+
 	return {
 		// 状态
 		token,
 		rememberMe,
 		userProfile,
+		userPermissions,
+		permissionsLoading,
 
 		// 方法
 		initTokenFromStorage,
@@ -165,10 +221,13 @@ export const useAuthStore = defineStore('auth', () => {
 		clearToken,
 		updateUserProfile,
 		getUserProfile,
+		fetchUserPermissions,
+		clearUserPermissions,
 
 		// 计算属性
 		isLoggedIn,
 		currentToken,
-		isRememberMe
+		isRememberMe,
+		hasUserPermissions
 	};
 });
