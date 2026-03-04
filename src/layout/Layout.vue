@@ -30,7 +30,7 @@
                 <div :class="windowWidth >= 1024 ?
                                (collapsed ? 'left-0 translate-x-0 w-20' : 'left-0 translate-x-0 w-60') :
                                 (mobileSidebarOpen ? 'left-0 translate-x-0 w-70 z-60' : '-translate-x-full w-70 z-60')"
-                     class="fixed h-full top-0 bottom-0 transition-all duration-300 ease-in-out z-10">
+                     class="fixed h-full top-0 bottom-0 transition-all duration-300 ease-in-out z-0">
                         <div class="relative h-full">
                                 <Menu
                                     :collapsed="windowWidth >= 1024 ? collapsed : (!mobileSidebarOpen)"

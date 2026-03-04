@@ -13,14 +13,21 @@
   -
   -->
 <template>
-        <a-card>
-
+        <a-card class="md-editor-container">
                 newArticle
-
+                <MdEditor v-model="text"/>
         </a-card>
 </template>
 
 <script setup>
+import {ref} from 'vue';
+import {MdEditor} from 'md-editor-v3';
+import 'md-editor-v3/lib/style.css';
 
+const text = ref('开始写作！');
 </script>
+
+<style scoped>
+
+</style>
 
