@@ -188,7 +188,7 @@ export const useBlogStore = defineStore('blog', () => {
 
 	/**
 	 * 获取文章详情
-	 * @param {number} id - 文章ID
+	 * @param {number} id - 文章 ID
 	 * @returns {Promise<Object>}
 	 */
 	const fetchArticleDetail = async (id) => {

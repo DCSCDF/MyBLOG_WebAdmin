@@ -21,6 +21,15 @@
                                 <h2 class="font-bold text-lg mb-1">SMTP邮箱设置</h2>
                                 <span class="text-sm text-gray-600">配置邮件服务器设置，用于发送系统邮件</span>
                         </div>
+                        <a-button :loading="smtpStatusLoading" @click="checkSmtpStatus">
+                                <template #icon>
+                                        <CheckCircleOutlined v-if="smtpStatus === 'configured'"/>
+                                        <CloseCircleOutlined v-else-if="smtpStatus === 'not_configured'"/>
+                                </template>
+                                {{
+                                        smtpStatus === 'configured' ? '已配置' : smtpStatus === 'not_configured' ? '未配置' : '检查状态'
+                                }}
+                        </a-button>
                 </div>
 
                 <div>
@@ -115,6 +124,26 @@
                                                 </div>
                                         </a-form-item>
 
+                                        <!--                                        <a-form-item class="my-4!">-->
+                                        <!--                                                <div class="lg:flex items-start text-gray-500">-->
+                                        <!--                                                        <div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">-->
+                                        <!--                                                                发件人邮箱-->
+                                        <!--                                                        </div>-->
+                                        <!--                                                        <div class="w-full">-->
+                                        <!--                                                                <a-input-group class="max-w-md px-0! flex!" compact>-->
+                                        <!--                                                                        <a-input v-model:value="form.fromEmail"-->
+                                        <!--                                                                                 disabled-->
+                                        <!--                                                                                 placeholder="noreply@example.com"/>-->
+                                        <!--                                                                        <a-button class="text-gray-600!"-->
+                                        <!--                                                                                  @click="openEditDrawer('fromEmail')">-->
+                                        <!--                                                                                <SettingOutlined/>-->
+                                        <!--                                                                                修改-->
+                                        <!--                                                                        </a-button>-->
+                                        <!--                                                                </a-input-group>-->
+                                        <!--                                                        </div>-->
+                                        <!--                                                </div>-->
+                                        <!--                                        </a-form-item>-->
+
                                         <a-form-item class="my-4!">
                                                 <div class="lg:flex items-start text-gray-500">
                                                         <div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
@@ -122,29 +151,9 @@
                                                         </div>
                                                         <div class="w-full">
                                                                 <a-input-group class="max-w-md px-0! flex!" compact>
-                                                                        <a-input v-model:value="form.fromEmail"
-                                                                                 disabled
-                                                                                 placeholder="noreply@example.com"/>
-                                                                        <a-button class="text-gray-600!"
-                                                                                  @click="openEditDrawer('fromEmail')">
-                                                                                <SettingOutlined/>
-                                                                                修改
-                                                                        </a-button>
-                                                                </a-input-group>
-                                                        </div>
-                                                </div>
-                                        </a-form-item>
-
-                                        <a-form-item class="my-4!">
-                                                <div class="lg:flex items-start text-gray-500">
-                                                        <div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
-                                                                发件人名称
-                                                        </div>
-                                                        <div class="w-full">
-                                                                <a-input-group class="max-w-md px-0! flex!" compact>
                                                                         <a-input v-model:value="form.fromName"
                                                                                  disabled
-                                                                                 placeholder="网站名称"/>
+                                                                                 placeholder=""/>
                                                                         <a-button class="text-gray-600!"
                                                                                   @click="openEditDrawer('fromName')">
                                                                                 <SettingOutlined/>
@@ -178,8 +187,11 @@
                                                                 <a-input-group class="max-w-md px-0! flex!" compact>
                                                                         <a-input v-model:value="testEmail"
                                                                                  placeholder="输入邮箱地址"/>
-                                                                        <a-button class="ml-2 text-gray-600!"
-                                                                                  @click="testConnection">
+                                                                        <a-button
+                                                                            :disabled="!testEmail"
+                                                                            :loading="testMailLoading"
+                                                                            class="ml-2 text-gray-600!"
+                                                                            @click="sendTestMail">
                                                                                 发送
                                                                         </a-button>
                                                                 </a-input-group>
@@ -247,8 +259,9 @@
 <script setup>
 import {computed, onMounted, reactive, ref} from 'vue';
 import {message} from 'ant-design-vue';
-import {SettingOutlined} from '@ant-design/icons-vue';
+import {CheckCircleOutlined, CloseCircleOutlined, SettingOutlined} from '@ant-design/icons-vue';
 import {configApi} from '../../../api/system/configApi.js';
+import {mailApi} from '../../../api/system/mailApi.js';
 import {useDrawerWidth} from '../../../utils/useDrawerWidth.js';
 
 const {drawerWidth} = useDrawerWidth();
@@ -294,6 +307,9 @@ const form = reactive({
 
 const loading = ref(false);
 const testEmail = ref('');
+const testMailLoading = ref(false);
+const smtpStatus = ref(null); // 'configured' | 'not_configured' | null
+const smtpStatusLoading = ref(false);
 const editDrawerVisible = ref(false);
 const editFormRef = ref(null);
 const editSubmitting = ref(false);
@@ -311,7 +327,7 @@ const editDrawerTitle = computed(() => {
                 username: '修改用户名',
                 password: '修改密码',
                 fromEmail: '修改发件人邮箱',
-                fromName: '修改发件人名称',
+                fromName: '修改发件人邮箱',
                 ssl: '修改启用SSL'
         };
         return editingField.value ? titles[editingField.value] : '修改配置';
@@ -324,7 +340,7 @@ const editDrawerLabel = computed(() => {
                 username: '用户名',
                 password: '密码',
                 fromEmail: '发件人邮箱',
-                fromName: '发件人名称',
+                fromName: '发件人邮箱',
                 ssl: '启用SSL'
         };
         return editingField.value ? labels[editingField.value] : '';
@@ -337,7 +353,7 @@ const editDrawerPlaceholder = computed(() => {
                 username: '邮箱地址',
                 password: '邮箱密码或授权码',
                 fromEmail: 'noreply@example.com',
-                fromName: '网站名称'
+                fromName: ''
         };
         return editingField.value ? placeholders[editingField.value] : '';
 });
@@ -493,16 +509,59 @@ async function handleEditSubmit() {
         }
 }
 
-function testConnection() {
-        if (testEmail.value) {
-                message.loading('正在发送...', 1.5).then(() =>
-                    message.info('测试邮件功能需后端提供发送接口后对接'));
-        } else {
-                message.warning('请输入邮箱地址');
+async function sendTestMail() {
+	// 验证邮箱地址
+	if (!testEmail.value) {
+		message.warning('请输入邮箱地址');
+	} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(testEmail.value)) {
+		message.warning('请输入有效的邮箱地址');
+	} else {
+		testMailLoading.value = true;
+		try {
+			const res = await mailApi.sendTestMail({
+				to: testEmail.value
+			});
+
+			// request.js 成功时返回 { data, success, errorMsg, code }
+			// API 返回格式是 { code, msg, data }，所以 msg 变成了 errorMsg
+			const msg = res.msg || res.errorMsg;
+			if (res.code === 200) {
+				message.success(msg || '邮件发送成功');
+			} else {
+				message.error(msg || '邮件发送失败');
+			}
+		} catch (e) {
+			message.error(e?.message || '邮件发送失败');
+		} finally {
+			testMailLoading.value = false;
+		}
+	}
+}
+
+async function checkSmtpStatus() {
+        smtpStatusLoading.value = true;
+        try {
+                const res = await mailApi.getStatus();
+
+                // request.js 成功时返回 { data, success, errorMsg, code }
+                const msg = res.msg || res.errorMsg;
+                if (res.code === 200) {
+                        smtpStatus.value = 'configured';
+                        message.success(msg || 'SMTP 配置已完成');
+                } else {
+                        smtpStatus.value = 'not_configured';
+                        message.warning(msg || 'SMTP 配置未完成');
+                }
+        } catch (e) {
+                smtpStatus.value = 'not_configured';
+                message.error(e?.message || '检查 SMTP 状态失败');
+        } finally {
+                smtpStatusLoading.value = false;
         }
 }
 
 onMounted(() => {
         loadSystemConfig();
+        // checkSmtpStatus();
 });
 </script>

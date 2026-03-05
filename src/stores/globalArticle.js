@@ -43,17 +43,10 @@ export const useGlobalArticleStore = defineStore('globalArticle', () => {
 	const filterOptions = ref({});
 
 	/**
-	 * 检查值是否存在（非空、非undefined、非null）
+	 * 检查值是否存在（非空、非 undefined、非 null）
 	 */
 	const hasValue = (value) => {
 		return value !== null && value !== undefined && value !== '';
-	};
-
-	/**
-	 * 检查值是否已定义
-	 */
-	const isDefined = (value) => {
-		return value !== undefined;
 	};
 
 	/**
@@ -62,30 +55,30 @@ export const useGlobalArticleStore = defineStore('globalArticle', () => {
 	const buildRequestParams = (params) => {
 		const safeParams = params || {};
 
-		const currentPage = safeParams.currentPage ?? pagination.value.current;
-		const pageSize = safeParams.pageSize ?? pagination.value.pageSize;
-		const keyword = safeParams.keyword ?? queryParams.value.keyword;
-		const isHidden = safeParams.isHidden !== undefined ? safeParams.isHidden : queryParams.value.isHidden;
-		const isTop = safeParams.isTop !== undefined ? safeParams.isTop : queryParams.value.isTop;
-		const isRecommend = safeParams.isRecommend !== undefined ? safeParams.isRecommend : queryParams.value.isRecommend;
-
+		// 基础分页参数
 		const requestParams = {
-			currentPage,
-			pageSize
+			currentPage: safeParams.currentPage ?? pagination.value.current,
+			pageSize: safeParams.pageSize ?? pagination.value.pageSize
 		};
 
+		// 可选查询参数 - 关键字
+		const keyword = safeParams.keyword ?? queryParams.value.keyword;
 		if (hasValue(keyword)) {
 			requestParams.keyword = keyword;
 		}
-		if (isDefined(isHidden)) {
-			requestParams.isHidden = isHidden;
-		}
-		if (isDefined(isTop)) {
-			requestParams.isTop = isTop;
-		}
-		if (isDefined(isRecommend)) {
-			requestParams.isRecommend = isRecommend;
-		}
+
+		// 可选查询参数 - 布尔筛选（需要区分 undefined 和 false）
+		const filters = [
+			{key: 'isHidden', value: safeParams.isHidden !== undefined ? safeParams.isHidden : queryParams.value.isHidden},
+			{key: 'isTop', value: safeParams.isTop !== undefined ? safeParams.isTop : queryParams.value.isTop},
+			{key: 'isRecommend', value: safeParams.isRecommend !== undefined ? safeParams.isRecommend : queryParams.value.isRecommend}
+		];
+
+		filters.forEach(({key, value}) => {
+			if (value !== undefined) {
+				requestParams[key] = value;
+			}
+		});
 
 		return requestParams;
 	};

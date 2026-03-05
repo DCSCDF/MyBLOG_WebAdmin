@@ -261,24 +261,23 @@ export const useRoleStore = defineStore('role', () => {
 	 */
 	const createRole = async (body) => {
 		let result;
-
 		try {
 			const res = await roleApi.create(body);
 			if (res.success === true) {
 				logger.log('角色创建成功');
 				result = res.data || true;
 			} else {
-				// API 响应失败，记录错误并返回 false
 				const errorMessage = res.errorMsg || '创建角色失败';
 				logger.error(errorMessage);
-				result = false;
+				result = Promise.reject(new Error(errorMessage));
 			}
 		} catch (error) {
-			// 处理网络错误或其他意外错误
 			logger.error('创建角色失败:', error);
-			result = false;
+			if (!(error instanceof Error)) {
+				throw new Error(error?.message || '创建角色失败');
+			}
+			throw error;
 		}
-
 		return result;
 	};
 
@@ -290,24 +289,23 @@ export const useRoleStore = defineStore('role', () => {
 	 */
 	const updateRole = async (id, body) => {
 		let result;
-
 		try {
 			const res = await roleApi.update(id, body);
 			if (res.success === true) {
 				logger.log('角色修改成功:', id);
 				result = res.data || true;
 			} else {
-				// API 响应失败，记录错误并返回 false
 				const errorMessage = res.errorMsg || '修改角色失败';
 				logger.error(errorMessage);
-				result = false;
+				result = Promise.reject(new Error(errorMessage));
 			}
 		} catch (error) {
-			// 处理网络错误或其他意外错误
 			logger.error('修改角色失败:', error);
-			result = false;
+			if (!(error instanceof Error)) {
+				throw new Error(error?.message || '修改角色失败');
+			}
+			throw error;
 		}
-
 		return result;
 	};
 

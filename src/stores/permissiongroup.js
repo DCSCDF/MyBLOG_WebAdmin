@@ -147,24 +147,22 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 	 */
 	const createPermissionGroup = async (body) => {
 		let result;
-
 		try {
 			const res = await permissionGroupApi.create(body);
 			if (res.success === true) {
 				logger.log('权限组创建成功');
 				result = res.data || true;
 			} else {
-				// API 响应失败，记录错误并返回 false
+				// API 响应失败，抛出错误让调用方处理
 				const errorMsg = res.errorMsg || '创建权限组失败';
 				logger.error('创建权限组失败:', errorMsg);
-				result = false;
+				result = Promise.reject(new Error(errorMsg));
 			}
 		} catch (error) {
 			// 处理网络错误或其他意外错误
 			logger.error('创建权限组异常:', error);
-			result = false;
+			throw error;
 		}
-
 		return result;
 	};
 
@@ -176,24 +174,22 @@ export const usePermissionGroupStore = defineStore('permissionGroup', () => {
 	 */
 	const updatePermissionGroup = async (id, body) => {
 		let result;
-
 		try {
 			const res = await permissionGroupApi.update(id, body);
 			if (res.success === true) {
 				logger.log('权限组更新成功:', id);
 				result = res.data || true;
 			} else {
-				// API 响应失败，记录错误并返回 false
+				// API 响应失败，抛出错误让调用方处理
 				const errorMsg = res.errorMsg || '修改权限组失败';
 				logger.error('修改权限组失败:', errorMsg);
-				result = false;
+				result = Promise.reject(new Error(errorMsg));
 			}
 		} catch (error) {
 			// 处理网络错误或其他意外错误
 			logger.error('更新权限组异常:', error);
-			result = false;
+			throw error;
 		}
-
 		return result;
 	};
 
