@@ -221,18 +221,18 @@ export const childRoutes = [
 						description: '管理所有用户的文章',
 						permission: 'system:article:list'
 					},
-					{
-						key: 'sub3_2_2',
-						label: '全局分类管理',
-						title: '全局分类管理',
-						route: '/user/website/content/category',
-						path: '/user/website/content/category',
-						name: 'globalCategory',
-						component: () => import('../pages/User/Dashboard/Dashboard.vue'),
-						meta: {title: '全局分类管理'},
-						description: '管理所有用户的分类',
-						permission: 'system:category:list'
-					},
+					// {
+					// 	key: 'sub3_2_2',
+					// 	label: '全局分类管理',
+					// 	title: '全局分类管理',
+					// 	route: '/user/website/content/category',
+					// 	path: '/user/website/content/category',
+					// 	name: 'globalCategory',
+					// 	component: () => import('../pages/User/Dashboard/Dashboard.vue'),
+					// 	meta: {title: '全局分类管理'},
+					// 	description: '管理所有用户的分类',
+					// 	permission: 'system:category:list'
+					// },
 					{
 						key: 'sub3_2_3',
 						label: '全局评论管理',
