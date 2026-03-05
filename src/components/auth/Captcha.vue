@@ -54,6 +54,7 @@ import {
         DEFAULT_CAPTCHA_IMAGE_PLACEHOLDER
 } from '../../utils/VerifyUtils/captchaDefaults.js'
 
+
 // 获取验证码 Store 实例
 const captchaStore = useCaptchaStore()
 
@@ -182,7 +183,7 @@ if (typeof window !== 'undefined' && window.CaptchaConfig && !window.__TAC_AXIOS
                                                 // 生成验证码接口：需要解析嵌套的 data 结构
                                                 if (cfg.url.includes('/api/captcha/get')) {
                                                         const normalized = normalizeTacGetResponse(basePayload)
-                                                        logger.log('[TAC] captcha/get normalized data:', normalized)
+                                                        logger.log('captcha/get normalized data:', normalized)
 
                                                         // 保存验证码数据到 Pinia Store
                                                         if (normalized.data && typeof normalized.data === 'object') {
