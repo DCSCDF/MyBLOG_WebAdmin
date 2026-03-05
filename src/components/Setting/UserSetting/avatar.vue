@@ -25,6 +25,10 @@
                         <!--                            fallback=""-->
                         <!--                        />-->
                         <a-avatar :size="140" :src="currentAvatarUrl">
+                                <template #icon>
+                                        <UserOutlined/>
+                                </template>
+
                         </a-avatar>
 
                         <a-divider/>
@@ -84,6 +88,8 @@ import {message} from 'ant-design-vue';
 import {useAuthStore} from '../../../stores/auth.js';
 import {authApi} from '../../../api/user/auth/authApi.js';
 import {useDrawerWidth} from '../../../utils/useDrawerWidth.js';
+import {UserOutlined} from '@ant-design/icons-vue';
+
 
 const authStore = useAuthStore();
 const {drawerWidth} = useDrawerWidth();

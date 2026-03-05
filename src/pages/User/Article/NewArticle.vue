@@ -86,7 +86,7 @@ import {onMounted, onUnmounted, ref} from 'vue';
 import {message} from 'ant-design-vue';
 import {MdEditor} from 'md-editor-v3';
 import 'md-editor-v3/lib/style.css';
-import {blogApi} from '../../../api/user/blogApi.js';
+import {blogApi} from '../../../api/blog/blogApi.js';
 import {useArticleStore} from '../../../stores/article.js';
 import {useCategoryStore} from '../../../stores/category.js';
 
@@ -220,7 +220,7 @@ const handleSubmitClick = () => {
 const submitArticle = async () => {
         // 表单验证 - 使用标志变量控制流程
         let hasError = false;
-        
+
         if (!submitForm.value.title || submitForm.value.title.trim() === '') {
                 message.warning('请输入文章标题');
                 hasError = true;
@@ -246,7 +246,7 @@ const submitArticle = async () => {
                         const params = {
                                 title: submitForm.value.title.trim(),
                                 categoryId: submitForm.value.categoryId || undefined,
-                                summary: submitForm.value.summary?.trim() || undefined,
+                                summary: submitForm.value.summary?.trim() ?? undefined,
                                 content: currentMdContent,
                                 htmlContent: currentHtmlContent,
                                 coverImage: submitForm.value.coverImage?.trim() || undefined,
