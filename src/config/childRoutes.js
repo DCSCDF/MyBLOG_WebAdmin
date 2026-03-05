@@ -216,7 +216,7 @@ export const childRoutes = [
 						route: '/user/website/content/article',
 						path: '/user/website/content/article',
 						name: 'globalArticle',
-						component: () => import('../pages/User/Dashboard/Dashboard.vue'),
+						component: () => import('../pages/User/Website/Content/GlobalArticle.vue'),
 						meta: {title: '全局文章管理'},
 						description: '管理所有用户的文章',
 						permission: 'system:article:list'

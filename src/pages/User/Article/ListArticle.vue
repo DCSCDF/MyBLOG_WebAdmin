@@ -47,30 +47,6 @@
                                                 </a-select-option>
                                         </a-select>
                                 </div>
-                                <div class="search-filter-item flex items-center gap-1 rounded-md min-w-0 my-1">
-                                        <a-select
-                                            v-model:value="searchTop"
-                                            allow-clear
-                                            placeholder="是否置顶">
-                                                <a-select-option
-                                                    v-for="opt in topFilterOptions"
-                                                    :key="opt.value"
-                                                    :value="opt.value">{{ opt.label }}
-                                                </a-select-option>
-                                        </a-select>
-                                </div>
-                                <div class="search-filter-item flex items-center gap-1 rounded-md min-w-0 my-1">
-                                        <a-select
-                                            v-model:value="searchRecommend"
-                                            allow-clear
-                                            placeholder="是否推荐">
-                                                <a-select-option
-                                                    v-for="opt in recommendFilterOptions"
-                                                    :key="opt.value"
-                                                    :value="opt.value">{{ opt.label }}
-                                                </a-select-option>
-                                        </a-select>
-                                </div>
                         </div>
                         <div class="flex shrink-0 gap-2 w-full lg:w-auto justify-end">
                                 <a-button type="primary" @click="handleSearch">
@@ -143,26 +119,11 @@
                                                 {{ record.isHidden ? '隐藏' : '显示' }}
                                         </a-tag>
                                 </template>
-                                <template v-else-if="column.key === 'isTop'">
-                                        <a-tag :bordered="false" :color="record.isTop ? 'gold' : 'default'">
-                                                {{ record.isTop ? '置顶' : '不置顶' }}
-                                        </a-tag>
-                                </template>
-                                <template v-else-if="column.key === 'isRecommend'">
-                                        <a-tag :bordered="false" :color="record.isRecommend ? 'purple' : 'default'">
-                                                {{ record.isRecommend ? '推荐' : '不推荐' }}
-                                        </a-tag>
-                                </template>
                                 <template v-else-if="column.key === 'action'">
                                         <a-space>
-                                                <a-dropdown :overlay="createStatusMenu(record)">
-                                                        <a-button size="small" type="link">
-                                                                <template #icon>
-                                                                        <SettingOutlined/>
-                                                                </template>
-                                                                状态
-                                                        </a-button>
-                                                </a-dropdown>
+                                                <a-button size="small" type="link" @click="toggleHidden(record)">
+                                                        {{ record.isHidden ? '显示' : '隐藏' }}
+                                                </a-button>
                                                 <a-button size="small" type="link" @click="openEdit(record)">编辑
                                                 </a-button>
                                                 <a-popconfirm
@@ -269,15 +230,14 @@
 </template>
 
 <script setup>
-import {computed, h, onMounted, ref} from 'vue';
+import {computed, onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {message} from 'ant-design-vue';
-import {FileTextOutlined, SearchOutlined, SettingOutlined} from '@ant-design/icons-vue';
+import {FileTextOutlined, SearchOutlined} from '@ant-design/icons-vue';
 import {MdEditor} from 'md-editor-v3';
 import 'md-editor-v3/lib/style.css';
 import {useBlogStore} from '../../../stores/blog.js';
 import {useCategoryStore} from '../../../stores/category.js';
-import {Menu as AMenu} from 'ant-design-vue';
 
 const router = useRouter();
 const blogStore = useBlogStore();
@@ -286,8 +246,6 @@ const categoryStore = useCategoryStore();
 // 搜索与筛选
 const searchKeyword = ref('');
 const searchHidden = ref(undefined);
-const searchTop = ref(undefined);
-const searchRecommend = ref(undefined);
 
 // 筛选项配置
 const defaultHiddenOptions = [
@@ -296,37 +254,11 @@ const defaultHiddenOptions = [
         {value: true, label: '隐藏'}
 ];
 
-const defaultTopOptions = [
-        {value: null, label: '全部'},
-        {value: false, label: '不置顶'},
-        {value: true, label: '置顶'}
-];
-
-const defaultRecommendOptions = [
-        {value: null, label: '全部'},
-        {value: false, label: '不推荐'},
-        {value: true, label: '推荐'}
-];
-
 /** 隐藏状态下拉选项：来自接口 filterOptions 或默认 */
 const hiddenFilterOptions = computed(() => {
         const options = blogStore.filterOptions?.isHidden;
         const useApiOptions = Array.isArray(options) && options.length > 0;
         return useApiOptions ? options : defaultHiddenOptions;
-});
-
-/** 置顶状态下拉选项 */
-const topFilterOptions = computed(() => {
-        const options = blogStore.filterOptions?.isTop;
-        const useApiOptions = Array.isArray(options) && options.length > 0;
-        return useApiOptions ? options : defaultTopOptions;
-});
-
-/** 推荐状态下拉选项 */
-const recommendFilterOptions = computed(() => {
-        const options = blogStore.filterOptions?.isRecommend;
-        const useApiOptions = Array.isArray(options) && options.length > 0;
-        return useApiOptions ? options : defaultRecommendOptions;
 });
 
 // 表格列定义
@@ -339,10 +271,8 @@ const columns = [
         {title: '点赞数', key: 'likeCount', width: 80},
 
         {title: '隐藏', key: 'isHidden', width: 70},
-        {title: '置顶', key: 'isTop', width: 70},
-        {title: '推荐', key: 'isRecommend', width: 70},
 
-        {title: '操作', key: 'action', width: 200, fixed: 'right'}
+        {title: '操作', key: 'action', width: 150, fixed: 'right'}
 ];
 
 // 表格分页配置
@@ -431,18 +361,6 @@ const loadArticles = () => {
                 params.isHidden = hiddenRaw;
         }
 
-        // 处理置顶状态参数
-        const topRaw = searchTop.value;
-        if (isValidValue(topRaw)) {
-                params.isTop = topRaw;
-        }
-
-        // 处理推荐状态参数
-        const recommendRaw = searchRecommend.value;
-        if (isValidValue(recommendRaw)) {
-                params.isRecommend = recommendRaw;
-        }
-
         blogStore.fetchArticles(params).catch((e) => {
                 message.error(e?.message || '加载文章列表失败');
         });
@@ -466,9 +384,7 @@ const handleSearch = () => {
         blogStore.updatePagination({current: 1});
         blogStore.updateQueryParams({
                 keyword: searchKeyword.value.trim(),
-                isHidden: searchHidden.value,
-                isTop: searchTop.value,
-                isRecommend: searchRecommend.value
+                isHidden: searchHidden.value
         });
         loadArticles();
 };
@@ -479,14 +395,10 @@ const handleSearch = () => {
 const handleReset = () => {
         searchKeyword.value = '';
         searchHidden.value = undefined;
-        searchTop.value = undefined;
-        searchRecommend.value = undefined;
         blogStore.updatePagination({current: 1});
         blogStore.updateQueryParams({
                 keyword: '',
-                isHidden: undefined,
-                isTop: undefined,
-                isRecommend: undefined
+                isHidden: undefined
         });
         loadArticles();
 };
@@ -623,14 +535,15 @@ const submitInfoEdit = async () => {
                 infoSubmitting.value = true;
                 try {
                         // 同时更新内容部分和信息部分
+                        // 注意：需要将空字符串传给后端，而不是 undefined
                         await blogStore.updateArticle(form.id, {
                                 title: form.title.trim(),
-                                categoryId: form.categoryId || undefined,
-                                summary: form.summary?.trim() ?? undefined,
-                                content: form.content || undefined,
-                                htmlContent: cachedHtmlContent || undefined,
-                                coverImage: form.coverImage?.trim() || undefined,
-                                tags: form.tags?.trim() || undefined
+                                categoryId: form.categoryId || null,
+                                summary: form.summary?.trim() || '',
+                                content: form.content || '',
+                                htmlContent: cachedHtmlContent || '',
+                                coverImage: form.coverImage?.trim() || '',
+                                tags: form.tags?.trim() || ''
                         });
                         message.success('文章更新成功');
                         infoEditVisible.value = false;
@@ -644,37 +557,14 @@ const submitInfoEdit = async () => {
 };
 
 /**
- * 创建状态下拉菜单
+ * 切换文章隐藏状态
  */
-const createStatusMenu = (record) => {
-        return h(AMenu, {
-                onClick: ({key}) => handleStatusChange(record, key)
-        }, {
-                default: () => [
-                        h(AMenu.Item, {key: 'isTop'}, {
-                                default: () => record.isTop ? '取消置顶' : '设为置顶'
-                        }),
-                        h(AMenu.Item, {key: 'isRecommend'}, {
-                                default: () => record.isRecommend ? '取消推荐' : '设为推荐'
-                        }),
-                        h(AMenu.Item, {key: 'isHidden'}, {
-                                default: () => record.isHidden ? '取消隐藏' : '设为隐藏'
-                        })
-                ]
-        });
-};
-
-/**
- * 处理状态变更
- */
-const handleStatusChange = async (record, key) => {
-        const currentValue = record[key];
-        const newValue = !currentValue;
+const toggleHidden = async (record) => {
+        const newValue = !record.isHidden;
 
         try {
-                const statusData = {[key]: newValue};
-                await blogStore.updateArticleStatus(record.id, statusData);
-                message.success(`已${newValue ? '设为' : '取消'}${key === 'isHidden' ? (newValue ? '隐藏' : '显示') : (key === 'isTop' ? (newValue ? '置顶' : '不置顶') : (newValue ? '推荐' : '不推荐'))}`);
+                await blogStore.updateArticleStatus(record.id, {isHidden: newValue});
+                message.success(newValue ? '文章已隐藏' : '文章已显示');
                 loadArticles();
         } catch (e) {
                 message.error(e?.message || '更新状态失败');
