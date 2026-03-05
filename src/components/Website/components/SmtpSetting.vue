@@ -181,7 +181,7 @@
                                         <a-form-item class="my-4!">
                                                 <div class="lg:flex items-start text-gray-500">
                                                         <div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
-                                                                测试邮件
+                                                                发送测试邮件
                                                         </div>
                                                         <div class="w-full">
                                                                 <a-input-group class="max-w-md px-0! flex!" compact>
