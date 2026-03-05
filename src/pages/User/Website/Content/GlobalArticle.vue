@@ -120,12 +120,12 @@
                                 </template>
                                 <template v-else-if="column.key === 'tags'">
                                         <a-space v-if="record.tags" :size="4">
-                                                <a-tag v-for="(tag, index) in record.tags.split(',').slice(0, 3)"
+                                                <a-tag v-for="(tag, index) in record.tags.split(',').slice(0, 2)"
                                                        :key="index" color="blue">
                                                         {{ tag }}
                                                 </a-tag>
-                                                <a-tag v-if="record.tags.split(',').length > 3" color="default">
-                                                        +{{ record.tags.split(',').length - 3 }}
+                                                <a-tag v-if="record.tags.split(',').length > 2" color="default">
+                                                        +{{ record.tags.split(',').length - 2 }}
                                                 </a-tag>
                                         </a-space>
                                         <span v-else class="text-gray-400">-</span>
@@ -195,19 +195,16 @@ const searchRecommend = ref(undefined);
 
 // 筛选项配置
 const defaultHiddenOptions = [
-        {value: null, label: '全部'},
         {value: false, label: '显示'},
         {value: true, label: '隐藏'}
 ];
 
 const defaultTopOptions = [
-        {value: null, label: '全部'},
         {value: false, label: '不置顶'},
         {value: true, label: '置顶'}
 ];
 
 const defaultRecommendOptions = [
-        {value: null, label: '全部'},
         {value: false, label: '不推荐'},
         {value: true, label: '推荐'}
 ];
@@ -238,7 +235,7 @@ const columns = [
         {title: 'ID', dataIndex: 'id', key: 'id', width: 70},
         {title: '文章', key: 'title', width: 280},
         {title: '作者', key: 'author', width: 160},
-        {title: '标签', key: 'tags', width: 140},
+        {title: '标签', key: 'tags', width: 160},
         {title: '浏览量', key: 'viewCount', width: 80},
         {title: '评论数', key: 'commentCount', width: 80},
         {title: '点赞数', key: 'likeCount', width: 80},

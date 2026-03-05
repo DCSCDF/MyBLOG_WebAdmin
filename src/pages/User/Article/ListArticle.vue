@@ -95,12 +95,12 @@
                                 </template>
                                 <template v-else-if="column.key === 'tags'">
                                         <a-space v-if="record.tags" :size="4">
-                                                <a-tag v-for="(tag, index) in record.tags.split(',').slice(0, 3)"
+                                                <a-tag v-for="(tag, index) in record.tags.split(',').slice(0, 2)"
                                                        :key="index" color="blue">
                                                         {{ tag }}
                                                 </a-tag>
-                                                <a-tag v-if="record.tags.split(',').length > 3" color="default">
-                                                        +{{ record.tags.split(',').length - 3 }}
+                                                <a-tag v-if="record.tags.split(',').length >2" color="default">
+                                                        +{{ record.tags.split(',').length - 2 }}
                                                 </a-tag>
                                         </a-space>
                                         <span v-else class="text-gray-400">-</span>
@@ -249,7 +249,6 @@ const searchHidden = ref(undefined);
 
 // 筛选项配置
 const defaultHiddenOptions = [
-        {value: null, label: '全部'},
         {value: false, label: '显示'},
         {value: true, label: '隐藏'}
 ];
