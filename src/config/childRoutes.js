@@ -124,7 +124,7 @@ export const childRoutes = [
 		name: 'links',
 		component: () => import('../pages/User/Links/LinksSetting.vue'),
 		meta: {title: '网站外链'},
-		description: '网站的友情链�/外部链接',
+		description: '网站的友情链接/外部链接',
 		permission: 'links:list'
 	},
 	{
@@ -240,7 +240,7 @@ export const childRoutes = [
 						route: '/user/website/content/message',
 						path: '/user/website/content/message',
 						name: 'globalMessage',
-						component: () => import('../pages/User/Dashboard/Dashboard.vue'),
+						component: () => import('../pages/User/Website/Content/GlobalMessage.vue'),
 						meta: {title: '全局评论管理'},
 						description: '管理所有用户的评论',
 						permission: 'system:comment:list'

@@ -1,5 +1,5 @@
 <!--
-  - [Message.vue]
+  - [GlobalMessage.vue]
   - -------------------------------------------------------------------------------
   - This software is licensed under the MIT License.
   - However, any distribution or modification must retain this copyright notice.
@@ -16,8 +16,8 @@
         <a-card>
                 <div class="mb-4 flex items-center justify-between">
                         <div>
-                                <h2 class="font-bold text-lg mb-1">我的评论</h2>
-                                <span class="text-sm text-gray-600">管理我的评论，支持分页与状态筛选。</span>
+                                <h2 class="font-bold text-lg mb-1">全局评论管理</h2>
+                                <span class="text-sm text-gray-600">管理所有用户的评论，支持分页、关键词与状态筛选。</span>
                         </div>
                 </div>
 
@@ -26,7 +26,7 @@
                                 <a-input
                                     v-model:value="searchKeyword"
                                     class="w-full"
-                                    placeholder="搜索评论内容"
+                                    placeholder="搜索评论者/邮箱/内容"
                                     @press-enter="handleSearch">
                                         <template #prefix>
                                                 <SearchOutlined/>
@@ -64,7 +64,7 @@
                     :data-source="commentStore.currentComments"
                     :loading="commentStore.loading"
                     :pagination="tablePagination"
-                    :scroll="{ x: 1000 }"
+                    :scroll="{ x: 1200 }"
                     row-key="id"
                     @change="onTableChange">
                         <template #bodyCell="{ column, record }">
@@ -74,7 +74,7 @@
                                         </a>
                                 </template>
                                 <template v-else-if="column.key === 'content'">
-                                        <span class="truncate block max-w-[200px]">
+                                        <span class="truncate block max-w-[180px]">
                                                 {{ record.content }}
                                         </span>
                                 </template>
@@ -89,7 +89,12 @@
                                                                 <UserOutlined/>
                                                         </template>
                                                 </a-avatar>
-                                                <span>{{ record.username }}</span>
+                                                <div class="flex flex-col">
+                                                        <span>{{ record.username }}</span>
+                                                        <span v-if="record.email" class="text-xs text-gray-400">
+                                                                {{ record.email }}
+                                                        </span>
+                                                </div>
                                         </div>
                                 </template>
                                 <template v-else-if="column.key === 'status'">
@@ -97,8 +102,24 @@
                                                 {{ getStatusLabel(record.status) }}
                                         </a-tag>
                                 </template>
+                                <template v-else-if="column.key === 'ipAddress'">
+                                        <span class="text-xs">{{ record.ipAddress || '-' }}</span>
+                                </template>
                                 <template v-else-if="column.key === 'action'">
                                         <a-space>
+                                                <a-dropdown>
+                                                        <a-button size="small" type="link">
+                                                                审核
+                                                                <DownOutlined/>
+                                                        </a-button>
+                                                        <template #overlay>
+                                                                <a-menu @click="({key}) => handleApprove(record, key)">
+                                                                        <a-menu-item key="0">设为待审核</a-menu-item>
+                                                                        <a-menu-item key="1">设为已通过</a-menu-item>
+                                                                        <a-menu-item key="2">设为垃圾评论</a-menu-item>
+                                                                </a-menu>
+                                                        </template>
+                                                </a-dropdown>
                                                 <a-button size="small" type="link" @click="openEdit(record)">编辑
                                                 </a-button>
                                                 <a-popconfirm
@@ -146,10 +167,10 @@
 <script setup>
 import {computed, onMounted, ref} from 'vue';
 import {message} from 'ant-design-vue';
-import {SearchOutlined, UserOutlined} from '@ant-design/icons-vue';
-import {useCommentStore} from '../../../stores/comment.js';
+import {DownOutlined, SearchOutlined, UserOutlined} from '@ant-design/icons-vue';
+import {useGlobalCommentStore} from '../../../../stores/globalComment.js';
 
-const commentStore = useCommentStore();
+const commentStore = useGlobalCommentStore();
 
 // 搜索与筛选
 const searchKeyword = ref('');
@@ -198,13 +219,14 @@ const getStatusLabel = (status) => {
 // 表格列定义
 const columns = [
         {title: 'ID', dataIndex: 'id', key: 'id', width: 70},
-        {title: '文章', key: 'blogTitle', width: 180},
-        // {title: '评论者', key: 'username', width: 140},
-        {title: '内容', key: 'content', width: 220},
+        {title: '文章', key: 'blogTitle', width: 160},
+        {title: '评论者', key: 'username', width: 180},
+        {title: '内容', key: 'content', width: 200},
         {title: '状态', key: 'status', width: 90},
-        {title: '点赞数', dataIndex: 'likeCount', key: 'likeCount', width: 80},
-        {title: '评论时间', dataIndex: 'createTime', key: 'createTime', width: 180},
-        {title: '操作', key: 'action', width: 150, fixed: 'right'}
+        {title: '点赞数', dataIndex: 'likeCount', key: 'likeCount', width: 70},
+        {title: 'IP地址', key: 'ipAddress', width: 120},
+        {title: '评论时间', dataIndex: 'createTime', key: 'createTime', width: 170},
+        {title: '操作', key: 'action', width: 200, fixed: 'right'}
 ];
 
 // 表格分页配置
@@ -236,6 +258,13 @@ const loadComments = () => {
                 currentPage: commentStore.pagination.current,
                 pageSize: commentStore.pagination.pageSize
         };
+
+        // 处理关键词参数
+        const keywordRaw = searchKeyword.value;
+        const hasKeyword = keywordRaw != null && String(keywordRaw).trim().length > 0;
+        if (hasKeyword) {
+                params.keyword = String(keywordRaw).trim();
+        }
 
         // 处理状态参数
         const statusRaw = searchStatus.value;
@@ -289,6 +318,20 @@ const handleReset = () => {
 };
 
 /**
+ * 审核评论
+ */
+const handleApprove = async (record, statusKey) => {
+        const status = parseInt(statusKey, 10);
+        try {
+                await commentStore.approveComment(record.id, status);
+                message.success('审核成功');
+                loadComments();
+        } catch (e) {
+                message.error(e?.message || '审核失败');
+        }
+};
+
+/**
  * 打开编辑弹窗
  */
 const openEdit = (record) => {
@@ -330,14 +373,14 @@ const submitEdit = async () => {
                 canProceed = true;
         }
 
-                if (canProceed) {
-                        editSubmitting.value = true;
-                        try {
-                                await commentStore.updateComment(form.id, {
-                                        id: form.id,
-                                        content: form.content?.trim() || undefined,
-                                        website: form.website?.trim() || ''
-                                });
+        if (canProceed) {
+                editSubmitting.value = true;
+                try {
+                        await commentStore.updateComment(form.id, {
+                                id: form.id,
+                                content: form.content?.trim() || undefined,
+                                website: form.website?.trim() || ''
+                        });
                         message.success('保存成功');
                         editVisible.value = false;
                         editForm.value = null;
