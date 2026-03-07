@@ -13,21 +13,25 @@
   -
   -->
 <template>
-        <a-card class="md-editor-container">
+        <a-card>
                 <div class="mb-4 flex items-center justify-between">
                         <div>
                                 <h2 class="font-bold text-lg mb-1">撰写你的文章</h2>
                                 <span
-                                    class="text-sm text-gray-600">使用 Markdown 语法编写你的文章，工具栏可以点击空白区域左右拖动，撰写完成后点击提交文章来补充标题、分类等信息。</span>
+                                    class="text-sm text-gray-600">使用Markdown编写你的文章，工具栏可以左右拖动，撰写完成后点击提交文章来补充其他信息。</span>
+                                <br>
+                                <span
+                                    class="text-sm text-gray-600">支持快捷键如：ctrl+s保存草稿到本地，ctrl+z撤销更改，ctrl+y恢复上一步被撤销的更改.....</span>
                         </div>
                         <a-button type="primary" @click="handleSubmitClick">提交文章</a-button>
                 </div>
 
                 <MdEditor
+                    ref="editorRef"
                     v-model="mdText"
+                    :preview="true"
                     :toolbars="toolbars"
                     language="zh-CN"
-                    preview
                     @change="handleEditorChange"
                     @onHtmlChanged="handleHtmlChange"
                     @save="handleSave"/>
@@ -116,6 +120,7 @@ const toolbars = [
         'mermaid',
         'katex',
         '-',
+        'save',
         'revoke',
         'next',
         '=',
@@ -130,8 +135,17 @@ const toolbars = [
 // 默认内容
 const DEFAULT_TEXT = '**开始写作！**';
 
+// 手机端断点阈值
+const MOBILE_BREAKPOINT = 768;
+
 // Markdown 内容
 const mdText = ref(DEFAULT_TEXT);
+
+// 编辑器实例引用
+const editorRef = ref(null);
+
+// 预览状态跟踪
+const isPreviewOn = ref(true);
 
 // 提交弹窗状态
 const submitVisible = ref(false);
@@ -188,8 +202,18 @@ const handleHtmlChange = (html) => {
  * 处理保存（快捷键或工具栏触发）
  */
 const handleSave = () => {
-        articleStore.saveDraft();
-        message.success('草稿已保存');
+        // 检查内容是否为空或默认内容
+        const content = mdText.value;
+        const isEmpty = !content || content.trim() === '' || content.trim() === DEFAULT_TEXT;
+
+        if (isEmpty) {
+                // 内容为空时删除本地草稿
+                articleStore.clearDraft();
+                message.info('内容为空，已清除草稿');
+        } else {
+                articleStore.saveDraft();
+                message.success('草稿已保存');
+        }
 };
 
 /**
@@ -287,6 +311,18 @@ const resetSubmitForm = () => {
         };
 };
 
+/**
+ * 检测窗口大小，控制预览显示
+ */
+const checkWindowSize = () => {
+        const shouldShowPreview = window.innerWidth >= MOBILE_BREAKPOINT;
+        // 只有当预览状态需要改变时才执行切换
+        if (shouldShowPreview !== isPreviewOn.value && editorRef.value) {
+                isPreviewOn.value = shouldShowPreview;
+                editorRef.value.togglePreview(shouldShowPreview);
+        }
+};
+
 // 组件挂载时
 onMounted(async () => {
         // 初始化草稿（从本地存储恢复）
@@ -304,6 +340,16 @@ onMounted(async () => {
             () => mdText.value,
             () => articleStore.htmlContent
         );
+
+        // 检测窗口大小，控制预览显示
+        checkWindowSize();
+        window.addEventListener('resize', checkWindowSize);
+
+        // 初始化预览状态：如果初始窗口宽度小于断点，关闭预览
+        if (window.innerWidth < MOBILE_BREAKPOINT && editorRef.value) {
+                isPreviewOn.value = false;
+                editorRef.value.togglePreview(false);
+        }
 });
 
 // 组件卸载时
@@ -312,13 +358,7 @@ onUnmounted(() => {
         articleStore.stopAutoSave();
         // 保存当前草稿
         articleStore.saveDraft();
+        // 移除窗口大小监听
+        window.removeEventListener('resize', checkWindowSize);
 });
 </script>
-
-<style scoped>
-.md-editor-container {
-        min-height: calc(100vh - 150px);
-}
-
-
-</style>

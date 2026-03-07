@@ -223,7 +223,7 @@ const columns = [
         {title: '评论者', key: 'username', width: 180},
         {title: '内容', key: 'content', width: 200},
         {title: '状态', key: 'status', width: 90},
-        {title: '点赞数', dataIndex: 'likeCount', key: 'likeCount', width: 70},
+        {title: '点赞数', dataIndex: 'likeCount', key: 'likeCount', width: 100},
         {title: 'IP地址', key: 'ipAddress', width: 120},
         {title: '评论时间', dataIndex: 'createTime', key: 'createTime', width: 170},
         {title: '操作', key: 'action', width: 200, fixed: 'right'}
