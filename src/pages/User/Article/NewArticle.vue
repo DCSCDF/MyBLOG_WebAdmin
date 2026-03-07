@@ -320,8 +320,5 @@ onUnmounted(() => {
         min-height: calc(100vh - 150px);
 }
 
-:deep(.md-editor) {
-        height: calc(100vh - 250px);
-        min-height: 500px;
-}
+
 </style>
