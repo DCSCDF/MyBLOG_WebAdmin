@@ -22,9 +22,39 @@ import {ref, computed} from 'vue';
 import logger from '../utils/logger.js';
 
 export const useAppStore = defineStore('app', () => {
+	// localStorage key 常量
+	const STORAGE_KEYS = {
+		SIDEBAR_COLLAPSED: 'app_sidebar_collapsed',
+		MOBILE_SIDEBAR_OPEN: 'app_mobile_sidebar_open'
+	};
+
+	// 从 localStorage 获取侧边栏状态，默认为 false
+	/**
+	 * @returns {boolean}
+	 */
+	const getStoredSidebarState = () => {
+		let result = false;
+		if (typeof window !== 'undefined') {
+			result = localStorage.getItem(STORAGE_KEYS.SIDEBAR_COLLAPSED) === 'true';
+		}
+		return result;
+	};
+
+	// 从 localStorage 获取移动端侧边栏状态，默认为 false
+	/**
+	 * @returns {boolean}
+	 */
+	const getStoredMobileSidebarState = () => {
+		let result = false;
+		if (typeof window !== 'undefined') {
+			result = localStorage.getItem(STORAGE_KEYS.MOBILE_SIDEBAR_OPEN) === 'true';
+		}
+		return result;
+	};
+
 	// 侧边栏状态
-	const sidebarCollapsed = ref(false);
-	const mobileSidebarOpen = ref(false);
+	const sidebarCollapsed = ref(getStoredSidebarState());
+	const mobileSidebarOpen = ref(getStoredMobileSidebarState());
 
 	// 设备检测 - LG断点为1024px
 	const isMobile = ref(window.innerWidth < 1024);
@@ -47,6 +77,7 @@ export const useAppStore = defineStore('app', () => {
 	 */
 	const toggleSidebar = () => {
 		sidebarCollapsed.value = !sidebarCollapsed.value;
+		localStorage.setItem(STORAGE_KEYS.SIDEBAR_COLLAPSED, String(sidebarCollapsed.value));
 		logger.log(`侧边栏状态切换: ${sidebarCollapsed.value ? '收起' : '展开'}`);
 	};
 
@@ -56,6 +87,7 @@ export const useAppStore = defineStore('app', () => {
 	 */
 	const setSidebarCollapsed = (collapsed) => {
 		sidebarCollapsed.value = collapsed;
+		localStorage.setItem(STORAGE_KEYS.SIDEBAR_COLLAPSED, String(collapsed));
 		logger.log(`侧边栏状态设置: ${collapsed ? '收起' : '展开'}`);
 	};
 
@@ -64,6 +96,7 @@ export const useAppStore = defineStore('app', () => {
 	 */
 	const toggleMobileSidebar = () => {
 		mobileSidebarOpen.value = !mobileSidebarOpen.value;
+		localStorage.setItem(STORAGE_KEYS.MOBILE_SIDEBAR_OPEN, String(mobileSidebarOpen.value));
 		logger.log(`移动端侧边栏切换: ${mobileSidebarOpen.value ? '打开' : '关闭'}`);
 	};
 
@@ -73,6 +106,7 @@ export const useAppStore = defineStore('app', () => {
 	 */
 	const setMobileSidebarOpen = (open) => {
 		mobileSidebarOpen.value = open;
+		localStorage.setItem(STORAGE_KEYS.MOBILE_SIDEBAR_OPEN, String(open));
 		logger.log(`移动端侧边栏设置: ${open ? '打开' : '关闭'}`);
 	};
 
@@ -84,12 +118,22 @@ export const useAppStore = defineStore('app', () => {
 
 		// 只有当状态真正改变时才更新和记录日志
 		if (isMobile.value !== newIsMobile) {
+			const wasMobile = isMobile.value;
 			isMobile.value = newIsMobile;
-			// 在移动端自动关闭侧边栏
-			if (isMobile.value) {
-				mobileSidebarOpen.value = false;
+
+			// 从移动端切到桌面端时，读取桌面端侧边栏状态
+			if (wasMobile && !newIsMobile) {
+				// 切换到桌面端时，读取保存的侧边栏折叠状态
+				sidebarCollapsed.value = getStoredSidebarState();
+				logger.log(`切换到桌面端，读取侧边栏状态: ${sidebarCollapsed.value ? '收起' : '展开'}`);
 			}
-			// 可以在这里添加其他设备相关的逻辑
+			// 从桌面端切到移动端时，读取移动端侧边栏状态
+			else if (!wasMobile && newIsMobile) {
+				// 切换到移动端时，读取保存的移动端侧边栏状态
+				mobileSidebarOpen.value = getStoredMobileSidebarState();
+				logger.log(`切换到移动端，读取侧边栏状态: ${mobileSidebarOpen.value ? '打开' : '关闭'}`);
+			}
+
 			logger.log(`设备状态更新: ${isMobile.value ? '移动端' : '桌面端'}`);
 		}
 	};
@@ -217,6 +261,8 @@ export const useAppStore = defineStore('app', () => {
 	const clearAppState = () => {
 		sidebarCollapsed.value = false;
 		mobileSidebarOpen.value = false;
+		localStorage.removeItem(STORAGE_KEYS.SIDEBAR_COLLAPSED);
+		localStorage.removeItem(STORAGE_KEYS.MOBILE_SIDEBAR_OPEN);
 		// theme.value = 'light'; // 主题状态清理暂未使用
 		isLoading.value = false;
 		notifications.value = [];

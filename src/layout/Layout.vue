@@ -88,8 +88,13 @@ import {useAppStore} from '../stores/app.js';
 
 const appStore = useAppStore();
 
-const collapsed = ref(false); // 默认为展开状态，意味着显示图标和文字
 const windowWidth = ref(window.innerWidth);
+
+// 使用 app store 的侧边栏状态
+const collapsed = computed({
+        get: () => appStore.isSidebarCollapsed,
+        set: (value) => appStore.setSidebarCollapsed(value)
+});
 
 // 使用 app store 的移动端状态
 const mobileSidebarOpen = computed({
@@ -123,7 +128,7 @@ onUnmounted(() => {
 });
 
 const toggleCollapsed = () => {
-        collapsed.value = !collapsed.value;
+        appStore.toggleSidebar();
 };
 
 // 切换移动端侧边栏
