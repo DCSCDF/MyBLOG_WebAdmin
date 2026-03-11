@@ -28,7 +28,7 @@
 import {useRouter} from 'vue-router';
 import {message} from 'ant-design-vue';
 import {authApi} from "../../../api/user/auth/authApi.js";
-import {configApi} from "../../../api/system/configApi.js";
+import {publicConfigApi} from "../../../api/system/publicConfigApi.js";
 import logger from "../../../utils/logger.js";
 import {LogoutOutlined} from '@ant-design/icons-vue';
 import {useAuthStore} from '../../../stores/auth.js';
@@ -44,10 +44,10 @@ const handleLogout = async () => {
                 let redirectUrl = null;
                 const hasLocalToken = !!localStorage.getItem('token');
 
-                // 如果 token 在本地存储中，查询 redirect_url 配置
+                // 如果 token 在本地存储中，查询 redirect_url 配置（使用公共接口）
                 if (hasLocalToken) {
                         try {
-                                const configResponse = await configApi.systemList({keys: ['site.redirect_url']});
+                                const configResponse = await publicConfigApi.getConfig({keys: ['site.redirect_url']});
                                 if (configResponse.success && configResponse.data) {
                                         const redirectConfig = configResponse.data.find(item => item.configKey === 'site.redirect_url');
                                         if (redirectConfig && redirectConfig.configValue) {

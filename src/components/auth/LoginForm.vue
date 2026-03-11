@@ -67,7 +67,7 @@ import {authApi} from "../../api/user/auth/authApi.js";
 import RsaEncryptor from "../../utils/RsaUtils.js";
 import {useRouter} from 'vue-router';
 import {useAuthStore} from '../../stores/auth.js';
-import {configApi} from "../../api/system/configApi.js";
+import {publicConfigApi} from "../../api/system/publicConfigApi.js";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -262,9 +262,9 @@ const handleOAuthRedirect = async (code, token) => {
         }
 
         try {
-                // 查询 site.redirect_url 配置
+                // 查询 site.redirect_url 配置（使用公共接口）
                 logger.log('开始查询 site.redirect_url 配置');
-                const configResponse = await configApi.systemList({keys: ['site.redirect_url']});
+                const configResponse = await publicConfigApi.getConfig({keys: ['site.redirect_url']});
                 logger.log('configResponse:', configResponse);
 
                 if (configResponse.success && configResponse.data && configResponse.data.length > 0) {
@@ -326,6 +326,25 @@ const handleNormalLogin = async (response) => {
         );
 
         logger.log(`${loginForm.value.remember ? '长期' : '会话'}token 设置完成`);
+
+        // 如果是记住我登录，检查是否配置了 redirect_url
+        if (loginForm.value.remember) {
+                try {
+                        const configResponse = await publicConfigApi.getConfig({keys: ['site.redirect_url']});
+                        logger.log('记住我登录查询 redirect_url:', configResponse);
+
+                        if (configResponse.success && configResponse.data && configResponse.data.length > 0) {
+                                const redirectConfig = configResponse.data.find(item => item.configKey === 'site.redirect_url');
+                                if (redirectConfig && redirectConfig.configValue) {
+                                        logger.log('记住我登录，跳转到 redirect_url:', redirectConfig.configValue);
+                                        window.location.href = redirectConfig.configValue;
+                                        return;
+                                }
+                        }
+                } catch (error) {
+                        logger.error('查询 redirect_url 失败:', error);
+                }
+        }
 
         // 正常跳转到仪表盘
         logger.log('正常登录，跳转到仪表盘');
