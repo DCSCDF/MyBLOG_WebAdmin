@@ -37,83 +37,109 @@ const router = useRouter();
 const authStore = useAuthStore();
 
 const handleLogout = async () => {
-
         try {
+                // 获取 redirect_url 配置
+                const redirectUrl = await getRedirectUrl();
 
-                // 检查是否需要跳转到外部 redirect_url
-                let redirectUrl = null;
-                const hasLocalToken = !!localStorage.getItem('token');
+                // 调用登出 API
+                const logoutResponse = await authApi.logout();
 
-                // 如果 token 在本地存储中，查询 redirect_url 配置（使用公共接口）
-                if (hasLocalToken) {
-                        try {
-                                const configResponse = await publicConfigApi.getConfig({keys: ['site.redirect_url']});
-                                if (configResponse.success && configResponse.data) {
-                                        const redirectConfig = configResponse.data.find(item => item.configKey === 'site.redirect_url');
-                                        if (redirectConfig && redirectConfig.configValue) {
-                                                redirectUrl = redirectConfig.configValue;
-                                                logger.log('获取到 redirect_url:', redirectUrl);
-                                        }
-                                }
-                        } catch (configError) {
-                                logger.error('获取 redirect_url 配置失败:', configError);
-                        }
-                }
-
-                const logoutResponse = await authApi.logout()
-
-                if (logoutResponse.success === true) {
-
-                        // 提示用户登出成功
-                        message.success(logoutResponse.data.message);
-
-                        // 使用 Pinia store 清除认证状态
-                        authStore.clearToken();
-                        logger.log('登出成功')
-
-                        // 如果有 redirect_url 且 token 在本地存储中，跳转到 redirect_url
-                        if (redirectUrl) {
-                                const separator = redirectUrl.includes('?') ? '&' : '?';
-                                window.location.href = `${redirectUrl}${separator}logout=true`;
-                        } else {
-                                await router.push('/login');
-                        }
-                } else {
-                        //响应拦截器会马上跳转login
-                        logger.error('登出失败:', logoutResponse.errorMsg)
-
-                        // 即使后端返回错误，也要清除本地状态
-                        authStore.clearToken();
-
-                        // 如果有 redirect_url 且 token 在本地存储中，跳转到 redirect_url
-                        if (redirectUrl) {
-                                const separator = redirectUrl.includes('?') ? '&' : '?';
-                                window.location.href = `${redirectUrl}${separator}logout=true`;
-                        } else {
-                                await router.push('/login');
-                        }
-                        message.error(logoutResponse.errorMsg || "登出失败");
-                }
-
+                // 处理登出结果
+                await processLogoutResult(logoutResponse, redirectUrl);
 
         } catch (e) {
+                logger.error('登出失败:', e);
+                message.error("登出失败，可能是内部错误");
+                await handleLogoutError();
+        }
+};
 
-                logger.error('登出失败:', e)
-                message.error("登出失败,可能是内部错误");
+/**
+ * 检查是否存在本地 token
+ */
+const hasLocalToken = () => {
+        const localToken = localStorage.getItem('token');
+        const sessionToken = sessionStorage.getItem('token');
+        
+        return localToken || sessionToken;
+};
 
-                // 发生错误时也清除本地状态
-                authStore.clearToken();
+/**
+ * 从配置响应中提取 redirect_url
+ */
+const extractRedirectUrl = (configResponse) => {
+        let redirectUrl = null;
+        const configData = configResponse?.data;
+        
+        if (configResponse?.success && configData) {
+                const redirectConfig = configData.find(item => item?.configKey === 'site.redirect_url');
+                const configValue = redirectConfig?.configValue;
+                
+                if (redirectConfig && configValue) {
+                        redirectUrl = configValue;
+                }
+        }
+        
+        return redirectUrl;
+};
 
-                // 如果有 redirect_url 且 token 在本地存储中，跳转到 redirect_url
-                if (redirectUrl) {
-                        const separator = redirectUrl.includes('?') ? '&' : '?';
-                        window.location.href = `${redirectUrl}${separator}logout=true`;
-                } else {
-                        // 重定向到登录页
-                        await router.push('/login');
+/**
+ * 获取重定向 URL
+ */
+const getRedirectUrl = async () => {
+        let redirectUrl = null;
+
+        if (hasLocalToken()) {
+                try {
+                        const configResponse = await publicConfigApi.getConfig({keys: ['site.redirect_url']});
+                        redirectUrl = extractRedirectUrl(configResponse);
+                        
+                        if (redirectUrl) {
+                                logger.log('获取到 redirect_url:', redirectUrl);
+                        }
+                } catch (configError) {
+                        logger.error('获取 redirect_url 配置失败:', configError);
                 }
         }
 
+        return redirectUrl;
+};
+
+/**
+ * 处理登出结果
+ */
+const processLogoutResult = async (logoutResponse, redirectUrl) => {
+        if (logoutResponse.success === true) {
+                message.success(logoutResponse.data.message);
+                authStore.clearToken();
+                logger.log('登出成功');
+                await redirectToDestination(redirectUrl);
+        } else {
+                logger.error('登出失败:', logoutResponse.errorMsg);
+                authStore.clearToken();
+                message.error(logoutResponse.errorMsg || "登出失败");
+                await redirectToDestination(redirectUrl);
+        }
+};
+
+/**
+ * 处理登出错误
+ */
+const handleLogoutError = async () => {
+        authStore.clearToken();
+        await redirectToDestination(null);
+};
+
+/**
+ * 跳转到目标页面
+ */
+const redirectToDestination = async (redirectUrl) => {
+        if (redirectUrl) {
+                const separator = redirectUrl.includes('?') ? '&' : '?';
+                window.location.href = `${redirectUrl}${separator}logout=true`;
+        } else {
+                await router.push('/login');
+        }
 };
 
 </script>
