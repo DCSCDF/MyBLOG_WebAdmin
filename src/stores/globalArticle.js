@@ -15,7 +15,7 @@
 
 import {defineStore} from 'pinia';
 import {computed, ref} from 'vue';
-import {globalArticleApi} from '../api/globalArticleApi.js';
+import {globalArticleApi} from '../api/blog/globalArticleApi.js';
 import logger from '../utils/logger.js';
 
 export const useGlobalArticleStore = defineStore('globalArticle', () => {
@@ -69,9 +69,18 @@ export const useGlobalArticleStore = defineStore('globalArticle', () => {
 
 		// 可选查询参数 - 布尔筛选（需要区分 undefined 和 false）
 		const filters = [
-			{key: 'isHidden', value: safeParams.isHidden !== undefined ? safeParams.isHidden : queryParams.value.isHidden},
-			{key: 'isTop', value: safeParams.isTop !== undefined ? safeParams.isTop : queryParams.value.isTop},
-			{key: 'isRecommend', value: safeParams.isRecommend !== undefined ? safeParams.isRecommend : queryParams.value.isRecommend}
+			{
+				key: 'isHidden',
+				value: safeParams.isHidden !== undefined ? safeParams.isHidden : queryParams.value.isHidden
+			},
+			{
+				key: 'isTop',
+				value: safeParams.isTop !== undefined ? safeParams.isTop : queryParams.value.isTop
+			},
+			{
+				key: 'isRecommend',
+				value: safeParams.isRecommend !== undefined ? safeParams.isRecommend : queryParams.value.isRecommend
+			}
 		];
 
 		filters.forEach(({key, value}) => {

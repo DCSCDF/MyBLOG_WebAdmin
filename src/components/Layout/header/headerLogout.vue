@@ -28,6 +28,7 @@
 import {useRouter} from 'vue-router';
 import {message} from 'ant-design-vue';
 import {authApi} from "../../../api/user/auth/authApi.js";
+import {configApi} from "../../../api/system/configApi.js";
 import logger from "../../../utils/logger.js";
 import {LogoutOutlined} from '@ant-design/icons-vue';
 import {useAuthStore} from '../../../stores/auth.js';
@@ -38,6 +39,26 @@ const authStore = useAuthStore();
 const handleLogout = async () => {
 
         try {
+
+                // 检查是否需要跳转到外部 redirect_url
+                let redirectUrl = null;
+                const hasLocalToken = !!localStorage.getItem('token');
+
+                // 如果 token 在本地存储中，查询 redirect_url 配置
+                if (hasLocalToken) {
+                        try {
+                                const configResponse = await configApi.systemList({keys: ['site.redirect_url']});
+                                if (configResponse.success && configResponse.data) {
+                                        const redirectConfig = configResponse.data.find(item => item.configKey === 'site.redirect_url');
+                                        if (redirectConfig && redirectConfig.configValue) {
+                                                redirectUrl = redirectConfig.configValue;
+                                                logger.log('获取到 redirect_url:', redirectUrl);
+                                        }
+                                }
+                        } catch (configError) {
+                                logger.error('获取 redirect_url 配置失败:', configError);
+                        }
+                }
 
                 const logoutResponse = await authApi.logout()
 
@@ -50,7 +71,13 @@ const handleLogout = async () => {
                         authStore.clearToken();
                         logger.log('登出成功')
 
-                        await router.push('/login');
+                        // 如果有 redirect_url 且 token 在本地存储中，跳转到 redirect_url
+                        if (redirectUrl) {
+                                const separator = redirectUrl.includes('?') ? '&' : '?';
+                                window.location.href = `${redirectUrl}${separator}logout=true`;
+                        } else {
+                                await router.push('/login');
+                        }
                 } else {
                         //响应拦截器会马上跳转login
                         logger.error('登出失败:', logoutResponse.errorMsg)
@@ -58,7 +85,13 @@ const handleLogout = async () => {
                         // 即使后端返回错误，也要清除本地状态
                         authStore.clearToken();
 
-                        await router.push('/login');
+                        // 如果有 redirect_url 且 token 在本地存储中，跳转到 redirect_url
+                        if (redirectUrl) {
+                                const separator = redirectUrl.includes('?') ? '&' : '?';
+                                window.location.href = `${redirectUrl}${separator}logout=true`;
+                        } else {
+                                await router.push('/login');
+                        }
                         message.error(logoutResponse.errorMsg || "登出失败");
                 }
 
@@ -71,8 +104,14 @@ const handleLogout = async () => {
                 // 发生错误时也清除本地状态
                 authStore.clearToken();
 
-                // 重定向到登录页
-                await router.push('/login');
+                // 如果有 redirect_url 且 token 在本地存储中，跳转到 redirect_url
+                if (redirectUrl) {
+                        const separator = redirectUrl.includes('?') ? '&' : '?';
+                        window.location.href = `${redirectUrl}${separator}logout=true`;
+                } else {
+                        // 重定向到登录页
+                        await router.push('/login');
+                }
         }
 
 };

@@ -67,6 +67,7 @@ import {authApi} from "../../api/user/auth/authApi.js";
 import RsaEncryptor from "../../utils/RsaUtils.js";
 import {useRouter} from 'vue-router';
 import {useAuthStore} from '../../stores/auth.js';
+import {configApi} from "../../api/system/configApi.js";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -181,6 +182,7 @@ const handleLogin = async () => {
                         captchaVerification: captchaVerification.captchaVerification,
                         tempToken: publicKeyResponse.data.tempToken,
                         password: password,
+                        oauthEnabled: loginForm.value.remember
                 };
 
                 logger.log('发送前的对象 ', loginData);
@@ -190,10 +192,13 @@ const handleLogin = async () => {
 
                 // 处理登录结果
                 if (loginResponse && loginResponse.success === true) {
-                        handleLoginSuccess(loginResponse);
+                        await handleLoginSuccess(loginResponse);
                 } else {
                         handleLoginFailure(loginResponse);
                 }
+
+                // 登录流程结束后重置loading状态
+                loginLoading.value = false;
 
         } catch (error) {
                 // 区分业务错误和网络异常
@@ -215,8 +220,92 @@ const handleError = (operation, errorMessage) => {
 };
 
 // 处理登录成功
-const handleLoginSuccess = (response) => {
+const handleLoginSuccess = async (response) => {
+        logger.log('========== 登录成功处理开始 ==========');
+        logger.log('response:', response);
+        logger.log('response.data:', response.data);
+        logger.log('response.data.code:', response.data?.code);
+        logger.log('remember 状态:', loginForm.value.remember);
+
         message.info(`登陆成功，欢迎回来 ${loginForm.value.username}`);
+
+        // 判断是否是外部授权模式（返回了 code）
+        if (response.data?.code) {
+                logger.log('检测到 code，进入外部授权模式');
+                // 外部授权模式，使用 code 跳转，传入 token 避免 401
+                await handleOAuthRedirect(response.data.code, response.data.token);
+        } else {
+                logger.log('未检测到 code，进入正常登录模式');
+                // 正常模式，直接保存 token 并跳转到仪表盘
+                await handleNormalLogin(response);
+        }
+        logger.log('========== 登录成功处理结束 ==========');
+};
+
+// 处理外部授权模式跳转
+const handleOAuthRedirect = async (code, token) => {
+        logger.log('========== 开始处理 OAuth 跳转 ==========');
+        logger.log('code:', code);
+        logger.log('token:', token);
+
+        // 先保存 token，避免后续 API 请求因缺少 token 而返回 401
+        if (token) {
+                authStore.setToken(
+                    token,
+                    loginForm.value.remember,
+                    {
+                            username: loginForm.value.username,
+                            loginTime: new Date().toISOString()
+                    }
+                );
+                logger.log('OAuth 模式下 token 已保存');
+        }
+
+        try {
+                // 查询 site.redirect_url 配置
+                logger.log('开始查询 site.redirect_url 配置');
+                const configResponse = await configApi.systemList({keys: ['site.redirect_url']});
+                logger.log('configResponse:', configResponse);
+
+                if (configResponse.success && configResponse.data && configResponse.data.length > 0) {
+                        const redirectUrl = configResponse.data.find(item => item.configKey === 'site.redirect_url');
+                        logger.log('redirectUrl 配置项:', redirectUrl);
+
+                        if (redirectUrl && redirectUrl.configValue) {
+                                // 配置了 redirect_url，跳转到该地址并携带 code 和 redirect_url
+                                const targetRedirectUrl = redirectUrl.configValue;
+                                const separator = targetRedirectUrl.includes('?') ? '&' : '?';
+                                const currentUrl = window.location.origin + window.location.pathname;
+                                const targetUrl = `${targetRedirectUrl}${separator}code=${code}&redirect_url=${encodeURIComponent(currentUrl)}`;
+
+                                logger.log('外部授权模式，跳转到 redirect_url:', targetUrl);
+                                window.location.href = targetUrl;
+                                return;
+                        } else {
+                                logger.log('redirectUrl.configValue 为空');
+                        }
+                } else {
+                        logger.log('未获取到 redirect_url 配置数据');
+                }
+
+                // 未配置 redirect_url，使用默认的回调地址
+                logger.log('未配置 site.redirect_url，使用默认回调地址');
+                const defaultRedirectUrl = window.location.origin + window.location.pathname;
+                const separator = defaultRedirectUrl.includes('?') ? '&' : '?';
+                const targetUrl = `${defaultRedirectUrl}${separator}code=${code}&redirect_url=${encodeURIComponent(defaultRedirectUrl)}`;
+                logger.log('默认跳转 URL:', targetUrl);
+                window.location.href = targetUrl;
+        } catch (error) {
+                logger.error('查询 site.redirect_url 配置失败:', error);
+                // 查询失败时提示错误
+                message.error('授权码获取失败，请重试');
+                resetLoginState();
+        }
+        logger.log('========== OAuth 跳转处理结束 ==========');
+};
+
+// 处理正常登录
+const handleNormalLogin = async (response) => {
         logger.log('获取的token:' + response.data.token);
 
         // 使用 Pinia store 管理 token 和用户状态
@@ -237,6 +326,9 @@ const handleLoginSuccess = (response) => {
         );
 
         logger.log(`${loginForm.value.remember ? '长期' : '会话'}token 设置完成`);
+
+        // 正常跳转到仪表盘
+        logger.log('正常登录，跳转到仪表盘');
         router.push('/user');
 };
 
@@ -264,7 +356,7 @@ const handleLoginFailure = (response) => {
 // 处理业务错误（由响应拦截器抛出的Error对象）
 const handleBusinessError = (error) => {
         logger.error('Login 业务错误:', error.message);
-        
+
         // 显示真实的业务错误信息
         handleError('登录失败', error.message);
 };

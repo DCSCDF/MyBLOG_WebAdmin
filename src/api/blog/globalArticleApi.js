@@ -9,7 +9,7 @@
  * author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
  * license: "MIT"
  * license_exception: "Mandatory attribution retention"
- * UpdateTime: 2026/3/5
+ * UpdateTime: 2026/3/6 01:56
  *
  */
 
@@ -21,7 +21,7 @@
 
 const GLOBAL_ARTICLE_BASE_PATH = '/api/global-article';
 
-import request from '../utils/request.js';
+import request from '../../utils/request.js';
 
 /**
  * 全局文章管理 API

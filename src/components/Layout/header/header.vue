@@ -29,9 +29,14 @@
                 </div>
 
                 <div class="flex items-center gap-3 mx-0 md:mx-8">
-                        <a-button :icon="h(QuestionCircleOutlined)" color="gray" href="#"
+
+
+                        <a-button :icon="h(QuestionCircleOutlined)" color="gray"
                                   style="color: gray;"
-                                  type="text"></a-button>
+                                  type="text"
+                                  @click="handleDocClick"></a-button>
+
+
                         <a-dropdown :overlay="dropdownOverlay">
                                 <div
                                     class="flex rounded-lg transition-colors py-1.5 px-2 hover:bg-gray-200/50"
@@ -54,6 +59,7 @@
 
 <script setup>
 import {computed, defineEmits, defineProps, h, onMounted} from "vue";
+import {useRouter} from 'vue-router';
 import {authApi} from "../../../api/user/auth/authApi.js";
 import logger from "../../../utils/logger.js";
 import HeaderLogout from "./headerLogout.vue";
@@ -71,6 +77,7 @@ const props = defineProps({
 
 const authStore = useAuthStore();
 const appStore = useAppStore();
+const router = useRouter();
 
 // 从 store 获取用户资料，如果没有则使用默认值
 const profile = computed(() => {
@@ -107,6 +114,11 @@ const handleMenuToggle = () => {
                 // 桌面端则使用原来的切换逻辑
                 emit('toggle-collapsed');
         }
+};
+
+// 跳转到文档页面
+const handleDocClick = () => {
+        router.push('/doc');
 };
 
 onMounted(async () => {

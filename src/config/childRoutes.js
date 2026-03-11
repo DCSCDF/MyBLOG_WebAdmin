@@ -274,4 +274,17 @@ export const childRoutes = [
 			},
 		],
 	},
+	{
+		key: '6',
+		icon: () => h(MessageOutlined),
+		label: '开发文档',
+		title: '开发文档',
+		route: '/doc',
+		path: '/doc',
+		name: 'doc',
+		component: () => import('../pages/doc/doclist.vue'),
+		meta: {title: '开发文档'},
+		description: 'blog网站页面的开发文档',
+		permission: 'doclist'
+	},
 ];

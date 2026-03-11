@@ -28,6 +28,9 @@ export const useAuthStore = defineStore('auth', () => {
 	const rememberMe = ref(false);
 	const userProfile = ref(null);
 
+	// OAuth 授权回调 URL
+	const redirectUrl = ref(null);
+
 	// 用户权限编码列表
 	const userPermissions = ref([]);
 	const permissionsLoading = ref(false);
@@ -200,6 +203,31 @@ export const useAuthStore = defineStore('auth', () => {
 		logger.log('用户权限列表已清除');
 	};
 
+	/**
+	 * 设置 OAuth 授权回调 URL
+	 * @param {string|null} url - 回调 URL
+	 */
+	const setRedirectUrl = (url) => {
+		redirectUrl.value = url;
+		logger.log('OAuth 回调 URL 已设置:', url);
+	};
+
+	/**
+	 * 获取 OAuth 授权回调 URL
+	 * @returns {string|null} 回调 URL
+	 */
+	const getRedirectUrl = () => {
+		return redirectUrl.value;
+	};
+
+	/**
+	 * 清除 OAuth 授权回调 URL
+	 */
+	const clearRedirectUrl = () => {
+		redirectUrl.value = null;
+		logger.log('OAuth 回调 URL 已清除');
+	};
+
 	// 计算属性：是否已登录
 	const isLoggedIn = computed(() => !!token.value);
 
@@ -219,6 +247,7 @@ export const useAuthStore = defineStore('auth', () => {
 		userProfile,
 		userPermissions,
 		permissionsLoading,
+		redirectUrl,
 
 		// 方法
 		initTokenFromStorage,
@@ -228,6 +257,9 @@ export const useAuthStore = defineStore('auth', () => {
 		getUserProfile,
 		fetchUserPermissions,
 		clearUserPermissions,
+		setRedirectUrl,
+		getRedirectUrl,
+		clearRedirectUrl,
 
 		// 计算属性
 		isLoggedIn,
