@@ -60,7 +60,7 @@ const handleLogout = async () => {
 const hasLocalToken = () => {
         const localToken = localStorage.getItem('token');
         const sessionToken = sessionStorage.getItem('token');
-        
+
         return localToken || sessionToken;
 };
 
@@ -70,16 +70,16 @@ const hasLocalToken = () => {
 const extractRedirectUrl = (configResponse) => {
         let redirectUrl = null;
         const configData = configResponse?.data;
-        
+
         if (configResponse?.success && configData) {
                 const redirectConfig = configData.find(item => item?.configKey === 'site.redirect_url');
                 const configValue = redirectConfig?.configValue;
-                
+
                 if (redirectConfig && configValue) {
                         redirectUrl = configValue;
                 }
         }
-        
+
         return redirectUrl;
 };
 
@@ -93,7 +93,7 @@ const getRedirectUrl = async () => {
                 try {
                         const configResponse = await publicConfigApi.getConfig({keys: ['site.redirect_url']});
                         redirectUrl = extractRedirectUrl(configResponse);
-                        
+
                         if (redirectUrl) {
                                 logger.log('获取到 redirect_url:', redirectUrl);
                         }
@@ -122,6 +122,7 @@ const processLogoutResult = async (logoutResponse, redirectUrl) => {
         }
 };
 
+
 /**
  * 处理登出错误
  */
@@ -129,6 +130,7 @@ const handleLogoutError = async () => {
         authStore.clearToken();
         await redirectToDestination(null);
 };
+
 
 /**
  * 跳转到目标页面
