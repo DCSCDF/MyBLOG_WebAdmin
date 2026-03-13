@@ -17,13 +17,16 @@
     "crypto-js": "^4.2.0",
     "dayjs": "^1.11.19",
     "eslint": "^9.39.2",
+    "github-markdown-css": "^5.9.0",
+    "highlight.js": "^11.11.1",
     "jsencrypt": "^3.5.4",
     "md-editor-v3": "^6.3.2",
     "pinia": "^3.0.4",
     "tailwindcss": "^4.1.18",
     "vue": "^3.5.24",
     "vue-i18n": "^11.2.8",
-    "vue-router": "^4.6.4"
+    "vue-router": "^4.6.4",
+    "vue3-markdown-it": "^1.0.10"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",

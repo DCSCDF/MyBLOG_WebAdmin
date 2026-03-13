@@ -14,8 +14,37 @@
   -->
 <template>
         <a-card>
-                123
+                <vue3-markdown-it :source="markdownContent"/>
 
         </a-card>
 </template>
+
+
+<script setup>
+import {ref} from 'vue'
+import Vue3MarkdownIt from 'vue3-markdown-it'
+import 'highlight.js/styles/monokai.css';
+import 'github-markdown-css/github-markdown.css'
+
+const markdownContent = ref(`
+
+
+
+# 标题
+
+这是一段**加粗**的文字。
+
+- 列表项1
+- 列表项2
+
+\`\`\`javascript
+console.log('Hello World')
+\`\`\`
+
+
+
+
+`)
+</script>
+
 

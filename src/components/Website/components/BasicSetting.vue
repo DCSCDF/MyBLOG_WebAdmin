@@ -116,7 +116,32 @@
                                         <a-form-item class="!my-4">
                                                 <div class="lg:flex items-start text-gray-500">
                                                         <div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
-                                                                默认用户角色
+                                                                前端页面地址
+                                                        </div>
+                                                        <div class="w-full">
+                                                                <a-input-group class="max-w-md !px-0 !flex" compact>
+                                                                        <a-input v-model:value="form.redirectUrl"
+                                                                                 disabled
+                                                                                 placeholder="请输入前端页面地址"/>
+                                                                        <a-button class="!text-gray-600"
+                                                                                  @click="openEditDrawer('redirectUrl')">
+                                                                                <SettingOutlined/>
+                                                                                修改
+                                                                        </a-button>
+                                                                </a-input-group>
+                                                                <div
+                                                                    class="text-xs text-gray-400 mt-1"
+                                                                    style="border-inline-end-width: 0 !important;">
+                                                                        必须修改，用来同步前台状态。
+                                                                </div>
+                                                        </div>
+                                                </div>
+                                        </a-form-item>
+
+                                        <a-form-item class="!my-4">
+                                                <div class="lg:flex items-start text-gray-500">
+                                                        <div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
+                                                                默认角色
                                                         </div>
                                                         <div class="w-full">
                                                                 <a-input-group class="max-w-md !px-0 !flex" compact>
@@ -157,10 +182,10 @@
                                         <a-select
                                             v-if="editingField === 'defaultRole'"
                                             v-model:value="editForm.configValue"
+                                            :filter-option="filterOption"
                                             :loading="rolesLoading"
                                             placeholder="请选择默认用户角色"
-                                            show-search
-                                            :filter-option="filterOption">
+                                            show-search>
                                                 <a-select-option
                                                     v-for="role in roleOptions"
                                                     :key="role.code"
@@ -208,29 +233,32 @@ const {drawerWidth} = useDrawerWidth();
 const roleStore = useRoleStore();
 
 /** 系统配置 key 与表单字段映射 */
-const BASIC_KEYS = ['site.name', 'site.domain', 'site.description', 'site.icp', 'user_register_default_role'];
+const BASIC_KEYS = ['site.name', 'site.domain', 'site.description', 'site.icp', 'user_register_default_role', 'site.redirect_url'];
 const FIELD_TO_KEY = {
-		siteName: 'site.name',
-		domain: 'site.domain',
-		description: 'site.description',
-		icp: 'site.icp',
-		defaultRole: 'user_register_default_role'
+        siteName: 'site.name',
+        domain: 'site.domain',
+        description: 'site.description',
+        icp: 'site.icp',
+        defaultRole: 'user_register_default_role',
+        redirectUrl: 'site.redirect_url'
 };
 const KEY_TO_FIELD = {
-		'site.name': 'siteName',
-		'site.domain': 'domain',
-		'site.description': 'description',
-		'site.icp': 'icp',
-		'user_register_default_role': 'defaultRole'
+        'site.name': 'siteName',
+        'site.domain': 'domain',
+        'site.description': 'description',
+        'site.icp': 'icp',
+        'user_register_default_role': 'defaultRole',
+        'site.redirect_url': 'redirectUrl'
 };
 
 const form = reactive({
-		siteName: '',
-		domain: '',
-		description: '',
-		icp: '',
-		defaultRole: '',
-		defaultRoleName: ''
+        siteName: '',
+        domain: '',
+        description: '',
+        icp: '',
+        defaultRole: '',
+        defaultRoleName: '',
+        redirectUrl: ''
 });
 
 const loading = ref(false);
@@ -245,53 +273,80 @@ const editForm = reactive({
 const roleOptions = ref([]);
 
 const editDrawerTitle = computed(() => {
-		const labels = {
-				siteName: '修改网站名称',
-				domain: '修改网站域名',
-				description: '修改网站描述',
-				icp: '修改备案号',
-				defaultRole: '修改默认用户角色'
-		};
-		return editingField.value ? labels[editingField.value] : '修改配置';
+        const labels = {
+                siteName: '修改网站名称',
+                domain: '修改网站域名',
+                description: '修改网站描述',
+                icp: '修改备案号',
+                defaultRole: '修改默认用户角色',
+                redirectUrl: '修改前端页面地址'
+        };
+        return editingField.value ? labels[editingField.value] : '修改配置';
 });
 
 const editDrawerLabel = computed(() => {
-		const labels = {
-				siteName: '网站名称',
-				domain: '网站域名',
-				description: '网站描述',
-				icp: '备案号',
-				defaultRole: '默认用户角色'
-		};
-		return editingField.value ? labels[editingField.value] : '';
+        const labels = {
+                siteName: '网站名称',
+                domain: '网站域名',
+                description: '网站描述',
+                icp: '备案号',
+                defaultRole: '默认用户角色',
+                redirectUrl: '前端页面地址'
+        };
+        return editingField.value ? labels[editingField.value] : '';
 });
 
 const editDrawerPlaceholder = computed(() => {
-		const placeholders = {
-				siteName: '请输入网站名称',
-				domain: '如：myblog.com',
-				description: '请输入网站描述',
-				icp: '请输入备案号',
-				defaultRole: '请选择默认用户角色'
-		};
-		return editingField.value ? placeholders[editingField.value] : '';
+        const placeholders = {
+                siteName: '请输入网站名称',
+                domain: '如：myblog.com',
+                description: '请输入网站描述',
+                icp: '请输入备案号',
+                defaultRole: '请选择默认用户角色',
+                redirectUrl: '请输入前端页面地址，如：https://myblog.com'
+        };
+        return editingField.value ? placeholders[editingField.value] : '';
 });
 
-const editFieldMaxLength = computed(() => (editingField.value === 'description' ? 500 : 100));
+const editFieldMaxLength = computed(() => {
+        const lengths = {
+                siteName: 100,
+                domain: 100,
+                description: 500,
+                icp: 100,
+                defaultRole: 100,
+                redirectUrl: 500
+        };
+        return lengths[editingField.value] || 100;
+});
 
 const editRules = computed(() => {
-	return editingField.value === 'defaultRole'
-		? {
-				configValue: [
-						{required: true, message: '请选择默认用户角色', trigger: 'change'}
-				]
-			}
-		: {
-				configValue: [
-						{required: true, message: '请输入配置值', trigger: 'blur'},
-						{max: editingField.value === 'description' ? 500 : 100, message: `最多 ${editingField.value === 'description' ? 500 : 100} 个字符`, trigger: 'blur'}
-				]
-			};
+        const fieldMaxLengths = {
+                siteName: 100,
+                domain: 100,
+                description: 500,
+                icp: 100,
+                defaultRole: 100,
+                redirectUrl: 500
+        };
+
+        const maxLength = fieldMaxLengths[editingField.value] || 100;
+        const isDefaultRole = editingField.value === 'defaultRole';
+
+        return {
+                configValue: [
+                        {
+                                required: true,
+                                message: isDefaultRole ? '请选择默认用户角色' : '请输入配置值',
+                                trigger: isDefaultRole ? 'change' : 'blur'
+                        },
+                        ...(isDefaultRole ? [] : [{
+                                max: maxLength,
+                                message: `最多 ${maxLength} 个字符`,
+                                trigger: 'blur'
+                        }])
+                ]
+        };
 });
 
 function loadSystemConfig() {

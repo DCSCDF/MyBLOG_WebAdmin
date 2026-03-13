@@ -14,43 +14,13 @@
  */
 
 /*
- * 公共配置查询接口封装，对应后端「公共配置查询接口文档」。
+ * 公共配置查询接口封装。
  * 所有接口无需登录认证即可访问，适用于前端页面获取站点配置信息。
  */
 
 const PUBLIC_CONFIG_BASE_PATH = '/api/public/config';
 
-import axios from 'axios';
-
-const publicService = axios.create({
-	timeout: 40000,
-	headers: {
-		'X-Requested-With': 'XMLHttpRequest',
-		'Content-Type': 'application/json; charset=UTF-8',
-	},
-});
-
-// 响应拦截器 - 统一处理响应格式，与 request.js 保持一致
-publicService.interceptors.response.use(
-    async response => {
-	    const {data, success, errorMsg, code} = response.data;
-
-	    if (success === false) {
-		    throw new Error(errorMsg || '请求失败');
-	    }
-
-	    // 成功响应，统一返回格式
-	    return {
-		    data: data,
-		    success: success,
-		    errorMsg: errorMsg,
-		    code: code
-	    };
-    },
-    error => {
-	    return Promise.reject(error);
-    }
-);
+import request from '../../utils/request.js';
 
 /**
  * 公共配置查询 API
@@ -63,6 +33,6 @@ export const publicConfigApi = {
 	 * @returns {Promise<{ data: Array<{ configKey, configValue, dataType, validationRule, description, createTime, updateTime }> }>}
 	 */
 	getConfig: (params) => {
-		return publicService.post(PUBLIC_CONFIG_BASE_PATH, params);
+		return request.post(PUBLIC_CONFIG_BASE_PATH, params);
 	},
 };
