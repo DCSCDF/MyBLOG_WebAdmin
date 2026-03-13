@@ -295,36 +295,25 @@
                         </template>
                 </a-drawer>
 
-                <!-- 添加权限弹窗（表格选择） -->
+                <!-- 添加权限弹窗（树形选择） -->
                 <a-modal
                     v-model:open="showAddPermission"
                     :confirm-loading="addPermissionLoading"
                     ok-text="添加"
                     title="添加权限"
-                    width="560px"
-                    @cancel="selectedPermissionId = null; addPermissionSearchKeyword = ''"
-                    @ok="() => {
-                        doAddPermission();
-                    }">
-                        <a-input
-                            v-model:value="addPermissionSearchKeyword"
-                            allow-clear
-                            class="mb-3"
-                            placeholder="搜索权限编码/名称"/>
-                        <span
-                            class="text-sm text-gray-600">最好是添加父权限，除非你是有特殊需求需要单独给予按钮级别的权限。</span>
-                        <a-table
-                            :columns="addPermissionTableColumns"
-                            :data-source="addPermissionTableData"
-                            :loading="permissionOptionsLoading"
-                            :pagination="false"
-                            :row-selection="{ type: 'radio', selectedRowKeys: selectedPermissionId ? [selectedPermissionId] : [], onChange: onAddPermissionRowSelect }"
-                            :scroll="{ y: 280 }"
-                            row-key="id"
-                            size="small"/>
-                        <div v-if="!addPermissionTableData.length && !permissionOptionsLoading"
-                             class="text-gray-400 text-sm py-4 text-center">暂无可选权限
-                        </div>
+                    width="400px"
+                    @cancel="selectedPermissionId = null"
+                    @ok="doAddPermission">
+                        <div class="mb-2 text-xs text-gray-500">选择权限：</div>
+                        <a-tree-select
+                            v-model:value="selectedPermissionId"
+                            :field-names="{ children: 'children', label: 'name', value: 'id' }"
+                            :tree-data="permissionTreeData"
+                            placeholder="请选择要添加的权限"
+                            show-search
+                            style="width: 100%;"
+                            tree-node-filter-prop="name"/>
+                        <div class="mt-2 text-xs text-gray-500">最好是添加父权限，除非你是有特殊需求需要单独给予按钮级别的权限。</div>
                 </a-modal>
         </a-card>
 </template>
@@ -338,18 +327,18 @@ import {useDrawerWidth} from '../../../utils/useDrawerWidth.js';
 import {usePermissionGroupStore} from '../../../stores/permissiongroup.js';
 import {usePermissionStore} from '../../../stores/permission.js';
 import {formatDate} from '../../../utils/formatDate.js';
+import {buildPermissionTree} from '../../../utils/permissionTree.js';
 import logger from '../../../utils/logger.js';
-
-// 添加权限弹窗：表格列
-const addPermissionTableColumns = [
-        {title: '权限编码', dataIndex: 'code', key: 'code', width: 160, ellipsis: true},
-        {title: '权限名称', dataIndex: 'name', key: 'name', width: 140, ellipsis: true}
-];
 
 const permissionGroupStore = usePermissionGroupStore();
 const permissionStore = usePermissionStore();
 
 const {drawerWidth} = useDrawerWidth();
+
+const permissionOptionsLoading = ref(false);
+const permissionOptions = ref([]);
+// 权限树形数据
+const permissionTreeData = ref([]);
 
 const tableData = computed(() => permissionGroupStore.currentPermissionGroups);
 const loading = computed(() => permissionGroupStore.loading);
@@ -420,27 +409,6 @@ const selectedGroup = ref(null);
 const showAddPermission = ref(false);
 const selectedPermissionId = ref(null);
 const addPermissionLoading = ref(false);
-const permissionOptionsLoading = ref(false);
-const permissionOptions = ref([]);
-const addPermissionSearchKeyword = ref('');
-
-const addPermissionTableData = computed(() => {
-        const list = permissionOptions.value || [];
-        const kw = (addPermissionSearchKeyword.value || '').trim().toLowerCase();
-
-        // 统一返回点：使用三元运算符
-        return kw
-            ? list.filter(p => {
-                    const code = (p.code || '').toLowerCase();
-                    const name = (p.name || '').toLowerCase();
-                    return code.includes(kw) || name.includes(kw);
-            })
-            : list;
-});
-
-function onAddPermissionRowSelect(selectedRowKeys) {
-        selectedPermissionId.value = selectedRowKeys?.[0] ?? null;
-}
 
 // 新增权限组相关
 const createVisible = ref(false);
@@ -692,6 +660,8 @@ watch(showAddPermission, (open) => {
                 permissionOptionsLoading.value = true;
                 permissionStore.fetchPermissions({currentPage: 1, pageSize: 500}).then(() => {
                         permissionOptions.value = permissionStore.currentPermissions || [];
+                        // 构建权限树
+                        permissionTreeData.value = buildPermissionTree(permissionOptions.value);
                 }).catch((e) => {
                         logger.error(e);
                         message.error('加载权限列表失败');

@@ -319,36 +319,25 @@
                 </template>
         </a-drawer>
 
-        <!-- 添加权限弹窗（表格选择） -->
+        <!-- 添加权限弹窗（树形选择） -->
         <a-modal
             v-model:open="showAddPermissionModal"
             :confirm-loading="addPermissionLoading"
             ok-text="添加"
             title="添加权限"
-            width="560px"
-            @cancel="selectedPermissionId = null; addPermissionSearchKeyword = ''"
+            width="400px"
+            @cancel="selectedPermissionId = null"
             @ok="doAddPermission">
-                <a-input
-                    v-model:value="addPermissionSearchKeyword"
-                    allow-clear
-                    class="mb-3"
-                    placeholder="搜索权限编码/名称">
-                        <template #prefix>
-                                <SearchOutlined/>
-                        </template>
-                </a-input>
-                <a-table
-                    :columns="addPermissionTableColumns"
-                    :data-source="addPermissionTableData"
-                    :loading="permissionListLoading"
-                    :pagination="false"
-                    :row-selection="{ type: 'radio', selectedRowKeys: selectedPermissionId ? [selectedPermissionId] : [], onChange: onAddPermissionRowSelect }"
-                    :scroll="{ y: 280 }"
-                    row-key="id"
-                    size="small"/>
-                <div v-if="!addPermissionTableData.length && !permissionListLoading"
-                     class="text-gray-400 text-sm py-4 text-center">暂无可选权限
-                </div>
+                <div class="mb-2 text-xs text-gray-500">选择权限：</div>
+                <a-tree-select
+                    v-model:value="selectedPermissionId"
+                    :field-names="{ children: 'children', label: 'name', value: 'id' }"
+                    :tree-data="permissionTreeData"
+                    placeholder="请选择要添加的权限"
+                    show-search
+                    style="width: 100%;"
+                    tree-node-filter-prop="name"/>
+                <div class="mt-2 text-xs text-gray-500">最好是添加父权限，除非你是有特殊需求需要单独给予按钮级别的权限。</div>
         </a-modal>
 
         <!-- 添加权限组弹窗 -->
@@ -531,39 +520,8 @@ const permissionListLoading = ref(false);
 const groupListLoading = ref(false);
 const permissionOptions = ref([]);
 const groupOptions = ref([]);
-/** 添加权限弹窗内搜索关键词 */
-const addPermissionSearchKeyword = ref('');
-
-// 添加权限弹窗：表格列
-const addPermissionTableColumns = [
-        {title: '权限编码', dataIndex: 'code', key: 'code', width: 160, ellipsis: true},
-        {title: '权限名称', dataIndex: 'name', key: 'name', width: 140, ellipsis: true}
-];
-
-// 添加权限弹窗：按关键词过滤后的权限列表
-const addPermissionTableData = computed(() => {
-        // 使用单一返回点模式
-        const list = permissionOptions.value || [];
-        const kw = (addPermissionSearchKeyword.value || '').trim().toLowerCase();
-
-        // 统一处理逻辑，确保只有一个返回点
-        let result = list;
-
-        if (kw) {
-                result = list.filter(p => {
-                        const code = (p.code || '').toLowerCase();
-                        const name = (p.name || '').toLowerCase();
-                        return code.includes(kw) || name.includes(kw);
-                });
-        }
-
-        return result;
-});
-
-/** 添加权限弹窗：表格行选择变更 */
-function onAddPermissionRowSelect(selectedRowKeys) {
-        selectedPermissionId.value = selectedRowKeys?.[0] ?? null;
-}
+// 权限树形数据
+const permissionTreeData = ref([]);
 
 /** 加载角色列表（分页与 keyword/status/isSystem 由 store 或入参提供） */
 function loadRoles() {
@@ -993,6 +951,8 @@ watch(showAddPermissionModal, (open) => {
                 permissionListLoading.value = true;
                 permissionStore.fetchPermissions({currentPage: 1, pageSize: 500}).then(() => {
                         permissionOptions.value = permissionStore.currentPermissions || [];
+                        // 构建权限树
+                        permissionTreeData.value = buildPermissionTree(permissionOptions.value);
                 }).catch((e) => {
                         logger.error(e);
                         message.error('加载权限列表失败');

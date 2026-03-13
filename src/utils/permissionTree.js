@@ -72,7 +72,7 @@ function buildTreeFromParentId(permissions, parentField, idField) {
 
 	permissions.forEach(permission => {
 		// 创建节点
-		const node = {...permission, children: []};
+		const node = {...permission};
 		idMap.set(permission[idField], node);
 
 		// 处理父子关系
@@ -129,7 +129,7 @@ function buildTreeFromCode(permissions) {
 
 		sortedPermissions.forEach(permission => {
 			// 创建节点
-			const node = {...permission, children: []};
+			const node = {...permission};
 			codeMap.set(permission.code, node);
 
 			const code = permission.code;
