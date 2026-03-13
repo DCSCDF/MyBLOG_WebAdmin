@@ -26,6 +26,14 @@
                                 <MenuFoldOutlined v-else class="!leading-none !m-0"
                                                   style="width: 2em; height: 2em; display: flex; align-items: center; justify-content: center; color: black;"/>
                         </button>
+                        <div class="my-2 ">
+                                <a-button v-if="showBackButton"
+                                          type="text"
+                                          @click="handleBack">
+                                        <!--                                        <ArrowLeftOutlined class="mr-2 " style="color: #9ca3af"/>-->
+                                        <span class="text-gray-600">返回主页</span>
+                                </a-button>
+                        </div>
                 </div>
 
                 <div class="flex items-center gap-3 mx-0 md:mx-8">
@@ -58,7 +66,7 @@
 </template>
 
 <script setup>
-import {computed, defineEmits, defineProps, h, onMounted} from "vue";
+import {computed, defineEmits, defineProps, h, onMounted, ref} from "vue";
 import {useRouter} from 'vue-router';
 import {authApi} from "../../../api/user/auth/authApi.js";
 import logger from "../../../utils/logger.js";
@@ -67,7 +75,41 @@ import {MenuFoldOutlined, MenuUnfoldOutlined, QuestionCircleOutlined,} from '@an
 import {useAuthStore} from '../../../stores/auth.js';
 import {useAppStore} from '../../../stores/app.js';
 import {Menu} from 'ant-design-vue';
+import {publicConfigApi} from '../../../api/system/publicConfigApi.js'
 
+const showBackButton = ref(false)
+
+const redirectUrl = ref('')
+// 检查是否显示返回按钮
+const checkShowBackButton = async () => {
+        try {
+                const configResponse = await publicConfigApi.getConfig({keys: ['site.redirect_url']})
+                if (configResponse.success && configResponse.data && configResponse.data.length > 0) {
+                        const redirectConfig = configResponse.data.find(item => item.configKey === 'site.redirect_url')
+                        if (redirectConfig && redirectConfig.configValue) {
+                                // 检查是否为有效的 URL
+                                const urlPattern = /^https?:\/\/.+/
+                                if (urlPattern.test(redirectConfig.configValue)) {
+                                        redirectUrl.value = redirectConfig.configValue
+                                        showBackButton.value = true
+                                }
+                        }
+                }
+        } catch (error) {
+                console.error('获取 redirect_url 失败:', error)
+        }
+}
+
+// 返回按钮点击事件
+const handleBack = () => {
+        if (redirectUrl.value) {
+                window.location.href = redirectUrl.value + "?back=true"
+        }
+}
+
+onMounted(() => {
+        checkShowBackButton()
+})
 const props = defineProps({
         collapsed: {
                 type: Boolean,

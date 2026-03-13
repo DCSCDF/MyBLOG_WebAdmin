@@ -26,7 +26,7 @@
         <div class="min-h-screen flex items-center justify-center from-blue-50 to-indigo-100 lg:p-4 p-2 flex flex-col">
 
                 <div class="w-full max-w-md">
-                        <div class="my-2">
+                        <div class="my-2 hidden">
                                 <a v-if="showBackButton"
 
                                    @click="handleBack">
@@ -64,14 +64,14 @@ import {publicConfigApi} from '../api/system/publicConfigApi.js'
 
 const activeTab = ref('login')
 const showBackButton = ref(false)
-const redirectUrl = ref('')
+
 
 // 切换 tab 时关闭验证码弹窗
 const handleTabChange = () => {
         // 触发全局事件，通知所有 Captcha 组件关闭弹窗
         window.dispatchEvent(new CustomEvent('close-captcha'))
 }
-
+const redirectUrl = ref('')
 // 检查是否显示返回按钮
 const checkShowBackButton = async () => {
         try {

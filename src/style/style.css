@@ -19,6 +19,14 @@ body {
     background: #fafafa;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin-bottom: 0.0em !important;
+}
 
 /* 修复Tailwind CSS导致的图片图标居中问题 */
 img, svg, video, canvas, audio, iframe, embed, object {

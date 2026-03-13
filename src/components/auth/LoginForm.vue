@@ -272,11 +272,11 @@ const handleOAuthRedirect = async (code, token) => {
                         logger.log('redirectUrl 配置项:', redirectUrl);
 
                         if (redirectUrl && redirectUrl.configValue) {
-                                // 配置了 redirect_url，跳转到该地址并携带 code 和 redirect_url
+                                // 配置了 redirect_url，跳转到该地址并携带 code、token 和 redirect_url
                                 const targetRedirectUrl = redirectUrl.configValue;
                                 const separator = targetRedirectUrl.includes('?') ? '&' : '?';
                                 const currentUrl = window.location.origin + window.location.pathname;
-                                const targetUrl = `${targetRedirectUrl}${separator}code=${code}&redirect_url=${encodeURIComponent(currentUrl)}`;
+                                const targetUrl = `${targetRedirectUrl}${separator}code=${code}&token=${encodeURIComponent(token)}&redirect_url=${encodeURIComponent(currentUrl)}`;
 
                                 logger.log('外部授权模式，跳转到 redirect_url:', targetUrl);
                                 window.location.href = targetUrl;

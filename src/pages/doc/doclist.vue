@@ -14,8 +14,9 @@
   -->
 <template>
         <a-card>
-                <vue3-markdown-it :source="markdownContent"/>
-
+                <div class="markdown-body">
+                        <vue3-markdown-it :source="markdownContent"/>
+                </div>
         </a-card>
 </template>
 
@@ -40,7 +41,6 @@ const markdownContent = ref(`
 \`\`\`javascript
 console.log('Hello World')
 \`\`\`
-
 
 
 
