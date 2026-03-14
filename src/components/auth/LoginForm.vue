@@ -58,7 +58,7 @@
 </template>
 
 <script setup>
-import {nextTick, ref} from 'vue'
+import {nextTick, onMounted, ref} from 'vue'
 import {LockOutlined, UserOutlined} from '@ant-design/icons-vue'
 import Captcha from './Captcha.vue'
 import logger from "../../utils/logger.js";
@@ -82,7 +82,32 @@ const loginLoading = ref(false)
 const captchaRef = ref(null)
 const isVerified = ref(false)
 const isFormValid = ref(false)
+const isRedirectUrlValid = ref(false) // redirect_url 是否有效
 captchaRef.value = undefined;
+
+// 检查 redirect_url 是否有效
+const checkRedirectUrl = async () => {
+        try {
+                const configResponse = await publicConfigApi.getConfig({keys: ['site.redirect_url']});
+                if (configResponse.success && configResponse.data && configResponse.data.length > 0) {
+                        const redirectConfig = configResponse.data.find(item => item.configKey === 'site.redirect_url');
+                        if (redirectConfig && redirectConfig.configValue) {
+                                // 检查是否为有效的 URL
+                                const urlPattern = /^https?:\/\/.+/
+                                isRedirectUrlValid.value = urlPattern.test(redirectConfig.configValue);
+                                logger.log('redirect_url 是否有效:', isRedirectUrlValid.value);
+                        }
+                }
+        } catch (error) {
+                console.error('检查 redirect_url 失败:', error);
+                isRedirectUrlValid.value = false;
+        }
+}
+
+// 组件挂载时检查 redirect_url
+onMounted(() => {
+        checkRedirectUrl()
+})
 
 
 // 更新表单验证状态的方法
@@ -182,7 +207,7 @@ const handleLogin = async () => {
                         captchaVerification: captchaVerification.captchaVerification,
                         tempToken: publicKeyResponse.data.tempToken,
                         password: password,
-                        oauthEnabled: loginForm.value.remember
+                        oauthEnabled: isRedirectUrlValid.value
                 };
 
                 logger.log('发送前的对象 ', loginData);
@@ -221,7 +246,7 @@ const handleError = (operation, errorMessage) => {
 
 // 处理登录成功
 const handleLoginSuccess = async (response) => {
-        logger.log('========== 登录成功处理开始 ==========');
+        logger.log('登录成功处理开始 ');
         logger.log('response:', response);
         logger.log('response.data:', response.data);
         logger.log('response.data.code:', response.data?.code);
@@ -229,24 +254,23 @@ const handleLoginSuccess = async (response) => {
 
         message.info(`登陆成功，欢迎回来 ${loginForm.value.username}`);
 
-        // 判断是否是外部授权模式（返回了 code）
+        // 无论是否有 code，都跳转到 redirect_url
         if (response.data?.code) {
                 logger.log('检测到 code，进入外部授权模式');
-                // 外部授权模式，使用 code 跳转，传入 token 避免 401
                 await handleOAuthRedirect(response.data.code, response.data.token);
         } else {
                 logger.log('未检测到 code，进入正常登录模式');
-                // 正常模式，直接保存 token 并跳转到仪表盘
                 await handleNormalLogin(response);
         }
-        logger.log('========== 登录成功处理结束 ==========');
+        logger.log('登录成功处理结束');
 };
 
 // 处理外部授权模式跳转
 const handleOAuthRedirect = async (code, token) => {
-        logger.log('========== 开始处理 OAuth 跳转 ==========');
+        logger.log(' OAuth 跳转 ');
         logger.log('code:', code);
         logger.log('token:', token);
+        logger.log('remember:', loginForm.value.remember);
 
         // 先保存 token，避免后续 API 请求因缺少 token 而返回 401
         if (token) {
@@ -267,16 +291,18 @@ const handleOAuthRedirect = async (code, token) => {
                 const configResponse = await publicConfigApi.getConfig({keys: ['site.redirect_url']});
                 logger.log('configResponse:', configResponse);
 
+                const currentUrl = window.location.origin + window.location.pathname;
+                const rememberValue = loginForm.value.remember ? 'true' : 'false';
+
                 if (configResponse.success && configResponse.data && configResponse.data.length > 0) {
                         const redirectUrl = configResponse.data.find(item => item.configKey === 'site.redirect_url');
                         logger.log('redirectUrl 配置项:', redirectUrl);
 
                         if (redirectUrl && redirectUrl.configValue) {
-                                // 配置了 redirect_url，跳转到该地址并携带 code、token 和 redirect_url
+                                // 配置了 redirect_url，跳转到该地址并携带 code、redirect_url 和 remember
                                 const targetRedirectUrl = redirectUrl.configValue;
                                 const separator = targetRedirectUrl.includes('?') ? '&' : '?';
-                                const currentUrl = window.location.origin + window.location.pathname;
-                                const targetUrl = `${targetRedirectUrl}${separator}code=${code}&token=${encodeURIComponent(token)}&redirect_url=${encodeURIComponent(currentUrl)}`;
+                                const targetUrl = `${targetRedirectUrl}${separator}code=${code}&redirect_url=${encodeURIComponent(currentUrl)}&remember=${rememberValue}`;
 
                                 logger.log('外部授权模式，跳转到 redirect_url:', targetUrl);
                                 window.location.href = targetUrl;
@@ -290,9 +316,8 @@ const handleOAuthRedirect = async (code, token) => {
 
                 // 未配置 redirect_url，使用默认的回调地址
                 logger.log('未配置 site.redirect_url，使用默认回调地址');
-                const defaultRedirectUrl = window.location.origin + window.location.pathname;
-                const separator = defaultRedirectUrl.includes('?') ? '&' : '?';
-                const targetUrl = `${defaultRedirectUrl}${separator}code=${code}&redirect_url=${encodeURIComponent(defaultRedirectUrl)}`;
+                const separator = currentUrl.includes('?') ? '&' : '?';
+                const targetUrl = `${currentUrl}${separator}code=${code}&redirect_url=${encodeURIComponent(currentUrl)}&remember=${rememberValue}`;
                 logger.log('默认跳转 URL:', targetUrl);
                 window.location.href = targetUrl;
         } catch (error) {
@@ -301,7 +326,7 @@ const handleOAuthRedirect = async (code, token) => {
                 message.error('授权码获取失败，请重试');
                 resetLoginState();
         }
-        logger.log('========== OAuth 跳转处理结束 ==========');
+        logger.log(' OAuth 跳转处理结束');
 };
 
 // 处理正常登录
@@ -327,27 +352,15 @@ const handleNormalLogin = async (response) => {
 
         logger.log(`${loginForm.value.remember ? '长期' : '会话'}token 设置完成`);
 
-        // 如果是记住我登录，检查是否配置了 redirect_url
-        if (loginForm.value.remember) {
-                try {
-                        const configResponse = await publicConfigApi.getConfig({keys: ['site.redirect_url']});
-                        logger.log('记住我登录查询 redirect_url:', configResponse);
-
-                        if (configResponse.success && configResponse.data && configResponse.data.length > 0) {
-                                const redirectConfig = configResponse.data.find(item => item.configKey === 'site.redirect_url');
-                                if (redirectConfig && redirectConfig.configValue) {
-                                        logger.log('记住我登录，跳转到 redirect_url:', redirectConfig.configValue);
-                                        window.location.href = redirectConfig.configValue;
-                                        return;
-                                }
-                        }
-                } catch (error) {
-                        logger.error('查询 redirect_url 失败:', error);
-                }
+        // 如果有 code，跳转到 redirect_url 并携带 code 和 remember
+        if (response.data?.code) {
+                logger.log('有 code，进入外部授权模式');
+                await handleOAuthRedirect(response.data.code, response.data.token);
+                return;
         }
 
-        // 正常跳转到仪表盘
-        logger.log('正常登录，跳转到仪表盘');
+        // 无 code，直接路由跳转到 /user
+        logger.log('无 code，直接跳转到 /user');
         router.push('/user');
 };
 

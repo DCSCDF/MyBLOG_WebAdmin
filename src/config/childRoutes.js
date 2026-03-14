@@ -270,7 +270,7 @@ export const childRoutes = [
 				component: () => import('../pages/User/Website/System/WebsiteSetting.vue'),
 				meta: {title: '站点配置'},
 				description: '设置网站名称、备案号等基本信息',
-				permission: 'system:config:system:list'
+				permission: 'system:config:systemlist'
 			},
 		],
 	},

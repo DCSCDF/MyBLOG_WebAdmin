@@ -116,7 +116,7 @@
                                         <a-form-item class="!my-4">
                                                 <div class="lg:flex items-start text-gray-500">
                                                         <div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
-                                                                前端页面地址
+                                                                前台登陆地址
                                                         </div>
                                                         <div class="w-full">
                                                                 <a-input-group class="max-w-md !px-0 !flex" compact>
@@ -132,7 +132,7 @@
                                                                 <div
                                                                     class="text-xs text-gray-400 mt-1"
                                                                     style="border-inline-end-width: 0 !important;">
-                                                                        必须修改，用来同步前台状态。
+                                                                        必须修改，用来同步前台登陆状态。
                                                                 </div>
                                                         </div>
                                                 </div>
