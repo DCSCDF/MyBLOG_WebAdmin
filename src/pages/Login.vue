@@ -23,7 +23,8 @@
         </div>
 
 
-        <div class="min-h-screen flex items-center justify-center from-blue-50 to-indigo-100 lg:p-4 p-2 flex flex-col">
+        <div
+            class="min-h-screen flex items-center justify-center from-blue-50 to-indigo-100 lg:p-4 p-2 flex flex-col ">
 
                 <div class="w-full max-w-md">
                         <div class="my-2 hidden">
