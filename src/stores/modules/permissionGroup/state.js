@@ -47,6 +47,7 @@ export const createState = () => {
 	const groupPermissionsLoading = ref(false);
 
 	return {
+
 		permissionGroups,
 		loading,
 		pagination,
@@ -54,5 +55,6 @@ export const createState = () => {
 		filterOptions,
 		groupPermissions,
 		groupPermissionsLoading
+
 	};
 };
