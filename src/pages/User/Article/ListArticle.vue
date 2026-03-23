@@ -105,14 +105,8 @@
                                         </a-space>
                                         <span v-else class="text-gray-400">-</span>
                                 </template>
-                                <template v-else-if="column.key === 'viewCount'">
-                                        <span>{{ record.viewCount || 0 }}</span>
-                                </template>
                                 <template v-else-if="column.key === 'commentCount'">
                                         <span>{{ record.commentCount || 0 }}</span>
-                                </template>
-                                <template v-else-if="column.key === 'likeCount'">
-                                        <span>{{ record.likeCount || 0 }}</span>
                                 </template>
                                 <template v-else-if="column.key === 'isHidden'">
                                         <a-tag :bordered="false" :color="record.isHidden ? 'red' : 'green'">
@@ -265,9 +259,7 @@ const columns = [
         {title: 'ID', dataIndex: 'id', key: 'id', width: 70},
         {title: '文章', key: 'title', width: 280},
         {title: '标签', key: 'tags', width: 160},
-        {title: '浏览量', key: 'viewCount', width: 80},
         {title: '评论数', key: 'commentCount', width: 80},
-        {title: '点赞数', key: 'likeCount', width: 80},
 
         {title: '隐藏', key: 'isHidden', width: 70},
 
