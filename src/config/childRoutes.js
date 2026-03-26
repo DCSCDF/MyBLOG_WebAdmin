@@ -113,7 +113,7 @@ export const childRoutes = [
 		name: 'images',
 		component: () => import('../pages/User/image/ImagesList.vue'),
 		meta: {title: '图片'},
-		description: '管理我的图片',
+		description: '管理上传我的图片',
 		permission: 'oss:list'
 	},
 	{
