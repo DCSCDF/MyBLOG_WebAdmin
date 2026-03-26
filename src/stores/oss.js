@@ -21,8 +21,15 @@ import logger from '../utils/logger.js';
 export const useOssStore = defineStore('oss', () => {
 	// 图片列表
 	const images = ref([]);
-	const loading = ref(false);
 	const uploading = ref(false);
+	const loading = ref(false);
+
+
+	// 查询参数
+	const queryParams = ref({
+		keyword: ''
+	});
+
 
 	// 分页信息
 	const pagination = ref({
@@ -32,10 +39,6 @@ export const useOssStore = defineStore('oss', () => {
 		pages: 0
 	});
 
-	// 查询参数
-	const queryParams = ref({
-		keyword: ''
-	});
 
 	/**
 	 * 检查值是否存在（非空、非 undefined、非 null）

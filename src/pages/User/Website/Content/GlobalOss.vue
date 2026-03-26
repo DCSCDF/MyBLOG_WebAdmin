@@ -203,32 +203,38 @@ const currentRecord = ref(null);
  * 格式化文件大小
  */
 const formatFileSize = (bytes) => {
-        if (!bytes && bytes !== 0) return '-';
-        const units = ['B', 'KB', 'MB', 'GB'];
-        let size = bytes;
-        let unitIndex = 0;
-        while (size >= 1024 && unitIndex < units.length - 1) {
-                size /= 1024;
-                unitIndex++;
-        }
-        return `${size.toFixed(unitIndex > 0 ? 2 : 0)} ${units[unitIndex]}`;
+	const units = ['B', 'KB', 'MB', 'GB'];
+	let result = '-';
+	let size = bytes;
+	let unitIndex = 0;
+	if (bytes || bytes === 0) {
+		while (size >= 1024 && unitIndex < units.length - 1) {
+			size /= 1024;
+			unitIndex++;
+		}
+		result = `${size.toFixed(unitIndex > 0 ? 2 : 0)} ${units[unitIndex]}`;
+	}
+	return result;
 };
 
 /**
  * 截断哈希值显示
  */
 const truncateHash = (hash) => {
-        if (!hash) return '-';
-        return hash.length > 16 ? `${hash.substring(0, 8)}...${hash.substring(hash.length - 8)}` : hash;
+	let result = '-';
+	if (hash) {
+		result = hash.length > 16 ? `${hash.substring(0, 8)}...${hash.substring(hash.length - 8)}` : hash;
+	}
+	return result;
 };
 
-/**
- * 截断路径显示
- */
-const truncatePath = (path) => {
-        if (!path) return '-';
-        return path.length > 40 ? `${path.substring(0, 20)}...${path.substring(path.length - 20)}` : path;
-};
+// /**
+//  * 截断路径显示
+//  */
+// const truncatePath = (path) => {
+//         if (!path) return '-';
+//         return path.length > 40 ? `${path.substring(0, 20)}...${path.substring(path.length - 20)}` : path;
+// };
 
 // /**
 //  * 检查值是否有效
@@ -312,14 +318,20 @@ const handlePreviewClose = () => {
  * 复制图片链接
  */
 const copyImageUrl = async () => {
-        if (!currentRecord.value) return;
-        const url = ossStore.getImageUrl(currentRecord.value.hash);
-        try {
-                await navigator.clipboard.writeText(url);
-                message.success('链接已复制到剪贴板');
-        } catch (e) {
-                message.error('复制失败，请手动复制');
-        }
+	let hasRecord = false;
+	let url = '';
+	if (currentRecord.value) {
+		hasRecord = true;
+		url = ossStore.getImageUrl(currentRecord.value.hash);
+	}
+	if (hasRecord) {
+		try {
+			await navigator.clipboard.writeText(url);
+			message.success('链接已复制到剪贴板');
+		} catch (e) {
+			message.error('复制失败，请手动复制');
+		}
+	}
 };
 
 /**

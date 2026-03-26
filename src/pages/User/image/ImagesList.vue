@@ -147,9 +147,9 @@
                                 <a-descriptions-item label="文件名">
                                         {{ currentRecord.originalName }}
                                 </a-descriptions-item>
-                                <a-descriptions-item label="文件大小">
-                                        {{ formatFileSize(currentRecord.fileSize) }}
-                                </a-descriptions-item>
+                                <!--                                <a-descriptions-item label="文件大小">-->
+                                <!--                                        {{ formatFileSize(currentRecord.fileSize) }}-->
+                                <!--                                </a-descriptions-item>-->
                                 <a-descriptions-item label="哈希值">
                                         <a-tooltip :title="currentRecord.hash">
                                                 <code class="text-xs bg-gray-100 px-1 py-0.5 rounded">{{
@@ -157,9 +157,9 @@
                                                         }}</code>
                                         </a-tooltip>
                                 </a-descriptions-item>
-                                <a-descriptions-item label="上传时间">
-                                        {{ formatDateTime(currentRecord.createTime) }}
-                                </a-descriptions-item>
+                                <!--                                <a-descriptions-item label="上传时间">-->
+                                <!--                                        {{ formatDateTime(currentRecord.createTime) }}-->
+                                <!--                                </a-descriptions-item>-->
                         </a-descriptions>
                         <!-- 操作按钮 -->
                         <div class="flex justify-end gap-2">
@@ -217,71 +217,80 @@ const currentRecord = ref(null);
  * 格式化文件大小
  */
 const formatFileSize = (bytes) => {
-        if (!bytes && bytes !== 0) return '-';
         const units = ['B', 'KB', 'MB', 'GB'];
+        let result = '-';
         let size = bytes;
         let unitIndex = 0;
-        while (size >= 1024 && unitIndex < units.length - 1) {
-                size /= 1024;
-                unitIndex++;
+        if (bytes || bytes === 0) {
+                while (size >= 1024 && unitIndex < units.length - 1) {
+                        size /= 1024;
+                        unitIndex++;
+                }
+                result = `${size.toFixed(unitIndex > 0 ? 2 : 0)} ${units[unitIndex]}`;
         }
-        return `${size.toFixed(unitIndex > 0 ? 2 : 0)} ${units[unitIndex]}`;
+        return result;
 };
 
 /**
  * 格式化日期时间
  */
 const formatDateTime = (dateTime) => {
-        if (!dateTime) return '-';
-        const date = new Date(dateTime);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const seconds = String(date.getSeconds()).padStart(2, '0');
-        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        let result = '-';
+        if (dateTime) {
+                const date = new Date(dateTime);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                result = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+        return result;
 };
 
 /**
  * 截断哈希值显示
  */
 const truncateHash = (hash) => {
-        if (!hash) return '-';
-        return hash.length > 16 ? `${hash.substring(0, 8)}...${hash.substring(hash.length - 8)}` : hash;
+        let result = '-';
+        if (hash) {
+                result = hash.length > 16 ? `${hash.substring(0, 8)}...${hash.substring(hash.length - 8)}` : hash;
+        }
+        return result;
 };
 
 /**
  * 自定义上传方法
  */
-const handleCustomUpload = async ({file, onSuccess, onError, onProgress}) => {
+const handleCustomUpload = async ({file, onSuccess, onError}) => {
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
+        const maxSize = 10 * 1024 * 1024;
+        const fileType = file.type;
+        const isAllowed = allowedTypes.includes(fileType);
+        const isSizeAllowed = file.size <= maxSize;
+        const errorMessages = {
+                type: '不支持的图片格式，支持的格式：jpg、jpeg、png、gif、bmp、webp',
+                size: '图片大小不能超过 10MB'
+        };
+
+        let errorType = '';
+        if (!isAllowed) {
+                errorType = 'type';
+        } else if (!isSizeAllowed) {
+                errorType = 'size';
+        }
+
+        if (errorType) {
+                const msg = errorMessages[errorType];
+                onError(new Error(msg));
+                message.error(msg);
+        }
+
         try {
-                // 检查文件类型
-                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
-                const fileType = file.type;
-                const isAllowed = allowedTypes.includes(fileType);
-
-                if (!isAllowed) {
-                        onError(new Error('不支持的图片格式'));
-                        message.error('不支持的图片格式，支持的格式：jpg、jpeg、png、gif、bmp、webp');
-                        return;
-                }
-
-                // 检查文件大小（10MB = 10 * 1024 * 1024）
-                const maxSize = 10 * 1024 * 1024;
-                if (file.size > maxSize) {
-                        onError(new Error('文件过大'));
-                        message.error('图片大小不能超过 10MB');
-                        return;
-                }
-
-                // 执行上传
                 const result = await ossStore.uploadImage(file);
-
-                // 上传成功后清理文件列表并刷新
                 fileList.value = [];
                 loadImages();
-
                 message.success('上传成功');
                 onSuccess(result);
         } catch (e) {
@@ -379,13 +388,19 @@ const handlePreviewClose = () => {
  * 复制图片链接
  */
 const copyImageUrl = async () => {
-        if (!currentRecord.value) return;
-        const url = ossStore.getImageUrl(currentRecord.value.hash);
-        try {
-                await navigator.clipboard.writeText(url);
-                message.success('链接已复制到剪贴板');
-        } catch (e) {
-                message.error('复制失败，请手动复制');
+        let hasRecord = false;
+        let url = '';
+        if (currentRecord.value) {
+                hasRecord = true;
+                url = ossStore.getImageUrl(currentRecord.value.hash);
+        }
+        if (hasRecord) {
+                try {
+                        await navigator.clipboard.writeText(url);
+                        message.success('链接已复制到剪贴板');
+                } catch (e) {
+                        message.error('复制失败，请手动复制');
+                }
         }
 };
 
@@ -406,15 +421,22 @@ const onDelete = async (record) => {
  * 从预览弹窗删除图片
  */
 const onDeleteFromPreview = async () => {
-        if (!currentRecord.value) return;
-        try {
-                await ossStore.deleteImage(currentRecord.value.hash);
-                message.success('删除成功');
-                previewVisible.value = false;
-                currentRecord.value = null;
-                loadImages();
-        } catch (e) {
-                message.error(e?.message || '删除失败');
+        let hasRecord = false;
+        let hash = '';
+        if (currentRecord.value) {
+                hasRecord = true;
+                hash = currentRecord.value.hash;
+        }
+        if (hasRecord) {
+                try {
+                        await ossStore.deleteImage(hash);
+                        message.success('删除成功');
+                        previewVisible.value = false;
+                        currentRecord.value = null;
+                        loadImages();
+                } catch (e) {
+                        message.error(e?.message || '删除失败');
+                }
         }
 };
 
