@@ -264,39 +264,43 @@ const truncateHash = (hash) => {
  * 自定义上传方法
  */
 const handleCustomUpload = async ({file, onSuccess, onError}) => {
-        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
-        const maxSize = 10 * 1024 * 1024;
-        const fileType = file.type;
-        const isAllowed = allowedTypes.includes(fileType);
-        const isSizeAllowed = file.size <= maxSize;
-        const errorMessages = {
-                type: '不支持的图片格式，支持的格式：jpg、jpeg、png、gif、bmp、webp',
-                size: '图片大小不能超过 10MB'
-        };
+	const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
+	const maxSize = 10 * 1024 * 1024;
+	const fileType = file.type;
+	const isAllowed = allowedTypes.includes(fileType);
+	const isSizeAllowed = file.size <= maxSize;
+	const errorMessages = {
+		type: '不支持的图片格式，支持的格式：jpg、jpeg、png、gif、bmp、webp',
+		size: '图片大小不能超过 10MB'
+	};
 
-        let errorType = '';
-        if (!isAllowed) {
-                errorType = 'type';
-        } else if (!isSizeAllowed) {
-                errorType = 'size';
-        }
+	let errorType = '';
+	if (!isAllowed) {
+		errorType = 'type';
+	} else if (!isSizeAllowed) {
+		errorType = 'size';
+	}
 
-        if (errorType) {
-                const msg = errorMessages[errorType];
-                onError(new Error(msg));
-                message.error(msg);
-        }
+	let shouldUpload = true;
+	if (errorType) {
+		const msg = errorMessages[errorType];
+		onError(new Error(msg));
+		message.error(msg);
+		shouldUpload = false;
+	}
 
-        try {
-                const result = await ossStore.uploadImage(file);
-                fileList.value = [];
-                loadImages();
-                message.success('上传成功');
-                onSuccess(result);
-        } catch (e) {
-                onError(e);
-                message.error(e?.message || '上传失败');
-        }
+	if (shouldUpload) {
+		try {
+			const result = await ossStore.uploadImage(file);
+			fileList.value = [];
+			loadImages();
+			message.success('上传成功');
+			onSuccess(result);
+		} catch (e) {
+			onError(e);
+			message.error(e?.message || '上传失败');
+		}
+	}
 };
 
 /**
