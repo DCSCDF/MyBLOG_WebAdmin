@@ -150,12 +150,13 @@
 
                         <!-- MD编辑器 -->
 
-                        <MdEditor
-                            v-model="editForm.content"
-                            :toolbars="toolbars"
-                            language="zh-CN"
-                            preview
-                            @onHtmlChanged="handleHtmlChange"/>
+<MdEditor
+	v-model="editForm.content"
+	:toolbars="toolbars"
+	language="zh-CN"
+	preview
+	@onHtmlChanged="handleHtmlChange"
+	@onUploadImg="onUploadImg"/>
 
 
                         <!-- 按钮 -->
@@ -232,6 +233,10 @@ import {MdEditor} from 'md-editor-v3';
 import 'md-editor-v3/lib/style.css';
 import {useBlogStore} from '../../../stores/blog.js';
 import {useCategoryStore} from '../../../stores/category.js';
+import {ossApi} from '../../../api/system/ossApi.js';
+
+// 获取后端基础地址
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 const router = useRouter();
 const blogStore = useBlogStore();
@@ -283,37 +288,63 @@ const editForm = ref(null);
 
 // 编辑器工具栏配置
 const toolbars = [
-        'bold',
-        'underline',
-        'italic',
-        '-',
-        'title',
-        'strikeThrough',
-        'sub',
-        'sup',
-        'quote',
-        'unorderedList',
-        'orderedList',
-        'task',
-        '-',
-        'codeRow',
-        'code',
-        'link',
-        'image',
-        'table',
-        'mermaid',
-        'katex',
-        '-',
-        'revoke',
-        'next',
-        '=',
-        'pageFullscreen',
-        'fullscreen',
-        'preview',
-        'previewOnly',
-        'htmlPreview',
-        'catalog',
+	'bold',
+	'underline',
+	'italic',
+	'-',
+	'title',
+	'strikeThrough',
+	'sub',
+	'sup',
+	'quote',
+	'unorderedList',
+	'orderedList',
+	'task',
+	'-',
+	'codeRow',
+	'code',
+	'link',
+	'image',
+	'table',
+	'mermaid',
+	'katex',
+	'-',
+	'revoke',
+	'next',
+	'=',
+	'pageFullscreen',
+	'fullscreen',
+	'preview',
+	'previewOnly',
+	'htmlPreview',
+	'catalog',
 ];
+
+/**
+ * 处理图片上传
+ * @param {File[]} files - 要上传的文件列表
+ * @param {Function} callback - 回调函数，传入上传后的 URL 列表
+ */
+const onUploadImg = async (files, callback) => {
+	const res = await Promise.all(
+		files.map((file) => {
+			return new Promise((resolve, reject) => {
+				ossApi
+					.uploadImage(file)
+					.then((res) => resolve(res))
+					.catch((error) => reject(error));
+			});
+		})
+	);
+
+	// 拼接图片 URL：后端地址 + /api/images/ + hash
+	const urls = res.map((item) => {
+		const hash = item.data?.hash;
+		return hash ? `${API_BASE_URL}/api/images/${hash}` : '';
+	}).filter(Boolean);
+
+	callback(urls);
+};
 
 // 分类列表
 const categoryList = ref([]);

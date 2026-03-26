@@ -26,15 +26,16 @@
                         <a-button type="primary" @click="handleSubmitClick">提交文章</a-button>
                 </div>
 
-                <MdEditor
-                    ref="editorRef"
-                    v-model="mdText"
-                    :preview="true"
-                    :toolbars="toolbars"
-                    language="zh-CN"
-                    @change="handleEditorChange"
-                    @onHtmlChanged="handleHtmlChange"
-                    @save="handleSave"/>
+<MdEditor
+	ref="editorRef"
+	v-model="mdText"
+	:preview="true"
+	:toolbars="toolbars"
+	language="zh-CN"
+	@change="handleEditorChange"
+	@onHtmlChanged="handleHtmlChange"
+	@onUploadImg="onUploadImg"
+	@save="handleSave"/>
         </a-card>
 
         <!-- 提交文章弹窗 -->
@@ -91,46 +92,76 @@ import {message} from 'ant-design-vue';
 import {MdEditor} from 'md-editor-v3';
 import 'md-editor-v3/lib/style.css';
 import {blogApi} from '../../../api/blog/blogApi.js';
+import {ossApi} from '../../../api/system/ossApi.js';
 import {useArticleStore} from '../../../stores/article.js';
 import {useCategoryStore} from '../../../stores/category.js';
+
+// 获取后端基础地址
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 const articleStore = useArticleStore();
 const categoryStore = useCategoryStore();
 
 // 编辑器工具栏配置
 const toolbars = [
-        'bold',
-        'underline',
-        'italic',
-        '-',
-        'title',
-        'strikeThrough',
-        'sub',
-        'sup',
-        'quote',
-        'unorderedList',
-        'orderedList',
-        'task',
-        '-',
-        'codeRow',
-        'code',
-        'link',
-        'image',
-        'table',
-        'mermaid',
-        'katex',
-        '-',
-        'save',
-        'revoke',
-        'next',
-        '=',
-        'pageFullscreen',
-        'fullscreen',
-        'preview',
-        'previewOnly',
-        'htmlPreview',
-        'catalog',
+	'bold',
+	'underline',
+	'italic',
+	'-',
+	'title',
+	'strikeThrough',
+	'sub',
+	'sup',
+	'quote',
+	'unorderedList',
+	'orderedList',
+	'task',
+	'-',
+	'codeRow',
+	'code',
+	'link',
+	'image',
+	'table',
+	'mermaid',
+	'katex',
+	'-',
+	'save',
+	'revoke',
+	'next',
+	'=',
+	'pageFullscreen',
+	'fullscreen',
+	'preview',
+	'previewOnly',
+	'htmlPreview',
+	'catalog',
 ];
+
+/**
+ * 处理图片上传
+ * @param {File[]} files - 要上传的文件列表
+ * @param {Function} callback - 回调函数，传入上传后的 URL 列表
+ */
+const onUploadImg = async (files, callback) => {
+	const res = await Promise.all(
+		files.map((file) => {
+			return new Promise((resolve, reject) => {
+				ossApi
+					.uploadImage(file)
+					.then((res) => resolve(res))
+					.catch((error) => reject(error));
+			});
+		})
+	);
+
+	// 拼接图片 URL：后端地址 + /api/images/ + hash
+	const urls = res.map((item) => {
+		const hash = item.data?.hash;
+		return hash ? `${API_BASE_URL}/api/images/${hash}` : '';
+	}).filter(Boolean);
+
+	callback(urls);
+};
 
 // 默认内容
 const DEFAULT_TEXT = '**开始写作！**';

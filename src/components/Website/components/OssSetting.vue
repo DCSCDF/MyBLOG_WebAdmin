@@ -35,7 +35,7 @@
                 <div>
                         <a-alert
                             class="mb-4"
-                            message="对象存储配置用于图片、文件等静态资源的存储和访问"
+                            message="对象存储配置用于图片、文件等静态资源的存储和访问（目前仅能支持阿里云OSS）"
                             show-icon
                             type="info"
                         />
