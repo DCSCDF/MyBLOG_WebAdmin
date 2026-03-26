@@ -178,6 +178,7 @@
                                                 </div>
                                         </a-form-item>
 
+
                                         <a-form-item class="my-4!">
                                                 <div class="lg:flex items-start text-gray-500">
                                                         <div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
@@ -195,6 +196,21 @@
                                                                                 发送
                                                                         </a-button>
                                                                 </a-input-group>
+                                                        </div>
+                                                </div>
+                                        </a-form-item>
+
+
+                                        <a-form-item class="my-4!">
+                                                <div class="lg:flex items-center text-gray-500">
+                                                        <div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
+                                                                评论通知
+                                                        </div>
+                                                        <div class="w-full">
+                                                                <a-switch v-model:checked="form.commentEnabled"
+                                                                          checked-children="是"
+                                                                          un-checked-children="否"
+                                                                          @change="onCommentEnabledChange"/>
                                                         </div>
                                                 </div>
                                         </a-form-item>
@@ -274,7 +290,8 @@ const SMTP_KEYS = [
         'smtp.password',
         'smtp.fromEmail',
         'smtp.fromName',
-        'smtp.ssl.enabled'
+        'smtp.ssl.enabled',
+        'smtp.comment.enabled'
 ];
 const KEY_TO_FIELD = {
         'smtp.host': 'host',
@@ -283,7 +300,8 @@ const KEY_TO_FIELD = {
         'smtp.password': 'password',
         'smtp.fromEmail': 'fromEmail',
         'smtp.fromName': 'fromName',
-        'smtp.ssl.enabled': 'ssl'
+        'smtp.ssl.enabled': 'ssl',
+        'smtp.comment.enabled': 'commentEnabled'
 };
 const FIELD_TO_KEY = {
         host: 'smtp.host',
@@ -292,7 +310,8 @@ const FIELD_TO_KEY = {
         password: 'smtp.password',
         fromEmail: 'smtp.fromEmail',
         fromName: 'smtp.fromName',
-        ssl: 'smtp.ssl.enabled'
+        ssl: 'smtp.ssl.enabled',
+        commentEnabled: 'smtp.comment.enabled'
 };
 
 const form = reactive({
@@ -302,7 +321,8 @@ const form = reactive({
         password: '',
         fromEmail: '',
         fromName: '',
-        ssl: true
+        ssl: true,
+        commentEnabled: false
 });
 
 const loading = ref(false);
@@ -376,6 +396,10 @@ function parseSsl(val) {
         return val === true || val === 'true' || val === '1';
 }
 
+function parseBoolean(val) {
+        return val === true || val === 'true' || val === '1';
+}
+
 function loadSystemConfig() {
         loading.value = true;
         configApi
@@ -387,8 +411,8 @@ function loadSystemConfig() {
                             if (field && form.hasOwnProperty(field)) {
                                     if (field === 'port') {
                                             form.port = parsePort(item.configValue);
-                                    } else if (field === 'ssl') {
-                                            form.ssl = parseSsl(item.configValue);
+                                    } else if (field === 'ssl' || field === 'commentEnabled') {
+                                            form[field] = parseBoolean(item.configValue);
                                     } else {
                                             form[field] = item.configValue ?? '';
                                     }
@@ -436,6 +460,20 @@ function onSslChange(checked) {
             .catch((e) => {
                     message.error(e?.message || '保存失败');
                     form.ssl = !checked;
+            });
+}
+
+function onCommentEnabledChange(checked) {
+        const configValue = checked ? 'true' : 'false';
+        configApi
+            .update({configKey: 'smtp.comment.enabled', configValue})
+            .then(() => {
+                    message.success('保存成功');
+                    form.commentEnabled = checked;
+            })
+            .catch((e) => {
+                    message.error(e?.message || '保存失败');
+                    form.commentEnabled = !checked;
             });
 }
 
@@ -510,32 +548,32 @@ async function handleEditSubmit() {
 }
 
 async function sendTestMail() {
-	// 验证邮箱地址
-	if (!testEmail.value) {
-		message.warning('请输入邮箱地址');
-	} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(testEmail.value)) {
-		message.warning('请输入有效的邮箱地址');
-	} else {
-		testMailLoading.value = true;
-		try {
-			const res = await mailApi.sendTestMail({
-				to: testEmail.value
-			});
+        // 验证邮箱地址
+        if (!testEmail.value) {
+                message.warning('请输入邮箱地址');
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(testEmail.value)) {
+                message.warning('请输入有效的邮箱地址');
+        } else {
+                testMailLoading.value = true;
+                try {
+                        const res = await mailApi.sendTestMail({
+                                to: testEmail.value
+                        });
 
-			// request.js 成功时返回 { data, success, errorMsg, code }
-			// API 返回格式是 { code, msg, data }，所以 msg 变成了 errorMsg
-			const msg = res.msg || res.errorMsg;
-			if (res.code === 200) {
-				message.success(msg || '邮件发送成功');
-			} else {
-				message.error(msg || '邮件发送失败');
-			}
-		} catch (e) {
-			message.error(e?.message || '邮件发送失败');
-		} finally {
-			testMailLoading.value = false;
-		}
-	}
+                        // request.js 成功时返回 { data, success, errorMsg, code }
+                        // API 返回格式是 { code, msg, data }，所以 msg 变成了 errorMsg
+                        const msg = res.msg || res.errorMsg;
+                        if (res.code === 200) {
+                                message.success(msg || '邮件发送成功');
+                        } else {
+                                message.error(msg || '邮件发送失败');
+                        }
+                } catch (e) {
+                        message.error(e?.message || '邮件发送失败');
+                } finally {
+                        testMailLoading.value = false;
+                }
+        }
 }
 
 async function checkSmtpStatus() {
