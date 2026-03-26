@@ -15,7 +15,9 @@
 
 import {
 	DesktopOutlined,
+	FileJpgOutlined,
 	FileTextOutlined,
+	LinkOutlined,
 	MessageOutlined,
 	PieChartOutlined,
 	SettingOutlined,
@@ -102,6 +104,19 @@ export const childRoutes = [
 		permission: 'category:list'
 	},
 	{
+		key: '7',
+		icon: () => h(FileJpgOutlined),
+		label: '图片',
+		title: '图片',
+		route: '/user/images',
+		path: '/user/images',
+		name: 'images',
+		component: () => import('../pages/User/image/ImagesList.vue'),
+		meta: {title: '图片'},
+		description: '管理我的图片',
+		permission: 'oss:list'
+	},
+	{
 		key: '4',
 		icon: () => h(MessageOutlined),
 		label: '留言',
@@ -116,7 +131,7 @@ export const childRoutes = [
 	},
 	{
 		key: '5',
-		icon: () => h(MessageOutlined),
+		icon: () => h(LinkOutlined),
 		label: '网站外链',
 		title: '网站外链',
 		route: '/user/links',
@@ -221,18 +236,18 @@ export const childRoutes = [
 						description: '管理所有用户的文章',
 						permission: 'system:article:list'
 					},
-					// {
-					// 	key: 'sub3_2_2',
-					// 	label: '全局分类管理',
-					// 	title: '全局分类管理',
-					// 	route: '/user/website/content/category',
-					// 	path: '/user/website/content/category',
-					// 	name: 'globalCategory',
-					// 	component: () => import('../pages/User/Dashboard/Dashboard.vue'),
-					// 	meta: {title: '全局分类管理'},
-					// 	description: '管理所有用户的分类',
-					// 	permission: 'system:category:list'
-					// },
+					{
+						key: 'sub3_2_2',
+						label: '全局图片管理',
+						title: '全局图片管理',
+						route: '/user/website/content/GlobalOss',
+						path: '/user/website/content/GlobalOss',
+						name: 'GlobalOss',
+						component: () => import('../pages/User/Website/Content/GlobalOss.vue'),
+						meta: {title: '全局图片管理'},
+						description: '管理所有用户的图片/媒体',
+						permission: 'system:oss:list'
+					},
 					{
 						key: 'sub3_2_3',
 						label: '全局评论管理',
