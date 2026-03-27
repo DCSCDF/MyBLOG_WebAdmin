@@ -18,6 +18,7 @@ import {createRouter, createWebHistory} from 'vue-router'
 // 导入页面组件
 import Login from '../pages/Login.vue';
 import Layout from '../layout/Layout.vue';
+import NotFound from '../pages/Error/NotFound.vue';
 import {useAuthStore} from '../stores/auth.js';
 import logger from '../utils/logger.js';
 
@@ -43,6 +44,14 @@ const routes = [
 		meta: {requiresAuth: true},
 		redirect: '/user/dashboard',
 		children: childRoutes,
+	},
+	{
+		path: '/:pathMatch(.*)*',
+		name: 'NotFound',
+		component: NotFound,
+		meta: {
+			title: '404'
+		}
 	}
 ]
 

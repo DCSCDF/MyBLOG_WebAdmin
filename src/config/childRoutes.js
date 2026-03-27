@@ -263,18 +263,18 @@ export const childRoutes = [
 				]
 
 			},
-			{
-				key: 'sub3_3',
-				label: '站点全局SEO',
-				title: '站点全局SEO',
-				route: '/user/website/seo',
-				path: '/user/website/seo',
-				name: 'seo',
-				component: () => import('../pages/User/Website/System/SeoManagement.vue'),
-				meta: {title: '站点全局SEO'},
-				description: '配置搜索引擎优化相关参数',
-				permission: 'system:seo:list'
-			},
+			// {
+			// 	key: 'sub3_3',
+			// 	label: '站点全局SEO',
+			// 	title: '站点全局SEO',
+			// 	route: '/user/website/seo',
+			// 	path: '/user/website/seo',
+			// 	name: 'seo',
+			// 	component: () => import('../pages/User/Website/System/SeoManagement.vue'),
+			// 	meta: {title: '站点全局SEO'},
+			// 	description: '配置搜索引擎优化相关参数',
+			// 	permission: 'system:seo:list'
+			// },
 			{
 				key: 'sub3_4',
 				label: '站点配置',
