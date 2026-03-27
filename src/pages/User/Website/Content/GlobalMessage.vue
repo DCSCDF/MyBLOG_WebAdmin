@@ -220,7 +220,7 @@ const getStatusLabel = (status) => {
 const columns = [
         {title: 'ID', dataIndex: 'id', key: 'id', width: 70},
         {title: '文章', key: 'blogTitle', width: 160},
-        {title: '评论者', key: 'username', width: 180},
+        {title: '评论者', key: 'username', width: 240},
         {title: '内容', key: 'content', width: 200},
         {title: '状态', key: 'status', width: 90},
         {title: '点赞数', dataIndex: 'likeCount', key: 'likeCount', width: 100},

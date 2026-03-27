@@ -20,6 +20,7 @@ import Login from '../pages/Login.vue';
 import Layout from '../layout/Layout.vue';
 import NotFound from '../pages/Error/NotFound.vue';
 import {useAuthStore} from '../stores/auth.js';
+import {useAppStore} from '../stores/app.js';
 import logger from '../utils/logger.js';
 
 import {childRoutes} from "../config/childRoutes.js"
@@ -86,7 +87,9 @@ router.beforeEach((to, from, next) => {
 
 // 设置页面标题
 router.afterEach((to) => {
-	document.title = `${to.meta.title || '页面'} - MyBlog 管理系统`
-})
+	const appStore = useAppStore();
+	const siteName = appStore.siteInfo?.siteName || 'MyBlog';
+	document.title = `${to.meta.title || '页面'} - ${siteName} 管理系统`;
+});
 
 export default router

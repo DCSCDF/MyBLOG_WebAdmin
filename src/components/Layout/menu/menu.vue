@@ -60,7 +60,7 @@
                                 </svg>
                                 <h1 v-if="!collapsed"
                                     class="text-xl font-semibold mx-1 text-gray-800 dark:text-white text-nowrap">
-                                        MyBlog
+                                        {{ appStore.siteInfo.siteName }}
                                 </h1>
 
                         </div>
@@ -129,7 +129,7 @@ const filterMenuByPermission = (routes, userPermissions) => {
                 return shouldKeep;
         }).map(route => {
                 let result = route;
-                
+
                 // 递归处理子菜单
                 if (route.children && route.children.length > 0) {
                         result = {
@@ -137,7 +137,7 @@ const filterMenuByPermission = (routes, userPermissions) => {
                                 children: filterMenuByPermission(route.children, userPermissions)
                         };
                 }
-                
+
                 return result;
         });
 };
@@ -367,6 +367,8 @@ let cleanupResizeListener = null;
 onMounted(async () => {
         appStore.updateDeviceStatus();
         cleanupResizeListener = appStore.startResizeListener();
+        // 获取网站基础信息
+        await appStore.fetchSiteInfo();
         // 初始化用户权限并过滤菜单
         await initMenuPermissions();
         updateSelectedKeys();

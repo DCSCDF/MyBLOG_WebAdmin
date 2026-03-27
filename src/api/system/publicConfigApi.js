@@ -35,4 +35,13 @@ export const publicConfigApi = {
 	getConfig: (params) => {
 		return request.post(PUBLIC_CONFIG_BASE_PATH, params);
 	},
+
+	/**
+	 * 获取网站基础信息
+	 * 包括网站名称、域名、描述和备案号。用于前台页面展示。
+	 * @returns {Promise<{ data: { siteName, siteDomain, siteDescription, recordNumber } }>}
+	 */
+	getSiteInfo: () => {
+		return request.get(`${PUBLIC_CONFIG_BASE_PATH}/site-info`);
+	},
 };

@@ -20,6 +20,7 @@
 import {defineStore} from 'pinia';
 import {ref, computed} from 'vue';
 import logger from '../utils/logger.js';
+import {publicConfigApi} from '../api/system/publicConfigApi.js';
 
 export const useAppStore = defineStore('app', () => {
 	// localStorage key 常量
@@ -67,6 +68,14 @@ export const useAppStore = defineStore('app', () => {
 
 	// 全局提示消息
 	const notifications = ref([]);
+
+	// 网站基础信息
+	const siteInfo = ref({
+		siteName: 'MyBlog',
+		siteDomain: '',
+		siteDescription: '',
+		recordNumber: ''
+	});
 
 	// 窗口大小变化监听器
 	let resizeTimer = null;
@@ -256,6 +265,26 @@ export const useAppStore = defineStore('app', () => {
 	};
 
 	/**
+	 * 获取网站基础信息
+	 */
+	const fetchSiteInfo = async () => {
+		try {
+			const res = await publicConfigApi.getSiteInfo();
+			if (res && res.data) {
+				siteInfo.value = {
+					siteName: res.data.siteName || 'MyBlog',
+					siteDomain: res.data.siteDomain || '',
+					siteDescription: res.data.siteDescription || '',
+					recordNumber: res.data.recordNumber || ''
+				};
+				logger.log('网站基础信息获取成功:', siteInfo.value);
+			}
+		} catch (error) {
+			logger.error('获取网站基础信息失败:', error);
+		}
+	};
+
+	/**
 	 * 清理应用状态
 	 */
 	const clearAppState = () => {
@@ -288,6 +317,7 @@ export const useAppStore = defineStore('app', () => {
 		// theme, // 主题状态暂未使用
 		isLoading,
 		notifications,
+		siteInfo,
 
 		// 方法
 		toggleSidebar,
@@ -302,6 +332,7 @@ export const useAppStore = defineStore('app', () => {
 		addNotification,
 		removeNotification,
 		clearNotifications,
+		fetchSiteInfo,
 		clearAppState,
 
 		// 计算属性
