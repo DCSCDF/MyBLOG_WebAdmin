@@ -23,22 +23,34 @@
         </div>
 
 
+        <!-- 返回按钮 - 悬浮在左上角 -->
+        <div v-if="showBackButton"
+             class="fixed top-6 left-6 z-50
+                    group flex items-center gap-1.5 cursor-pointer w-fit
+                    px-3 py-1.5 rounded-full
+                    bg-white/70 dark:bg-gray-800/70
+                    border border-gray-200 dark:border-gray-700
+                    shadow-sm hover:shadow-md backdrop-blur-sm
+                    transition-all duration-300 ease-out
+                    hover:bg-white hover:border-blue-300 hover:shadow-lg
+                    dark:hover:bg-gray-700 dark:hover:border-blue-500/50
+                    active:scale-95"
+             @click="handleBack">
+                <ArrowLeftOutlined class="text-sm !text-gray-600 dark:text-gray-500
+                                          group-hover:text-blue-500 dark:group-hover:text-blue-400
+                                          group-hover:-translate-x-0.5
+                                          transition-all duration-300"/>
+                <span class="text-sm text-gray-600 dark:text-gray-500
+                             group-hover:text-blue-600 dark:group-hover:text-blue-400
+                             transition-colors duration-300 mt-[2px]">返回</span>
+        </div>
+
         <div
             class="min-h-screen flex items-center justify-center from-blue-50 to-indigo-100 lg:p-4 p-2 flex flex-col ">
 
                 <div class="w-full max-w-md">
-                        <div class="my-2 hidden">
-                                <a v-if="showBackButton"
-
-                                   @click="handleBack">
-                                        <ArrowLeftOutlined class="mr-2 " style="color: #9ca3af"/>
-                                        <span class="text-gray-400">返回</span>
-                                </a>
-                        </div>
-
 
                         <a-card class="!overflow-hidden shadow-xl !bg-white/80 !backdrop-blur-md mt-10">
-
                                 <!-- 标签页切换 -->
                                 <a-tabs v-model:activeKey="activeTab" class="form-tabs md:!px-5 !pb-5"
                                         @change="handleTabChange">
@@ -96,7 +108,7 @@ const checkShowBackButton = async () => {
 // 返回按钮点击事件
 const handleBack = () => {
         if (redirectUrl.value) {
-                window.location.href = redirectUrl.value
+                window.location.href = redirectUrl.value + "?back=true"
         }
 }
 
