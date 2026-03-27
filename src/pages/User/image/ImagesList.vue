@@ -290,13 +290,18 @@ const handleCustomUpload = async ({file, onSuccess, onError}) => {
 	}
 
 	if (shouldUpload) {
+		// 重置进度
+		uploadProgress.value = 0;
 		try {
-			const result = await ossStore.uploadImage(file);
+			const result = await ossStore.uploadImage(file, (percent) => {
+				uploadProgress.value = percent;
+			});
 			fileList.value = [];
 			loadImages();
 			message.success('上传成功');
 			onSuccess(result);
 		} catch (e) {
+			uploadProgress.value = 0;
 			onError(e);
 			message.error(e?.message || '上传失败');
 		}

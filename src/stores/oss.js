@@ -146,12 +146,13 @@ export const useOssStore = defineStore('oss', () => {
 	/**
 	 * 上传图片
 	 * @param {File} file - 图片文件
+	 * @param {Function} onProgress - 进度回调函数，参数为 0-100 的进度值
 	 * @returns {Promise<{ hash: string, originalName: string, size: number }>}
 	 */
-	const uploadImage = async (file) => {
+	const uploadImage = async (file, onProgress) => {
 		uploading.value = true;
 		try {
-			const res = await ossApi.uploadImage(file);
+			const res = await ossApi.uploadImage(file, onProgress);
 			const result = handleApiResult(res, '图片上传成功', '上传图片失败');
 			logger.log('图片上传成功:', result);
 			return result;

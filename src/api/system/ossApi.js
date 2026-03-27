@@ -35,15 +35,48 @@ export const ossApi = {
 	 * 上传图片到 OSS
 	 * 需要权限: oss:create
 	 * @param {File} file - 图片文件（不超过 10MB）
+	 * @param {Function} onProgress - 进度回调函数，参数为 0-100 的进度值
 	 * @returns {Promise<{ code: number, msg: string, data: { hash, originalName, size } }>}
 	 */
-	uploadImage: (file) => {
-		const formData = new FormData();
-		formData.append('file', file);
-		return request.post(`${OSS_BASE_PATH}/upload`, formData, {
-			headers: {
-				'Content-Type': 'multipart/form-data'
+	uploadImage: (file, onProgress) => {
+		return new Promise((resolve, reject) => {
+			const xhr = new XMLHttpRequest();
+			const formData = new FormData();
+			formData.append('file', file);
+
+			// 进度监听
+			if (onProgress && xhr.upload) {
+				xhr.upload.onprogress = (event) => {
+					if (event.lengthComputable) {
+						const percent = Math.round((event.loaded / event.total) * 100);
+						onProgress(percent);
+					}
+				};
 			}
+
+			xhr.onload = () => {
+				if (xhr.status >= 200 && xhr.status < 300) {
+					try {
+						const response = JSON.parse(xhr.responseText);
+						if (response.success) {
+							resolve(response);
+						} else {
+							reject(new Error(response.errorMsg || '上传失败'));
+						}
+					} catch (e) {
+						reject(new Error('解析响应失败'));
+					}
+				} else {
+					reject(new Error(`上传失败: ${xhr.status}`));
+				}
+			};
+
+			xhr.onerror = () => reject(new Error('网络错误'));
+
+			const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+			xhr.open('POST', `${baseUrl}${OSS_BASE_PATH}/upload`);
+			xhr.setRequestHeader('token', localStorage.getItem('token') || '');
+			xhr.send(formData);
 		});
 	},
 
