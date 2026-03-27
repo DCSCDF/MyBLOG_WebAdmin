@@ -88,7 +88,7 @@ router.beforeEach((to, from, next) => {
 // 设置页面标题
 router.afterEach((to) => {
 	const appStore = useAppStore();
-	const siteName = appStore.siteInfo?.siteName || 'MyBlog';
+	const siteName = appStore.siteInfo.siteName;
 	document.title = `${to.meta.title || '页面'} - ${siteName} 管理系统`;
 });
 

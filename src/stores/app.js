@@ -26,7 +26,29 @@ export const useAppStore = defineStore('app', () => {
 	// localStorage key 常量
 	const STORAGE_KEYS = {
 		SIDEBAR_COLLAPSED: 'app_sidebar_collapsed',
-		MOBILE_SIDEBAR_OPEN: 'app_mobile_sidebar_open'
+		MOBILE_SIDEBAR_OPEN: 'app_mobile_sidebar_open',
+		SITE_INFO: 'app_site_info'
+	};
+
+	// 从 localStorage 获取网站信息
+	const getStoredSiteInfo = () => {
+		const defaultSiteInfo = {
+			siteName: 'MyBlog',
+			siteDomain: '',
+			siteDescription: '',
+			recordNumber: ''
+		};
+		if (typeof window !== 'undefined') {
+			const stored = localStorage.getItem(STORAGE_KEYS.SITE_INFO);
+			if (stored) {
+				try {
+					return JSON.parse(stored);
+				} catch {
+					return defaultSiteInfo;
+				}
+			}
+		}
+		return defaultSiteInfo;
 	};
 
 	// 从 localStorage 获取侧边栏状态，默认为 false
@@ -69,13 +91,8 @@ export const useAppStore = defineStore('app', () => {
 	// 全局提示消息
 	const notifications = ref([]);
 
-	// 网站基础信息
-	const siteInfo = ref({
-		siteName: 'MyBlog',
-		siteDomain: '',
-		siteDescription: '',
-		recordNumber: ''
-	});
+	// 网站基础信息（优先从 localStorage 读取，否则使用默认值）
+	const siteInfo = ref(getStoredSiteInfo());
 
 	// 窗口大小变化监听器
 	let resizeTimer = null;
@@ -271,12 +288,15 @@ export const useAppStore = defineStore('app', () => {
 		try {
 			const res = await publicConfigApi.getSiteInfo();
 			if (res && res.data) {
-				siteInfo.value = {
+				const newSiteInfo = {
 					siteName: res.data.siteName || 'MyBlog',
 					siteDomain: res.data.siteDomain || '',
 					siteDescription: res.data.siteDescription || '',
 					recordNumber: res.data.recordNumber || ''
 				};
+				siteInfo.value = newSiteInfo;
+				// 缓存到 localStorage
+				localStorage.setItem(STORAGE_KEYS.SITE_INFO, JSON.stringify(newSiteInfo));
 				logger.log('网站基础信息获取成功:', siteInfo.value);
 			}
 		} catch (error) {

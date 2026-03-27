@@ -24,10 +24,10 @@
                 <div
                     class="absolute inset-0 flex items-center justify-between p-1 sm:p-6">
                         <div class="my-auto text-white mx-3">
-                                <p class="!m-0">Hi，欢迎使用MyBlog平台</p>
+                                <p class="!m-0">Hi，欢迎使用</p>
                                 <div class="h-4"></div>
                                 <p class="!m-0">
-                                        轻松创建、发布您的文章，方便的的后台管理，降低学习成本。</p>
+                                        轻松创建、发布您的文章，方便的的后台管理。</p>
                         </div>
                 </div>
         </div>
