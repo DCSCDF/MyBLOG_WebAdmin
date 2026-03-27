@@ -26,7 +26,7 @@
         <!-- 返回按钮 - 悬浮在左上角 -->
         <div v-if="showBackButton"
              class="fixed top-6 left-6 z-50
-                    group flex items-center gap-1.5 cursor-pointer w-fit
+                    group flex items-center gap-1 cursor-pointer w-fit
                     px-3 py-1.5 rounded-full
                     bg-white/70 dark:bg-gray-800/70
                     border border-gray-200 dark:border-gray-700
@@ -36,13 +36,14 @@
                     dark:hover:bg-gray-700 dark:hover:border-blue-500/50
                     active:scale-95"
              @click="handleBack">
-                <ArrowLeftOutlined class="text-sm !text-gray-600 dark:text-gray-500
+
+                <LeftOutlined class="text-sm !text-gray-600 dark:text-gray-500
                                           group-hover:text-blue-500 dark:group-hover:text-blue-400
                                           group-hover:-translate-x-0.5
                                           transition-all duration-300"/>
                 <span class="text-sm text-gray-600 dark:text-gray-500
                              group-hover:text-blue-600 dark:group-hover:text-blue-400
-                             transition-colors duration-300 mt-[2px]">返回</span>
+                             transition-colors duration-300 mt-[2.6px]">返回</span>
         </div>
 
         <div
@@ -70,7 +71,7 @@
 
 <script setup>
 import {onMounted, ref} from 'vue'
-import {ArrowLeftOutlined} from '@ant-design/icons-vue'
+import {LeftOutlined} from '@ant-design/icons-vue'
 import LoginForm from '../components/auth/LoginForm.vue'
 import RegisterForm from '../components/auth/RegisterForm.vue'
 import {publicConfigApi} from '../api/system/publicConfigApi.js'
