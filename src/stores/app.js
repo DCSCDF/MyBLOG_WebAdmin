@@ -18,7 +18,7 @@
  */
 
 import {defineStore} from 'pinia';
-import {ref, computed} from 'vue';
+import {computed, ref} from 'vue';
 import logger from '../utils/logger.js';
 import {publicConfigApi} from '../api/system/publicConfigApi.js';
 
@@ -33,7 +33,7 @@ export const useAppStore = defineStore('app', () => {
 	// 从 localStorage 获取网站信息
 	const getStoredSiteInfo = () => {
 		const defaultSiteInfo = {
-			siteName: 'MyBlog',
+			siteName: '',
 			siteDomain: '',
 			siteDescription: '',
 			recordNumber: ''
