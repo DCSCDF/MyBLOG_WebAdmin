@@ -39,10 +39,10 @@
                 <div class="flex items-center gap-3 mx-0 md:mx-8">
 
 
-                        <a-button :icon="h(QuestionCircleOutlined)" color="gray"
-                                  style="color: gray;"
-                                  type="text"
-                                  @click="handleDocClick"></a-button>
+                        <!--                        <a-button :icon="h(QuestionCircleOutlined)" color="gray"-->
+                        <!--                                  style="color: gray;"-->
+                        <!--                                  type="text"-->
+                        <!--                                  @click="handleDocClick"></a-button>-->
 
 
                         <a-dropdown :overlay="dropdownOverlay">
@@ -71,7 +71,7 @@ import {useRouter} from 'vue-router';
 import {authApi} from "../../../api/user/auth/authApi.js";
 import logger from "../../../utils/logger.js";
 import HeaderLogout from "./headerLogout.vue";
-import {MenuFoldOutlined, MenuUnfoldOutlined, QuestionCircleOutlined,} from '@ant-design/icons-vue';
+import {MenuFoldOutlined, MenuUnfoldOutlined,} from '@ant-design/icons-vue';
 import {useAuthStore} from '../../../stores/auth.js';
 import {useAppStore} from '../../../stores/app.js';
 import {Menu} from 'ant-design-vue';
