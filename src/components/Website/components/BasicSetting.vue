@@ -138,31 +138,50 @@
                                                 </div>
                                         </a-form-item>
 
-                                        <a-form-item class="!my-4">
-                                                <div class="lg:flex items-start text-gray-500">
-                                                        <div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
-                                                                默认角色
-                                                        </div>
-                                                        <div class="w-full">
-                                                                <a-input-group class="max-w-md !px-0 !flex" compact>
-                                                                        <a-input v-model:value="form.defaultRoleName"
-                                                                                 disabled
-                                                                                 placeholder="请选择默认用户角色"/>
-                                                                        <a-button class="!text-gray-600"
-                                                                                  @click="openEditDrawer('defaultRole')">
-                                                                                <SettingOutlined/>
-                                                                                修改
-                                                                        </a-button>
-                                                                </a-input-group>
-                                                                <div
-                                                                    class="text-xs text-gray-400 mt-1"
-                                                                    style="border-inline-end-width: 0 !important;">
-                                                                        用户注册时默认分配的角色
-                                                                </div>
-                                                        </div>
-                                                </div>
-                                        </a-form-item>
-                                </a-form>
+					<a-form-item class="!my-4">
+						<div class="lg:flex items-start text-gray-500">
+							<div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
+								默认角色
+							</div>
+							<div class="w-full">
+								<a-input-group class="max-w-md !px-0 !flex" compact>
+									<a-input v-model:value="form.defaultRoleName"
+										disabled
+										placeholder="请选择默认用户角色"/>
+									<a-button class="!text-gray-600"
+										@click="openEditDrawer('defaultRole')">
+										<SettingOutlined/>
+										修改
+									</a-button>
+								</a-input-group>
+								<div
+									class="text-xs text-gray-400 mt-1"
+									style="border-inline-end-width: 0 !important;">
+									用户注册时默认分配的角色
+								</div>
+							</div>
+						</div>
+					</a-form-item>
+
+					<a-form-item class="!my-4">
+						<div class="lg:flex items-start text-gray-500">
+							<div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
+								评论显示完整邮箱
+							</div>
+							<div class="w-full">
+								<a-switch
+									v-model:checked="form.commentShowEmailEnabled"
+									@change="handleSwitchChange('commentShowEmailEnabled', $event)"
+								/>
+								<div
+									class="text-xs text-gray-400 mt-1"
+									style="border-inline-end-width: 0 !important;">
+									开启后，评论将显示完整邮箱地址；关闭则仅显示邮箱前缀
+								</div>
+							</div>
+						</div>
+					</a-form-item>
+				</a-form>
                         </a-spin>
                 </div>
 
@@ -233,32 +252,35 @@ const {drawerWidth} = useDrawerWidth();
 const roleStore = useRoleStore();
 
 /** 系统配置 key 与表单字段映射 */
-const BASIC_KEYS = ['site.name', 'site.domain', 'site.description', 'site.icp', 'user_register_default_role', 'site.redirect_url'];
+const BASIC_KEYS = ['site.name', 'site.domain', 'site.description', 'site.icp', 'user_register_default_role', 'site.redirect_url', 'comment-show-email-enabled'];
 const FIELD_TO_KEY = {
-        siteName: 'site.name',
-        domain: 'site.domain',
-        description: 'site.description',
-        icp: 'site.icp',
-        defaultRole: 'user_register_default_role',
-        redirectUrl: 'site.redirect_url'
+	siteName: 'site.name',
+	domain: 'site.domain',
+	description: 'site.description',
+	icp: 'site.icp',
+	defaultRole: 'user_register_default_role',
+	redirectUrl: 'site.redirect_url',
+	commentShowEmailEnabled: 'comment-show-email-enabled'
 };
 const KEY_TO_FIELD = {
-        'site.name': 'siteName',
-        'site.domain': 'domain',
-        'site.description': 'description',
-        'site.icp': 'icp',
-        'user_register_default_role': 'defaultRole',
-        'site.redirect_url': 'redirectUrl'
+	'site.name': 'siteName',
+	'site.domain': 'domain',
+	'site.description': 'description',
+	'site.icp': 'icp',
+	'user_register_default_role': 'defaultRole',
+	'site.redirect_url': 'redirectUrl',
+	'comment-show-email-enabled': 'commentShowEmailEnabled'
 };
 
 const form = reactive({
-        siteName: '',
-        domain: '',
-        description: '',
-        icp: '',
-        defaultRole: '',
-        defaultRoleName: '',
-        redirectUrl: ''
+	siteName: '',
+	domain: '',
+	description: '',
+	icp: '',
+	defaultRole: '',
+	defaultRoleName: '',
+	redirectUrl: '',
+	commentShowEmailEnabled: false
 });
 
 const loading = ref(false);
@@ -350,31 +372,33 @@ const editRules = computed(() => {
 });
 
 function loadSystemConfig() {
-        loading.value = true;
-        loadRoleOptions().then(() => {
-                configApi
-                    .systemList({keys: BASIC_KEYS})
-                    .then((res) => {
-                            const list = res?.data || [];
-                            list.forEach((item) => {
-                                    const field = KEY_TO_FIELD[item.configKey];
-                                    if (field && form.hasOwnProperty(field)) {
-                                            if (field === 'defaultRole') {
-                                                    form[field] = item.configValue ?? '';
-                                                    updateDefaultRoleName();
-                                            } else {
-                                                    form[field] = item.configValue ?? '';
-                                            }
-                                    }
-                            });
-                    })
-                    .catch((e) => {
-                            message.error(e?.message || '加载网站基本设置失败');
-                    })
-                    .finally(() => {
-                            loading.value = false;
-                    });
-        });
+	loading.value = true;
+	loadRoleOptions().then(() => {
+		configApi
+			.systemList({keys: BASIC_KEYS})
+			.then((res) => {
+				const list = res?.data || [];
+				list.forEach((item) => {
+					const field = KEY_TO_FIELD[item.configKey];
+					if (field && form.hasOwnProperty(field)) {
+						if (field === 'defaultRole') {
+							form[field] = item.configValue ?? '';
+							updateDefaultRoleName();
+						} else if (field === 'commentShowEmailEnabled') {
+							form[field] = item.configValue === 'true';
+						} else {
+							form[field] = item.configValue ?? '';
+						}
+					}
+				});
+			})
+			.catch((e) => {
+				message.error(e?.message || '加载网站基本设置失败');
+			})
+			.finally(() => {
+				loading.value = false;
+			});
+	});
 }
 
 async function loadRoleOptions() {
@@ -408,10 +432,26 @@ function filterOption(input, option) {
 }
 
 function openEditDrawer(field) {
-        editingField.value = field;
+	editingField.value = field;
 
-        editForm.configValue = form[field] ?? '';
-        editDrawerVisible.value = true;
+	editForm.configValue = form[field] ?? '';
+	editDrawerVisible.value = true;
+}
+
+async function handleSwitchChange(field, checked) {
+	try {
+		editSubmitting.value = true;
+		const configKey = FIELD_TO_KEY[field];
+		const configValue = String(checked);
+		await configApi.update({configKey, configValue});
+		message.success('保存成功');
+		form[field] = checked;
+	} catch (e) {
+		message.error(e?.message || '保存失败');
+		form[field] = !checked;
+	} finally {
+		editSubmitting.value = false;
+	}
 }
 
 function handleEditCancel() {
