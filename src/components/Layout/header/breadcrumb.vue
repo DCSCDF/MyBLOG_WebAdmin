@@ -28,7 +28,7 @@
                 </div>
 
                 <div>
-                        <h1 class="text-2xl !font-black !mb-2 text-gray-800">{{ currentTitle }}</h1>
+                        <h1 class="text-2xl !mb-2 text-gray-800 font-medium">{{ currentTitle }}</h1>
                         <p class="text-gray-500 mb-6">{{ currentDescription }}</p>
                 </div>
         </div>

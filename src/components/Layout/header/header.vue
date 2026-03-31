@@ -55,7 +55,7 @@
                                                 </a-avatar>
                                         </div>
                                         <div class="flex flex-col min-w-0 ml-2 justify-end pb-px">
-                                                <div class="text-sm !m-0 font-medium text-gray-600 truncate">
+                                                <div class="text-sm !m-0 text-gray-600 truncate">
                                                         {{ profile.nickname || '昵称' }}
                                                 </div>
                                         </div>
