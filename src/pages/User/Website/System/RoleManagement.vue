@@ -1022,42 +1022,39 @@ function buildPermissionStructure() {
 
 // 处理权限添加结果
 async function handleAddPermissionResult(validationResult, permissionData) {
-        if (validationResult.valid) {
-                try {
-                        // 检查权限冲突
-                        const conflictResult = await checkPermissionConflicts(
-                            permissionData.selectedNode,
-                            permissionData.tree,
-                            permissionData.codeMap
-                        );
+	if (validationResult.valid) {
+		try {
+			// 检查权限冲突
+			const conflictResult = await checkPermissionConflicts(
+				permissionData.selectedNode,
+				permissionData.tree,
+				permissionData.codeMap
+			);
 
-                        const hasConflict = conflictResult.hasConflict;
-                        if (hasConflict) {
-                                message.warning(conflictResult.reason);
-                        } else {
-                                // 执行添加操作
-                                addPermissionLoading.value = true;
-                                await roleStore.addPermissionToRole(permissionRole.value.id, selectedPermissionId.value);
-                                message.success('添加成功');
-                                showAddPermissionModal.value = false;
-                                selectedPermissionId.value = null;
-                                await roleStore.fetchPermissionsDetail(permissionRole.value.id);
-                                await loadGroupPermissions();
-                        }
-                } catch (e) {
-                        message.error(e?.message || '添加失败');
-                } finally {
-                        addPermissionLoading.value = false;
-                }
-        } else {
-                // 显示验证错误信息
-                const isWarningType = validationResult.type === 'warning';
-                if (isWarningType) {
-                        message.warning(validationResult.message);
-                } else {
-                        message.error(validationResult.message);
-                }
-        }
+			if (conflictResult.hasConflict) {
+				message.warning(conflictResult.reason);
+			} else {
+				addPermissionLoading.value = true;
+				await roleStore.addPermissionToRole(permissionRole.value.id, selectedPermissionId.value);
+				message.success('添加成功');
+				showAddPermissionModal.value = false;
+				selectedPermissionId.value = null;
+				await roleStore.fetchPermissionsDetail(permissionRole.value.id);
+				await loadGroupPermissions();
+			}
+		} catch (e) {
+			message.error(e?.message || '添加失败');
+		} finally {
+			addPermissionLoading.value = false;
+		}
+	} else {
+		const isWarningType = validationResult.type === 'warning';
+		if (isWarningType) {
+			message.warning(validationResult.message);
+		} else {
+			message.error(validationResult.message);
+		}
+	}
 }
 
 async function doAddPermission() {
@@ -1308,28 +1305,33 @@ function checkGroupPermissionConflicts(groupPermissionsFlat, directPermissions) 
 
 // 执行添加权限组操作
 async function executeAddGroup() {
-        addGroupLoading.value = true;
-        try {
-                await roleStore.addPermissionGroupToRole(permissionRole.value.id, selectedGroupId.value);
-                message.success('添加成功');
-                showAddGroupModal.value = false;
-                selectedGroupId.value = null;
-                await roleStore.fetchPermissionsDetail(permissionRole.value.id);
-                await loadGroupPermissions();
-        } catch (e) {
-                message.error(e?.message || '添加失败');
-        } finally {
-                addGroupLoading.value = false;
-        }
+	addGroupLoading.value = true;
+	try {
+		await roleStore.addPermissionGroupToRole(permissionRole.value.id, selectedGroupId.value);
+		message.success('添加成功');
+		showAddGroupModal.value = false;
+		selectedGroupId.value = null;
+		await roleStore.fetchPermissionsDetail(permissionRole.value.id);
+		await loadGroupPermissions();
+	} catch (e) {
+		console.error('executeAddGroup 捕获到错误:', e);
+		message.error(e?.message || '添加失败');
+	} finally {
+		addGroupLoading.value = false;
+	}
 }
 
 async function doAddGroup() {
+        console.log('doAddGroup 开始执行');
+        console.log('selectedGroupId:', selectedGroupId.value);
+        console.log('permissionRole:', permissionRole.value);
         // 统一处理逻辑，确保只有一个返回点
         let canProceed = true;
         let errorMessage = '';
 
         // 参数验证
         const paramValidation = validateAddGroupParams();
+        console.log('参数验证结果:', paramValidation);
         if (!paramValidation.valid) {
                 canProceed = false;
                 errorMessage = paramValidation.message;
@@ -1369,8 +1371,11 @@ async function doAddGroup() {
                 }
         }
 
+        console.log('canProceed:', canProceed, 'errorMessage:', errorMessage);
+
         // 统一处理结果
         if (canProceed) {
+                console.log('准备执行 executeAddGroup');
                 await executeAddGroup();
         } else {
                 message.warning(errorMessage);

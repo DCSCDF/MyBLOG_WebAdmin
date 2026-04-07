@@ -344,26 +344,22 @@ export const useRoleStore = defineStore('role', () => {
 	 * @returns {Promise<boolean>}
 	 */
 	const addPermissionToRole = async (roleId, permissionId) => {
-		let result;
-
 		try {
 			const res = await roleApi.addPermission(roleId, {permissionId});
+			console.log('addPermissionToRole 响应:', res);
 			if (res.success === true) {
 				logger.log('角色添加权限成功:', roleId, permissionId);
-				result = true;
+				return true;
 			} else {
-				// API 响应失败，记录错误并返回 false
 				const errorMessage = res.errorMsg || '添加权限失败';
 				logger.error(errorMessage);
-				result = false;
+				return Promise.reject(new Error(errorMessage));
 			}
 		} catch (error) {
-			// 处理网络错误或其他意外错误
+			console.error('addPermissionToRole 捕获到错误:', error);
 			logger.error('角色添加权限失败:', error);
-			result = false;
+			return Promise.reject(new Error(error?.message || '添加权限失败'));
 		}
-
-		return result;
 	};
 
 	/**
@@ -402,26 +398,22 @@ export const useRoleStore = defineStore('role', () => {
 	 * @returns {Promise<boolean>}
 	 */
 	const addPermissionGroupToRole = async (roleId, groupId) => {
-		let result;
-
 		try {
 			const res = await roleApi.addPermissionGroup(roleId, {groupId});
+			console.log('addPermissionGroupToRole 响应:', res);
 			if (res.success === true) {
 				logger.log('角色添加权限组成功:', roleId, groupId);
-				result = true;
+				return true;
 			} else {
-				// API 响应失败，记录错误并返回 false
 				const errorMessage = res.errorMsg || '添加权限组失败';
 				logger.error(errorMessage);
-				result = false;
+				return Promise.reject(new Error(errorMessage));
 			}
 		} catch (error) {
-			// 处理网络错误或其他意外错误
+			console.error('addPermissionGroupToRole 捕获到错误:', error);
 			logger.error('角色添加权限组失败:', error);
-			result = false;
+			return Promise.reject(new Error(error?.message || '添加权限组失败'));
 		}
-
-		return result;
 	};
 
 	/**
