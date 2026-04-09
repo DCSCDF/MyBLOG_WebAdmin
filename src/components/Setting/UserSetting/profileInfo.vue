@@ -42,6 +42,27 @@
                                 <a-form-item class="!my-4">
                                         <div class="md:flex items-start text-gray-500">
                                                 <div class="mb-1 py-1 md:mb-0 md:mx-4 w-26">
+                                                        邮箱
+                                                </div>
+                                                <div class="w-full">
+                                                        <a-input-group class="max-w-md !px-0 !flex" compact>
+                                                                <a-input
+                                                                    :value="userProfile.email || '-'"
+                                                                    disabled
+                                                                />
+                                                                <!--                                                                <a-button class="!text-gray-600 "-->
+                                                                <!--                                                                          @click="openEmailDrawer">-->
+                                                                <!--                                                                        <SettingOutlined/>-->
+                                                                <!--                                                                        修改-->
+                                                                <!--                                                                </a-button>-->
+                                                        </a-input-group>
+                                                </div>
+                                        </div>
+                                </a-form-item>
+
+                                <a-form-item class="!my-4">
+                                        <div class="md:flex items-start text-gray-500">
+                                                <div class="mb-1 py-1 md:mb-0 md:mx-4 w-26">
                                                         昵称
                                                 </div>
                                                 <div class="w-full">
@@ -52,27 +73,6 @@
                                                                 />
                                                                 <a-button class="!text-gray-600"
                                                                           @click="openNicknameDrawer">
-                                                                        <SettingOutlined/>
-                                                                        修改
-                                                                </a-button>
-                                                        </a-input-group>
-                                                </div>
-                                        </div>
-                                </a-form-item>
-
-                                <a-form-item class="!my-4">
-                                        <div class="md:flex items-start text-gray-500">
-                                                <div class="mb-1 py-1 md:mb-0 md:mx-4 w-26">
-                                                        邮箱
-                                                </div>
-                                                <div class="w-full">
-                                                        <a-input-group class="max-w-md !px-0 !flex" compact>
-                                                                <a-input
-                                                                    :value="userProfile.email || '-'"
-                                                                    disabled
-                                                                />
-                                                                <a-button class="!text-gray-600 "
-                                                                          @click="openEmailDrawer">
                                                                         <SettingOutlined/>
                                                                         修改
                                                                 </a-button>
@@ -334,10 +334,10 @@ const emailRules = {
         ]
 };
 
-function openEmailDrawer() {
-        emailForm.value.email = userProfile.value.email || '';
-        emailDrawerVisible.value = true;
-}
+// function openEmailDrawer() {
+//         emailForm.value.email = userProfile.value.email || '';
+//         emailDrawerVisible.value = true;
+// }
 
 function handleEmailCancel() {
         emailDrawerVisible.value = false;

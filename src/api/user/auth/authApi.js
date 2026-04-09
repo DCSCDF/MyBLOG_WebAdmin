@@ -54,6 +54,22 @@ export const authApi = {
 	},
 
 	/**
+	 * 发送注册验证码 API（当系统配置 reg.use-email=true 时使用）
+	 * @param {Object} data - { username, email, password, tempToken, captchaVerification }
+	 */
+	registerCode: (data) => {
+		return request.post(`${AUTH_BASE_PATH}/register/code`, data);
+	},
+
+	/**
+	 * 确认注册 API（当系统配置 reg.use-email=true 时使用）
+	 * @param {Object} data - { email, code }
+	 */
+	registerConfirm: (data) => {
+		return request.post(`${AUTH_BASE_PATH}/register/confirm`, data);
+	},
+
+	/**
 	 * 修改密码
 	 * @param {Object} data - { old_password, new_password } 加密后的原密码和新密码
 	 */

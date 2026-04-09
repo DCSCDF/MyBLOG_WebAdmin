@@ -214,6 +214,20 @@
                                                         </div>
                                                 </div>
                                         </a-form-item>
+
+                                        <a-form-item class="my-4!">
+                                                <div class="lg:flex items-center text-gray-500">
+                                                        <div class="mb-1 py-1 lg:mb-0 lg:mx-4 w-26">
+                                                                邮箱验证
+                                                        </div>
+                                                        <div class="w-full">
+                                                                <a-switch v-model:checked="form.useEmail"
+                                                                          checked-children="是"
+                                                                          un-checked-children="否"
+                                                                          @change="onUseEmailChange"/>
+                                                        </div>
+                                                </div>
+                                        </a-form-item>
                                 </a-form>
                         </a-spin>
                 </div>
@@ -291,7 +305,8 @@ const SMTP_KEYS = [
         'smtp.fromEmail',
         'smtp.fromName',
         'smtp.ssl.enabled',
-        'smtp.comment.enabled'
+        'smtp.comment.enabled',
+        'reg.use-email'
 ];
 const KEY_TO_FIELD = {
         'smtp.host': 'host',
@@ -301,7 +316,8 @@ const KEY_TO_FIELD = {
         'smtp.fromEmail': 'fromEmail',
         'smtp.fromName': 'fromName',
         'smtp.ssl.enabled': 'ssl',
-        'smtp.comment.enabled': 'commentEnabled'
+        'smtp.comment.enabled': 'commentEnabled',
+        'reg.use-email': 'useEmail'
 };
 const FIELD_TO_KEY = {
         host: 'smtp.host',
@@ -311,7 +327,8 @@ const FIELD_TO_KEY = {
         fromEmail: 'smtp.fromEmail',
         fromName: 'smtp.fromName',
         ssl: 'smtp.ssl.enabled',
-        commentEnabled: 'smtp.comment.enabled'
+        commentEnabled: 'smtp.comment.enabled',
+        useEmail: 'reg.use-email'
 };
 
 const form = reactive({
@@ -322,7 +339,8 @@ const form = reactive({
         fromEmail: '',
         fromName: '',
         ssl: true,
-        commentEnabled: false
+        commentEnabled: false,
+        useEmail: false
 });
 
 const loading = ref(false);
@@ -411,7 +429,7 @@ function loadSystemConfig() {
                             if (field && form.hasOwnProperty(field)) {
                                     if (field === 'port') {
                                             form.port = parsePort(item.configValue);
-                                    } else if (field === 'ssl' || field === 'commentEnabled') {
+                                    } else if (field === 'ssl' || field === 'commentEnabled' || field === 'useEmail') {
                                             form[field] = parseBoolean(item.configValue);
                                     } else {
                                             form[field] = item.configValue ?? '';
@@ -474,6 +492,20 @@ function onCommentEnabledChange(checked) {
             .catch((e) => {
                     message.error(e?.message || '保存失败');
                     form.commentEnabled = !checked;
+            });
+}
+
+function onUseEmailChange(checked) {
+        const configValue = checked ? 'true' : 'false';
+        configApi
+            .update({configKey: 'reg.use-email', configValue})
+            .then(() => {
+                    message.success('保存成功');
+                    form.useEmail = checked;
+            })
+            .catch((e) => {
+                    message.error(e?.message || '保存失败');
+                    form.useEmail = !checked;
             });
 }
 
