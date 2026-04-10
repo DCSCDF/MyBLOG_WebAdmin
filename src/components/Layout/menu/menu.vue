@@ -86,7 +86,7 @@
                                                 </svg>
                                                 <div class="w-full">
                                                         <h1
-                                                            class="text-md font-semibold mx-3 text-gray-700 dark:text-white text-nowrap">
+                                                            class="text-md font-semibold mx-3 text-gray-700 text-nowrap">
                                                                 {{ appStore.siteInfo.siteName }}
                                                         </h1>
                                                 </div>

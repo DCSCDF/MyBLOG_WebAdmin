@@ -15,43 +15,42 @@
 
 <template>
         <!-- 动态背景  -->
-        <div class="fixed inset-0 -z-50
-                bg-size-[200%_200%] animate-gradient
-                bg-linear-to-tr from-blue-400/40 via-white/70 to-blue-400/70
-                dark:bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))]
-                dark:from-gray-800 dark:via-gray-600 dark:to-gray-800">
-        </div>
+        <!--        <div class="fixed inset-0 -z-50-->
+        <!--                        bg-size-[200%_200%] animate-gradient-->
+        <!--                        bg-linear-to-tr from-blue-400/40 via-white/70 to-blue-400/70-->
+        <!--                        dark:bg-[radial-gradient(ellipse_at_center,var(&#45;&#45;tw-gradient-stops))]-->
+        <!--                        dark:from-gray-800 dark:via-gray-600 dark:to-gray-800">-->
+        <!--        </div>-->
 
 
         <!-- 返回按钮 - 悬浮在左上角 -->
         <div v-if="showBackButton"
-             class="fixed top-6 left-6 z-50
-                    group flex items-center gap-1 cursor-pointer w-fit
+             class="fixed top-2 left-2 md:left-8 md:top-8 z-50
+                    group flex items-center cursor-pointer w-fit
                     px-3 py-1.5 rounded-full
-                    bg-white/70 dark:bg-gray-800/70
-                    border border-gray-200 dark:border-gray-700
-                    shadow-sm hover:shadow-md backdrop-blur-sm
-                    transition-all duration-300 ease-out
+                    bg-white/70
+                    border border-gray-200
+                    hover:shadow-md backdrop-blur-sm
+                    transition-all duration-300 ease-out`
                     hover:bg-white hover:border-blue-300 hover:shadow-lg
-                    dark:hover:bg-gray-700 dark:hover:border-blue-500/50
                     active:scale-95"
              @click="handleBack">
 
-                <LeftOutlined class="text-sm !text-gray-600 dark:text-gray-500
-                                          group-hover:text-blue-500 dark:group-hover:text-blue-400
+                <LeftOutlined class="text-sm !text-gray-600
+                                          group-hover:text-blue-500
                                           group-hover:-translate-x-0.5
                                           transition-all duration-300"/>
-                <span class="text-sm text-gray-600 dark:text-gray-500
-                             group-hover:text-blue-600 dark:group-hover:text-blue-400
-                             transition-colors duration-300 mt-[2.6px]">返回</span>
+                <span class="text-sm text-gray-600
+                             group-hover:text-blue-600 
+                             transition-colors duration-300">返回</span>
         </div>
 
         <div
             class="min-h-screen flex items-center justify-center from-blue-50 to-indigo-100 lg:p-4 p-2 flex flex-col ">
 
-                <div class="w-full max-w-md">
+                <div class="w-full max-w-md my-12">
 
-                        <a-card class="!overflow-hidden shadow-xl !bg-white/80 !backdrop-blur-md mt-10">
+                        <a-card class="!overflow-hidden !bg-white/80 !backdrop-blur-md mt-10">
                                 <!-- 标签页切换 -->
                                 <a-tabs v-model:activeKey="activeTab" class="form-tabs md:!px-5 !pb-5"
                                         @change="handleTabChange">
