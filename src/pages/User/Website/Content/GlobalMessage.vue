@@ -83,7 +83,7 @@
                                                 <a-avatar
                                                     v-if="record.avatarUrl"
                                                     :size="28"
-                                                    :src="record.avatarUrl"/>
+                                                    :src="getSmallImageUrl(record.avatarUrl)"/>
                                                 <a-avatar v-else :size="28">
                                                         <template #icon>
                                                                 <UserOutlined/>
@@ -169,6 +169,7 @@ import {computed, onMounted, ref} from 'vue';
 import {message} from 'ant-design-vue';
 import {DownOutlined, SearchOutlined, UserOutlined} from '@ant-design/icons-vue';
 import {useGlobalCommentStore} from '../../../../stores/globalComment.js';
+import {getSmallImageUrl} from '../../../../utils/imageUrl.js';
 
 const commentStore = useGlobalCommentStore();
 

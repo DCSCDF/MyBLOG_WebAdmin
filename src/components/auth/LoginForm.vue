@@ -122,24 +122,40 @@ const updateFormValidation = async () => {
         }
 }
 
+// 登录验证规则（不检查保留词，允许管理员登录）
+const usernameRules = [
+        {check: (v) => v && v.length >= 4 && v.length <= 20, msg: '用户名长度必须为4-20个字符'},
+        {check: (v) => v && /^[a-zA-Z]/.test(v), msg: '用户名必须以字母开头'},
+        {check: (v) => v && /^[a-zA-Z0-9]+$/.test(v), msg: '用户名只能包含字母和数字'},
+        {check: (v) => v && !/^\d+$/.test(v), msg: '用户名不能为纯数字'}
+]
+
+const passwordRules = [
+        {check: (v) => v && v.length >= 6, msg: '密码至少6个字符'},
+        {check: (v) => v && v.length <= 32, msg: '密码最多32个字符'},
+        {check: (v) => v && /[A-Z]/.test(v), msg: '密码必须包含大写字母'},
+        {check: (v) => v && /[a-z]/.test(v), msg: '密码必须包含小写字母'},
+        {check: (v) => v && /[0-9]/.test(v), msg: '密码必须包含数字'}
+]
+
+// 通用验证函数：返回第一个错误信息或 null - 使用 find 简化
+const validateField = (value, rules) => {
+        const failedRule = rules.find(rule => !rule.check(value))
+        return failedRule ? failedRule.msg : null
+}
+
+// 验证用户名
+const validateUsername = (username) => !validateField(username, usernameRules)
+
+// 验证密码
+const validatePassword = (password) => !validateField(password, passwordRules)
+
+
 // 表单验证方法
 const validateForm = () => {
-        return new Promise((resolve) => {
-                // 检查用户名规则
-                const usernameValid = loginForm.value.username &&
-                    loginForm.value.username.length >= 3 &&
-                    /^(?!\d+$)/.test(loginForm.value.username)
-
-                // 检查密码规则
-                const passwordValid = loginForm.value.password &&
-                    loginForm.value.password.length >= 6
-
-                if (usernameValid && passwordValid) {
-                        resolve(true)
-                } else {
-                        resolve(false)
-                }
-        })
+        const usernameValid = validateUsername(loginForm.value.username)
+        const passwordValid = validatePassword(loginForm.value.password)
+        return Promise.resolve(usernameValid && passwordValid)
 }
 
 // 验证码状态变化处理
@@ -160,16 +176,35 @@ const onValidate = async () => {
 const loginRules = {
         username: [
                 {required: true, message: '请输入用户名', trigger: 'change'},
-                {min: 3, message: '用户名至少3个字符', trigger: 'change'},
                 {
-                        pattern: /^(?!\d+$)/,
-                        message: '用户名不能为纯数字',
+                        validator: (_, value) => {
+                                let result = Promise.resolve()
+                                if (value) {
+                                        const err = validateField(value, usernameRules)
+                                        if (err) {
+                                                result = Promise.reject(new Error(err))
+                                        }
+                                }
+                                return result
+                        },
                         trigger: 'change'
                 }
         ],
         password: [
                 {required: true, message: '请输入密码', trigger: 'change'},
-                {min: 6, message: '密码至少6个字符', trigger: 'change'}
+                {
+                        validator: (_, value) => {
+                                let result = Promise.resolve()
+                                if (value) {
+                                        const err = validateField(value, passwordRules)
+                                        if (err) {
+                                                result = Promise.reject(new Error(err))
+                                        }
+                                }
+                                return result
+                        },
+                        trigger: 'change'
+                }
         ]
 }
 
@@ -181,8 +216,10 @@ const handleLogin = async () => {
 
         try {
                 // 获取验证码验证参数
-                const captchaVerification = captchaRef.value ?
-                    captchaRef.value.getCaptchaVerification() : null;
+                let captchaVerification = null
+                if (captchaRef.value) {
+                        captchaVerification = captchaRef.value.getCaptchaVerification()
+                }
 
                 logger.log('Captcha 校验码:', captchaVerification);
                 logger.log('Login 表单数据:', {
@@ -195,8 +232,18 @@ const handleLogin = async () => {
                 const publicKeyResponse = await authApi.publicKey();
 
                 // 处理公钥获取失败的情况
+                if (!publicKeyResponse) {
+                        handleError('验证码获取失败', '服务器无响应，请稍后重试');
+                        return;
+                }
+
                 if (publicKeyResponse.code !== 200) {
                         handleError('验证码获取失败', publicKeyResponse.errorMsg || '服务器错误');
+                        return;
+                }
+
+                if (!publicKeyResponse.data || !publicKeyResponse.data.publicKey) {
+                        handleError('验证码获取失败', '加密密钥无效，请刷新页面重试');
                         return;
                 }
 
@@ -252,6 +299,14 @@ const handleLoginSuccess = async (response) => {
         logger.log('response.data.code:', response.data?.code);
         logger.log('remember 状态:', loginForm.value.remember);
 
+        // 严格检查响应数据是否有效
+        if (!response || !response.data) {
+                logger.error('登录响应数据无效');
+                message.error('登录失败，请重试');
+                resetLoginState();
+                return;
+        }
+
         message.info(`登陆成功，欢迎回来 ${loginForm.value.username}`);
 
         // 无论是否有 code，都跳转到 redirect_url
@@ -291,10 +346,25 @@ const handleOAuthRedirect = async (code, token) => {
                 const configResponse = await publicConfigApi.getConfig({keys: ['site.redirect_url']});
                 logger.log('configResponse:', configResponse);
 
+                // 严格检查 API 响应是否成功
+                if (!configResponse) {
+                        logger.error('redirect_url 配置 API 响应为空');
+                        message.error('获取配置失败，请重试');
+                        resetLoginState();
+                        return;
+                }
+
+                if (configResponse.success === false) {
+                        logger.error('redirect_url 配置 API 返回失败:', configResponse.errorMsg);
+                        message.error(configResponse.errorMsg || '获取配置失败，请重试');
+                        resetLoginState();
+                        return;
+                }
+
                 const currentUrl = window.location.origin + window.location.pathname;
                 const rememberValue = loginForm.value.remember ? 'true' : 'false';
 
-                if (configResponse.success && configResponse.data && configResponse.data.length > 0) {
+                if (configResponse.data && configResponse.data.length > 0) {
                         const redirectUrl = configResponse.data.find(item => item.configKey === 'site.redirect_url');
                         logger.log('redirectUrl 配置项:', redirectUrl);
 
@@ -331,7 +401,23 @@ const handleOAuthRedirect = async (code, token) => {
 
 // 处理正常登录
 const handleNormalLogin = async (response) => {
+        // 严格检查响应数据
+        if (!response || !response.data) {
+                logger.error('登录响应数据无效');
+                message.error('登录失败，请重试');
+                resetLoginState();
+                return;
+        }
+
         logger.log('获取的token:' + response.data.token);
+
+        // 检查 token 是否有效
+        if (!response.data.token) {
+                logger.error('登录响应中缺少 token');
+                message.error('登录失败，请重试');
+                resetLoginState();
+                return;
+        }
 
         // 使用 Pinia store 管理 token 和用户状态
         authStore.setToken(
@@ -368,20 +454,23 @@ const handleNormalLogin = async (response) => {
 const handleLoginFailure = (response) => {
         let errorMessage = '登录失败';
 
-        // 根据不同情况提供具体错误信息
-        if (response.errorMsg) {
-                errorMessage = response.errorMsg;
-        } else if (response.code === 400) {
-                errorMessage = '用户名或密码错误';
-        } else {
-                errorMessage = '请检查用户名和密码';
+        // 防御性检查：确保 response 有效
+        if (response) {
+                // 根据不同情况提供具体错误信息
+                if (response.errorMsg) {
+                        errorMessage = response.errorMsg;
+                } else if (response.code === 400) {
+                        errorMessage = '用户名或密码错误';
+                } else {
+                        errorMessage = '请检查用户名和密码';
+                }
         }
 
         handleError('登录失败', errorMessage);
         logger.error('Login 失败详情:', {
-                errorMsg: response.errorMsg,
-                code: response.code,
-                data: response.data
+                errorMsg: response?.errorMsg,
+                code: response?.code,
+                data: response?.data
         });
 };
 

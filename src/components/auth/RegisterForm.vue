@@ -54,7 +54,8 @@
                                 </a-form-item>
 
                                 <a-form-item label="确认密码" name="confirmPassword" @change="onFieldChange">
-                                        <a-input-password v-model:value="registerForm.confirmPassword" class="rounded-lg"
+                                        <a-input-password v-model:value="registerForm.confirmPassword"
+                                                          class="rounded-lg"
                                                           placeholder="确认密码"
                                                           size="large">
 
@@ -63,23 +64,23 @@
                                         </a-input-password>
                                 </a-form-item>
                                 <Captcha ref="captchaRef" @status-change="handleCaptchaStatusChange"></Captcha>
-                                <a-form-item name="agreement" valuePropName="checked">
-                                        <a-checkbox v-model:checked="registerForm.agreement" @change="onFieldChange">
-                    <span class="text-sm text-gray-700">
-                        我同意
-                        <a class="text-blue-600 hover:text-blue-700" href="#">
-                            服务条款
-                        </a>
-                        和
-                        <a class="text-blue-600 hover:text-blue-700" href="#">
-                            隐私政策
-                        </a>
-                    </span>
-                                        </a-checkbox>
-                                </a-form-item>
+                                <!--                                <a-form-item name="agreement" valuePropName="checked">-->
+                                <!--                                        <a-checkbox v-model:checked="registerForm.agreement" @change="onFieldChange">-->
+                                <!--                    <span class="text-sm text-gray-700">-->
+                                <!--                        我同意-->
+                                <!--                        <a class="text-blue-600 hover:text-blue-700" href="#">-->
+                                <!--                            服务条款-->
+                                <!--                        </a>-->
+                                <!--                        和-->
+                                <!--                        <a class="text-blue-600 hover:text-blue-700" href="#">-->
+                                <!--                            隐私政策-->
+                                <!--                        </a>-->
+                                <!--                    </span>-->
+                                <!--                                        </a-checkbox>-->
+                                <!--                                </a-form-item>-->
 
                                 <a-button :disabled="!isVerified || !isFormValid" :loading="registerLoading"
-                                          class="w-full h-10 rounded-lg text-base font-semibold flex items-center justify-center"
+                                          class="w-full h-10 !mt-6 rounded-lg text-base font-semibold flex items-center justify-center"
                                           html-type="submit"
                                           size="large"
                                           type="primary">
@@ -119,7 +120,8 @@
                                         </a-form-item>
 
                                         <a-form-item label="密码" name="password" @change="onFieldChange">
-                                                <a-input-password v-model:value="registerForm.password" class="rounded-lg"
+                                                <a-input-password v-model:value="registerForm.password"
+                                                                  class="rounded-lg"
                                                                   placeholder="设置密码"
                                                                   size="large">
 
@@ -129,7 +131,8 @@
                                         </a-form-item>
 
                                         <a-form-item label="确认密码" name="confirmPassword" @change="onFieldChange">
-                                                <a-input-password v-model:value="registerForm.confirmPassword" class="rounded-lg"
+                                                <a-input-password v-model:value="registerForm.confirmPassword"
+                                                                  class="rounded-lg"
                                                                   placeholder="确认密码"
                                                                   size="large">
 
@@ -140,23 +143,18 @@
 
                                         <Captcha ref="captchaRef" @status-change="handleCaptchaStatusChange"></Captcha>
 
-                                        <a-form-item name="agreement" valuePropName="checked">
-                                                <a-checkbox v-model:checked="registerForm.agreement" @change="onFieldChange">
-                    <span class="text-sm text-gray-700">
-                        我同意
-                        <a class="text-blue-600 hover:text-blue-700" href="#">
-                            服务条款
-                        </a>
-                        和
-                        <a class="text-blue-600 hover:text-blue-700" href="#">
-                            隐私政策
-                        </a>
-                    </span>
-                                                </a-checkbox>
-                                        </a-form-item>
+                                        <!--                                        <a-form-item name="agreement" valuePropName="checked">-->
+                                        <!--                                                <a-checkbox v-model:checked="registerForm.agreement"-->
+                                        <!--                                                            @change="onFieldChange">-->
+                                        <!--                    <span class="text-sm text-gray-700">-->
+                                        <!--                        我同意服务条款-->
+
+                                        <!--                    </span>-->
+                                        <!--                                                </a-checkbox>-->
+                                        <!--                                        </a-form-item>-->
 
                                         <a-button :disabled="!isVerified || !isFormValid" :loading="sendCodeLoading"
-                                                  class="w-full h-10 rounded-lg text-base font-semibold flex items-center justify-center"
+                                                  class="w-full h-10 !mt-6 rounded-lg text-base font-semibold flex items-center justify-center"
                                                   html-type="submit"
                                                   size="large"
                                                   type="primary">
@@ -172,20 +170,21 @@
                                                 <CheckCircleFilled class="text-5xl text-green-500 mb-3"/>
                                                 <h3 class="text-2xl font-bold text-gray-800">验证码已发送</h3>
                                                 <p class="text-gray-600 mt-2">
-                                                        验证码已发送至 <span class="font-medium text-blue-600">{{ maskedEmail }}</span>
+                                                        验证码已发送至 <span
+                                                    class="font-medium text-blue-600">{{ maskedEmail }}</span>
                                                 </p>
-                                                <p class="text-gray-500 text-sm mt-1">
-                                                        有效期 {{ codeExpiresIn }} 秒
-                                                </p>
+                                                <!--                                                <p class="text-gray-500 text-sm mt-1">-->
+                                                <!--                                                        有效期 {{ codeExpiresIn }} 秒-->
+                                                <!--                                                </p>-->
                                         </div>
 
                                         <a-form :model="verifyForm" :rules="verifyRules" layout="vertical"
                                                 @finish="handleConfirmRegister" @validate="onValidate">
                                                 <a-form-item label="邮箱验证码" name="code" @change="onFieldChange">
-                                                        <a-input v-model:value="verifyForm.code" class="rounded-lg"
+                                                        <a-input v-model:value="verifyForm.code" :maxlength="6"
+                                                                 class="rounded-lg"
                                                                  placeholder="输入6位验证码"
                                                                  size="large"
-                                                                 :maxlength="6"
                                                                  @input="handleCodeInput">
                                                                 <template #prefix>
                                                                         <SafetyOutlined/>
@@ -195,10 +194,12 @@
 
                                                 <div class="flex items-center justify-between mb-6">
                                                         <span class="text-gray-500 text-sm">
-                                                                {{ countdown > 0 ? `${countdown}秒后可重新获取` : '未收到验证码？' }}
+                                                                {{
+                                                                        countdown > 0 ? `${countdown}秒后可重新获取` : '未收到验证码？'
+                                                                }}
                                                         </span>
-                                                        <a-button type="link" size="small" class="!p-0"
-                                                                  :disabled="countdown > 0"
+                                                        <a-button :disabled="countdown > 0" class="!p-0" size="small"
+                                                                  type="link"
                                                                   @click="handleSendCode">
                                                                 重新获取
                                                         </a-button>
@@ -212,10 +213,10 @@
                                                         确认注册
                                                 </a-button>
 
-                                                <a-button type="link" class="mt-3 !text-gray-500"
-                                                          @click="handleBackToForm">
-                                                        返回修改信息
-                                                </a-button>
+                                                <!--                                                <a-button class="mt-3 !text-gray-500" type="link"-->
+                                                <!--                                                          @click="handleBackToForm">-->
+                                                <!--                                                        返回修改信息-->
+                                                <!--                                                </a-button>-->
                                         </a-form>
                                 </div>
                         </template>
@@ -224,9 +225,8 @@
 </template>
 
 <script setup>
-import {CheckCircleFilled, SafetyOutlined} from '@ant-design/icons-vue'
+import {CheckCircleFilled, LockOutlined, MailOutlined, SafetyOutlined, UserOutlined} from '@ant-design/icons-vue'
 import {nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
-import {LockOutlined, MailOutlined, UserOutlined} from '@ant-design/icons-vue'
 import Captcha from './Captcha.vue'
 import {message} from 'ant-design-vue'
 import logger from '../../utils/logger.js'
@@ -241,7 +241,7 @@ const registerForm = ref({
         email: '',
         password: '',
         confirmPassword: '',
-        agreement: false
+        agreement: true
 })
 
 const verifyForm = ref({
@@ -280,21 +280,25 @@ const fetchEmailRegisterConfig = async () => {
 
 // 掩码邮箱显示
 const maskEmail = (email) => {
-        if (!email) return ''
-        const [localPart, domain] = email.split('@')
-        if (!domain) return email
-        const masked = localPart.slice(0, 2) + '***'
-        return masked + '@' + domain
+        let result
+        if (!email) {
+                result = ''
+        } else {
+                const parts = email.split('@')
+                if (parts.length !== 2 || !parts[1]) {
+                        result = email
+                } else {
+                        result = parts[0].slice(0, 2) + '***@' + parts[1]
+                }
+        }
+        return result
 }
 
 // 开始倒计时
 const startCountdown = (seconds) => {
-        if (countdownTimer) {
-                clearInterval(countdownTimer)
-        }
+        if (countdownTimer) clearInterval(countdownTimer)
         countdown.value = seconds
         countdownTimer = setInterval(() => {
-                countdown.value--
                 if (countdown.value <= 0) {
                         clearInterval(countdownTimer)
                         countdownTimer = null
@@ -314,16 +318,16 @@ const handleCodeInput = (e) => {
         verifyForm.value.code = e.target.value.replace(/\D/g, '')
 }
 
-// 返回表单填写阶段
-const handleBackToForm = () => {
-        registerStage.value = 'form'
-        verifyForm.value.code = ''
-        isFormValid.value = false
-        if (countdownTimer) {
-                clearInterval(countdownTimer)
-                countdownTimer = null
-        }
-}
+// // 返回表单填写阶段
+// const handleBackToForm = () => {
+//         registerStage.value = 'form'
+//         verifyForm.value.code = ''
+//         isFormValid.value = false
+//         if (countdownTimer) {
+//                 clearInterval(countdownTimer)
+//                 countdownTimer = null
+//         }
+// }
 
 // 发送注册验证码
 const handleSendCode = async () => {
@@ -344,8 +348,8 @@ const handleSendCode = async () => {
                 }
 
                 const encryptedPassword = RsaEncryptor.encrypt(
-                        registerForm.value.password,
-                        publicKeyRes.data.publicKey
+                    registerForm.value.password,
+                    publicKeyRes.data.publicKey
                 )
 
                 const payload = {
@@ -437,44 +441,67 @@ const updateFormValidation = async () => {
         await nextTick()
         try {
                 isFormValid.value = useEmailRegister.value && registerStage.value === 'verify'
-                        ? validateVerifyForm()
-                        : await validateForm()
+                    ? validateVerifyForm()
+                    : await validateForm()
         } catch {
                 isFormValid.value = false
         }
 }
 
+// 保留词列表
+const RESERVED_WORDS = ['admin', 'root', 'system', 'test', 'administrator', 'user', 'guest', 'super', 'master', 'owner']
+
+// 通用验证规则
+const usernameRules = [
+        {check: (v) => v && v.length >= 4 && v.length <= 20, msg: '用户名长度必须为4-20个字符'},
+        {check: (v) => v && /^[a-zA-Z]/.test(v), msg: '用户名必须以字母开头'},
+        {check: (v) => v && /^[a-zA-Z0-9]+$/.test(v), msg: '用户名只能包含字母和数字'},
+        {check: (v) => v && !/^\d+$/.test(v), msg: '用户名不能为纯数字'},
+        {check: (v) => v && !RESERVED_WORDS.includes(v.toLowerCase()), msg: '该用户名不可使用'}
+]
+
+const passwordRules = [
+        {check: (v) => v && v.length >= 6, msg: '密码至少6个字符'},
+        {check: (v) => v && v.length <= 32, msg: '密码最多32个字符'},
+        {check: (v) => v && /[A-Z]/.test(v), msg: '密码必须包含大写字母'},
+        {check: (v) => v && /[a-z]/.test(v), msg: '密码必须包含小写字母'},
+        {check: (v) => v && /[0-9]/.test(v), msg: '密码必须包含数字'}
+]
+
+// 通用验证函数：返回第一个错误信息或 null - 使用 find 简化
+const validateField = (value, rules) => {
+        const failedRule = rules.find(rule => !rule.check(value))
+        return failedRule ? failedRule.msg : null
+}
+
+// 验证用户名
+const validateUsername = (username) => !validateField(username, usernameRules)
+
+// 验证密码（带用户名检查）
+const validatePasswordWithUsername = (password, username) => {
+        let result = null
+        const err = validateField(password, passwordRules)
+        if (err) {
+                result = err
+        } else if (username && password.toLowerCase().includes(username.toLowerCase())) {
+                result = '密码不能包含用户名'
+        }
+        return result
+}
+
 // 验证表单
 const validateForm = () => {
-        return new Promise((resolve) => {
-                const usernameValid = registerForm.value.username &&
-                        registerForm.value.username.length >= 4 &&
-                        registerForm.value.username.length <= 20 &&
-                        /^(?!\d+$)/.test(registerForm.value.username)
-
-                const emailValid = registerForm.value.email &&
-                        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registerForm.value.email)
-
-                const passwordValid = registerForm.value.password &&
-                        registerForm.value.password.length >= 6
-
-                const confirmPasswordValid = registerForm.value.confirmPassword &&
-                        registerForm.value.confirmPassword === registerForm.value.password
-
-                const agreementValid = registerForm.value.agreement
-
-                if (usernameValid && emailValid && passwordValid && confirmPasswordValid && agreementValid) {
-                        resolve(true)
-                } else {
-                        resolve(false)
-                }
-        })
+        const usernameValid = validateUsername(registerForm.value.username)
+        const emailValid = registerForm.value.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registerForm.value.email)
+        const passwordValid = !validatePasswordWithUsername(registerForm.value.password, registerForm.value.username)
+        const confirmPasswordValid = registerForm.value.confirmPassword && registerForm.value.confirmPassword === registerForm.value.password
+        const agreementValid = registerForm.value.agreement
+        return Promise.resolve(usernameValid && emailValid && passwordValid && confirmPasswordValid && agreementValid)
 }
 
 // 验证验证码表单
 const validateVerifyForm = () => {
-        const codeValid = verifyForm.value.code && verifyForm.value.code.length === 6
-        return codeValid
+        return verifyForm.value.code && verifyForm.value.code.length === 6
 }
 
 // 验证码状态变化处理
@@ -496,10 +523,17 @@ const onValidate = async () => {
 const registerRules = {
         username: [
                 {required: true, message: '请输入用户名', trigger: 'change'},
-                {min: 4, max: 20, message: '用户名长度4-20个字符', trigger: 'change'},
                 {
-                        pattern: /^(?!\d+$)/,
-                        message: '用户名不能为纯数字',
+                        validator: (_, value) => {
+                                let result = Promise.resolve()
+                                if (value) {
+                                        const err = validateField(value, usernameRules)
+                                        if (err) {
+                                                result = Promise.reject(new Error(err))
+                                        }
+                                }
+                                return result
+                        },
                         trigger: 'change'
                 }
         ],
@@ -509,21 +543,34 @@ const registerRules = {
         ],
         password: [
                 {required: true, message: '请输入密码', trigger: 'change'},
-                {min: 6, message: '密码至少6个字符', trigger: 'change'}
+                {
+                        validator: (_, value) => {
+                                let result = Promise.resolve()
+                                if (value) {
+                                        const err = validateField(value, passwordRules)
+                                        if (err) {
+                                                result = Promise.reject(new Error(err))
+                                        } else if (registerForm.value.username && value.toLowerCase().includes(registerForm.value.username.toLowerCase())) {
+                                                result = Promise.reject(new Error('密码不能包含用户名'))
+                                        }
+                                }
+                                return result
+                        },
+                        trigger: 'change'
+                }
         ],
         confirmPassword: [
                 {required: true, message: '请确认密码', trigger: 'change'},
                 {
                         validator: (_, value) => {
-                                let error = null
-
-                                if (!value) {
-                                        error = new Error('请确认密码')
-                                } else if (value !== registerForm.value.password) {
-                                        error = new Error('两次输入密码不一致')
+                                let result = Promise.resolve()
+                                if (value) {
+                                        const err = value !== registerForm.value.password ? new Error('两次输入密码不一致') : null
+                                        if (err) {
+                                                result = Promise.reject(err)
+                                        }
                                 }
-
-                                return error ? Promise.reject(error) : Promise.resolve()
+                                return result
                         },
                         trigger: 'change'
                 }
@@ -531,7 +578,11 @@ const registerRules = {
         agreement: [
                 {
                         validator: (_, value) => {
-                                return value ? Promise.resolve() : Promise.reject(new Error('请同意服务条款'))
+                                let result = Promise.resolve()
+                                if (!value) {
+                                        result = Promise.reject(new Error('请同意服务条款'))
+                                }
+                                return result
                         },
                         trigger: 'change'
                 }
@@ -542,10 +593,17 @@ const registerRules = {
 const emailRegisterRules = {
         username: [
                 {required: true, message: '请输入用户名', trigger: 'change'},
-                {min: 4, max: 20, message: '用户名长度4-20个字符', trigger: 'change'},
                 {
-                        pattern: /^(?!\d+$)/,
-                        message: '用户名不能为纯数字',
+                        validator: (_, value) => {
+                                let result = Promise.resolve()
+                                if (value) {
+                                        const err = validateField(value, usernameRules)
+                                        if (err) {
+                                                result = Promise.reject(new Error(err))
+                                        }
+                                }
+                                return result
+                        },
                         trigger: 'change'
                 }
         ],
@@ -555,21 +613,34 @@ const emailRegisterRules = {
         ],
         password: [
                 {required: true, message: '请输入密码', trigger: 'change'},
-                {min: 6, message: '密码至少6个字符', trigger: 'change'}
+                {
+                        validator: (_, value) => {
+                                let result = Promise.resolve()
+                                if (value) {
+                                        const err = validateField(value, passwordRules)
+                                        if (err) {
+                                                result = Promise.reject(new Error(err))
+                                        } else if (registerForm.value.username && value.toLowerCase().includes(registerForm.value.username.toLowerCase())) {
+                                                result = Promise.reject(new Error('密码不能包含用户名'))
+                                        }
+                                }
+                                return result
+                        },
+                        trigger: 'change'
+                }
         ],
         confirmPassword: [
                 {required: true, message: '请确认密码', trigger: 'change'},
                 {
                         validator: (_, value) => {
-                                let error = null
-
-                                if (!value) {
-                                        error = new Error('请确认密码')
-                                } else if (value !== registerForm.value.password) {
-                                        error = new Error('两次输入密码不一致')
+                                let result = Promise.resolve()
+                                if (value) {
+                                        const err = value !== registerForm.value.password ? new Error('两次输入密码不一致') : null
+                                        if (err) {
+                                                result = Promise.reject(err)
+                                        }
                                 }
-
-                                return error ? Promise.reject(error) : Promise.resolve()
+                                return result
                         },
                         trigger: 'change'
                 }
@@ -577,7 +648,11 @@ const emailRegisterRules = {
         agreement: [
                 {
                         validator: (_, value) => {
-                                return value ? Promise.resolve() : Promise.reject(new Error('请同意服务条款'))
+                                let result = Promise.resolve()
+                                if (!value) {
+                                        result = Promise.reject(new Error('请同意服务条款'))
+                                }
+                                return result
                         },
                         trigger: 'change'
                 }
@@ -590,13 +665,11 @@ const verifyRules = {
                 {required: true, message: '请输入验证码', trigger: 'change'},
                 {
                         validator: (_, value) => {
-                                if (!value) {
-                                        return Promise.reject(new Error('请输入验证码'))
+                                let result = Promise.resolve()
+                                if (value && value.length !== 6) {
+                                        result = Promise.reject(new Error('验证码为6位数字'))
                                 }
-                                if (value.length !== 6) {
-                                        return Promise.reject(new Error('验证码为6位数字'))
-                                }
-                                return Promise.resolve()
+                                return result
                         },
                         trigger: 'change'
                 }
@@ -605,7 +678,14 @@ const verifyRules = {
 
 // 获取验证码验证参数
 function getRegisterCaptchaVerification() {
-        return captchaRef.value ? captchaRef.value.getCaptchaVerification() ?? null : null
+        let result = null
+        if (captchaRef.value) {
+                const verification = captchaRef.value.getCaptchaVerification()
+                if (verification) {
+                        result = verification
+                }
+        }
+        return result
 }
 
 // 重置注册状态
@@ -618,8 +698,8 @@ function resetRegisterState() {
 // 构建注册请求体
 function buildRegisterPayload(publicKey, tempToken, captchaVerification) {
         const encryptedPassword = RsaEncryptor.encrypt(
-                registerForm.value.password,
-                publicKey
+            registerForm.value.password,
+            publicKey
         )
         return {
                 username: registerForm.value.username.trim(),
@@ -630,31 +710,28 @@ function buildRegisterPayload(publicKey, tempToken, captchaVerification) {
         }
 }
 
-// 获取错误信息
-function getRegisterErrorMessage(res, err) {
-        let errorMessage = '注册失败，请稍后再试'
-
-        if (res && res.errorMsg) {
-                errorMessage = res.errorMsg
-        } else if (err && err.message) {
-                errorMessage = err.message
-        }
-
-        return errorMessage
-}
+// // 获取错误信息
+// function getRegisterErrorMessage(res, err) {
+//         let errorMessage = '注册失败，请稍后再试'
+//
+//         if (res && res.errorMsg) {
+//                 errorMessage = res.errorMsg
+//         } else if (err && err.message) {
+//                 errorMessage = err.message
+//         }
+//
+//         return errorMessage
+// }
 
 // 直接注册流程（不使用邮箱验证）
 async function handleRegister() {
         if (registerLoading.value) return
-
         registerLoading.value = true
 
         try {
                 const captchaVerification = getRegisterCaptchaVerification()
-
                 if (!captchaVerification) {
                         message.error('请先完成验证码')
-                        registerLoading.value = false
                         return
                 }
 
@@ -664,21 +741,14 @@ async function handleRegister() {
                 })
 
                 const publicKeyRes = await authApi.publicKey()
-
                 if (publicKeyRes.code !== 200) {
                         message.error(publicKeyRes.errorMsg || '获取加密参数失败')
                         resetRegisterState()
                         return
                 }
 
-                const payload = buildRegisterPayload(
-                        publicKeyRes.data.publicKey,
-                        publicKeyRes.data.tempToken,
-                        captchaVerification
-                )
-
+                const payload = buildRegisterPayload(publicKeyRes.data.publicKey, publicKeyRes.data.tempToken, captchaVerification)
                 const response = await authApi.register(payload)
-
                 if (response.success) {
                         message.success(response.data.message || '注册成功，请登录')
                         logger.log('注册成功 userId:', response.data.userId)

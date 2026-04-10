@@ -139,7 +139,7 @@
                         <div class="flex justify-center items-center bg-gray-100 rounded-lg overflow-hidden">
                                 <img
                                     :alt="currentRecord.originalName"
-                                    :src="ossStore.getImageUrl(currentRecord.hash)"
+                                    :src="ossStore.getOriginalImageUrl(currentRecord.hash)"
                                     class="max-w-full max-h-[500px] object-contain"/>
                         </div>
                         <!-- 图片信息 -->

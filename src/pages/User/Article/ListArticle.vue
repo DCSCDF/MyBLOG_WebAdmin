@@ -74,7 +74,7 @@
                                                 <a-avatar
                                                     v-if="record.coverImage"
                                                     :size="40"
-                                                    :src="record.coverImage"
+                                                    :src="getSmallImageUrl(record.coverImage)"
                                                     shape="square"/>
                                                 <a-avatar v-else :size="40" shape="square">
                                                         <template #icon>
@@ -234,6 +234,7 @@ import 'md-editor-v3/lib/style.css';
 import {useBlogStore} from '../../../stores/blog.js';
 import {useCategoryStore} from '../../../stores/category.js';
 import {ossApi} from '../../../api/system/ossApi.js';
+import {getSmallImageUrl} from '../../../utils/imageUrl.js';
 
 // 获取后端基础地址
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';

@@ -46,7 +46,7 @@
                                 <template #extra>
                                         <div v-if="form.avatarUrl" class="mt-2">
                                                 <img
-                                                    :src="form.avatarUrl"
+                                                    :src="getSmallImageUrl(form.avatarUrl)"
                                                     alt="头像预览"
                                                     class="h-16 w-16 rounded-full object-cover"
                                                     @error="handleImageError"/>
@@ -71,6 +71,7 @@ import {computed, ref, watch} from 'vue';
 import {message} from 'ant-design-vue';
 import {useRoleStore} from '../../../stores/role.js';
 import {useRouter} from 'vue-router';
+import {getSmallImageUrl} from '../../../utils/imageUrl.js';
 
 const props = defineProps({
         open: {

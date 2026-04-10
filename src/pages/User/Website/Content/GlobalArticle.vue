@@ -97,7 +97,7 @@
                                                 <a-avatar
                                                     v-if="record.coverImage"
                                                     :size="40"
-                                                    :src="record.coverImage"
+                                                    :src="getSmallImageUrl(record.coverImage)"
                                                     shape="square"/>
                                                 <a-avatar v-else :size="40" shape="square">
                                                         <template #icon>
@@ -178,6 +178,7 @@ import {computed, onMounted, ref} from 'vue';
 import {message} from 'ant-design-vue';
 import {FileTextOutlined, SearchOutlined} from '@ant-design/icons-vue';
 import {useGlobalArticleStore} from '../../../../stores/globalArticle.js';
+import {getSmallImageUrl} from '../../../../utils/imageUrl.js';
 
 const articleStore = useGlobalArticleStore();
 

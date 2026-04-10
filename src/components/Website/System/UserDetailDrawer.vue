@@ -41,7 +41,7 @@
                                 <span class="text-gray-600 text-sm break-all">
 				<img
                                     v-if="user.avatarUrl"
-                                    :src="user.avatarUrl"
+                                    :src="getSmallImageUrl(user.avatarUrl)"
                                     alt="头像"
                                     class="h-12 w-12 rounded-full object-cover"/>
 				<span v-else class="text-gray-400">未设置</span>
@@ -74,6 +74,7 @@
 import {computed} from 'vue';
 import {formatDate} from '../../../utils/formatDate.js';
 import {useDrawerWidth} from '../../../utils/useDrawerWidth.js';
+import {getSmallImageUrl} from '../../../utils/imageUrl.js';
 
 const props = defineProps({
         open: {type: Boolean, default: false},

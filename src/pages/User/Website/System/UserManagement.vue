@@ -72,7 +72,7 @@
                                 <template v-if="column.key === 'avatar'">
                                         <img
                                             v-if="record.avatarUrl"
-                                            :src="record.avatarUrl"
+                                            :src="getSmallImageUrl(record.avatarUrl)"
                                             alt="头像"
                                             class="h-8 w-8 rounded-full object-cover"/>
                                         <span v-else class="text-gray-400">-</span>
@@ -146,6 +146,7 @@ import {useUserStore} from '../../../../stores/user.js';
 import UserDetailDrawer from '../../../../components/Website/System/UserDetailDrawer.vue';
 import UserEditModal from '../../../../components/Website/System/UserEditModal.vue';
 import UserRolePermissionDrawer from '../../../../components/Website/System/UserRolePermissionDrawer.vue';
+import {getSmallImageUrl} from '../../../../utils/imageUrl.js';
 
 const userStore = useUserStore();
 

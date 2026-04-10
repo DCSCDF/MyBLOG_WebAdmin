@@ -83,7 +83,7 @@
                                                 <a-avatar
                                                     v-if="record.avatarUrl"
                                                     :size="28"
-                                                    :src="record.avatarUrl"/>
+                                                    :src="getSmallImageUrl(record.avatarUrl)"/>
                                                 <a-avatar v-else :size="28">
                                                         <template #icon>
                                                                 <UserOutlined/>
@@ -148,6 +148,7 @@ import {computed, onMounted, ref} from 'vue';
 import {message} from 'ant-design-vue';
 import {SearchOutlined, UserOutlined} from '@ant-design/icons-vue';
 import {useCommentStore} from '../../../stores/comment.js';
+import {getSmallImageUrl} from '../../../utils/imageUrl.js';
 
 const commentStore = useCommentStore();
 
@@ -202,7 +203,7 @@ const columns = [
         // {title: '评论者', key: 'username', width: 140},
         {title: '内容', key: 'content', width: 220},
         {title: '状态', key: 'status', width: 90},
-        {title: '点赞数', dataIndex: 'likeCount', key: 'likeCount', width: 80},
+        // {title: '点赞数', dataIndex: 'likeCount', key: 'likeCount', width: 80},
         {title: '评论时间', dataIndex: 'createTime', key: 'createTime', width: 180},
         {title: '操作', key: 'action', width: 150, fixed: 'right'}
 ];
@@ -330,14 +331,14 @@ const submitEdit = async () => {
                 canProceed = true;
         }
 
-                if (canProceed) {
-                        editSubmitting.value = true;
-                        try {
-                                await commentStore.updateComment(form.id, {
-                                        id: form.id,
-                                        content: form.content?.trim() || undefined,
-                                        website: form.website?.trim() || ''
-                                });
+        if (canProceed) {
+                editSubmitting.value = true;
+                try {
+                        await commentStore.updateComment(form.id, {
+                                id: form.id,
+                                content: form.content?.trim() || undefined,
+                                website: form.website?.trim() || ''
+                        });
                         message.success('保存成功');
                         editVisible.value = false;
                         editForm.value = null;

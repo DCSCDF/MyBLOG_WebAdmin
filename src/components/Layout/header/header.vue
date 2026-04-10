@@ -67,7 +67,7 @@
 
 <script setup>
 import {computed, defineEmits, defineProps, h, onMounted, ref} from "vue";
-import {useRouter} from 'vue-router';
+// import {useRouter} from 'vue-router';
 import {authApi} from "../../../api/user/auth/authApi.js";
 import logger from "../../../utils/logger.js";
 import HeaderLogout from "./headerLogout.vue";
@@ -76,6 +76,7 @@ import {useAuthStore} from '../../../stores/auth.js';
 import {useAppStore} from '../../../stores/app.js';
 import {Menu} from 'ant-design-vue';
 import {publicConfigApi} from '../../../api/system/publicConfigApi.js'
+import {getSmallImageUrl} from '../../../utils/imageUrl.js';
 
 const showBackButton = ref(false)
 
@@ -119,15 +120,16 @@ const props = defineProps({
 
 const authStore = useAuthStore();
 const appStore = useAppStore();
-const router = useRouter();
+// const router = useRouter();
 
 // 从 store 获取用户资料，如果没有则使用默认值
 const profile = computed(() => {
         const storeProfile = authStore.getUserProfile();
+        const avatarUrl = storeProfile?.avatarUrl || "";
         return {
                 nickname: storeProfile?.nickname || "",
                 email: storeProfile?.email || "",
-                avatarUrl: storeProfile?.avatarUrl || ""
+                avatarUrl: avatarUrl ? getSmallImageUrl(avatarUrl) : ""
         };
 });
 
@@ -158,10 +160,10 @@ const handleMenuToggle = () => {
         }
 };
 
-// 跳转到文档页面
-const handleDocClick = () => {
-        router.push('/doc');
-};
+// // 跳转到文档页面
+// const handleDocClick = () => {
+//         router.push('/doc');
+// };
 
 onMounted(async () => {
 

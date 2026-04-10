@@ -89,6 +89,7 @@ import {useAuthStore} from '../../../stores/auth.js';
 import {authApi} from '../../../api/user/auth/authApi.js';
 import {useDrawerWidth} from '../../../utils/useDrawerWidth.js';
 import {UserOutlined} from '@ant-design/icons-vue';
+import {getSmallImageUrl} from '../../../utils/imageUrl.js';
 
 
 const authStore = useAuthStore();
@@ -107,7 +108,8 @@ const userProfile = computed(() => authStore.userProfile || {});
 
 const currentAvatarUrl = computed(() => {
         const url = userProfile.value.avatarUrl;
-        return url && url.trim() ? url.trim() : DEFAULT_AVATAR;
+        const trimmedUrl = url && url.trim() ? url.trim() : DEFAULT_AVATAR;
+        return trimmedUrl ? getSmallImageUrl(trimmedUrl) : DEFAULT_AVATAR;
 });
 
 const isValidAvatarUrl = (url) => {
