@@ -32,21 +32,23 @@
                 </div>
         </div>
 
-        <a-card :bordered="false" title="Frequently Asked Questions 问答">
-                <a-collapse ghost>
-                        <a-collapse-panel key="1" header="我要如何获得发布文章等的权限">
-                                <p>获得相对应的权限可以练习网站管理员，向您的账户添加对应的角色。</p>
-                        </a-collapse-panel>
-                        <a-collapse-panel key="2" header="如何联系我">
-                                <p>邮箱：3209174373@qq.com , QQ：3209174373。</p>
-                        </a-collapse-panel>
-                        <a-collapse-panel key="3" header="如何提交反馈发现的 Bug">
-                                <p>Github：https://github.com/DCSCDF</p>
-                        </a-collapse-panel>
-                </a-collapse>
-        </a-card>
+        <!--        <a-card :bordered="false" title="Frequently Asked Questions 问答">-->
+        <!--                <a-collapse ghost>-->
+        <!--                        <a-collapse-panel key="1" header="我要如何获得发布文章等的权限">-->
+        <!--                                <p>获得相对应的权限可以练习网站管理员，向您的账户添加对应的角色。</p>-->
+        <!--                        </a-collapse-panel>-->
+        <!--                        <a-collapse-panel key="2" header="如何联系我">-->
+        <!--                                <p>邮箱：3209174373@qq.com , QQ：3209174373。</p>-->
+        <!--                        </a-collapse-panel>-->
+        <!--                        <a-collapse-panel key="3" header="如何提交反馈发现的 Bug">-->
+        <!--                                <p>Github：https://github.com/DCSCDF</p>-->
+        <!--                        </a-collapse-panel>-->
+        <!--                </a-collapse>-->
+        <!--        </a-card>-->
 
         <!--        <a-empty :description="null"/>-->
+
+
 </template>
 
 <script setup>
