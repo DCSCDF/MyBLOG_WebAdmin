@@ -192,31 +192,34 @@
                                                         </a-input>
                                                 </a-form-item>
 
-                                                <div class="flex items-center justify-between mb-6">
-                                                        <span class="text-gray-500 text-sm">
-                                                                {{
-                                                                        countdown > 0 ? `${countdown}秒后可重新获取` : '未收到验证码？'
-                                                                }}
-                                                        </span>
-                                                        <a-button :disabled="countdown > 0" class="!p-0" size="small"
-                                                                  type="link"
-                                                                  @click="handleSendCode">
-                                                                重新获取
-                                                        </a-button>
-                                                </div>
+                                                <!--                                                <div class="flex items-center justify-between mb-6">-->
+                                                <!--                                                        <span class="text-gray-500 text-sm">-->
+                                                <!--                                                                {{-->
+                                                <!--                                                                        countdown > 0 ? `${countdown}秒后可重新获取` : '未收到验证码？'-->
+                                                <!--                                                                }}-->
+                                                <!--                                                        </span>-->
+                                                <!--                                                        <a-button :disabled="countdown > 0" class="!p-0" size="small"-->
+                                                <!--                                                                  type="link"-->
+                                                <!--                                                                  @click="handleSendCode">-->
+                                                <!--                                                                重新获取-->
+                                                <!--                                                        </a-button>-->
+                                                <!--                                                </div>-->
 
                                                 <a-button :disabled="!isFormValid" :loading="registerLoading"
-                                                          class="w-full h-10 rounded-lg text-base font-semibold flex items-center justify-center"
+                                                          class="w-full h-10 !mt-6 rounded-lg text-base font-semibold flex items-center justify-center"
                                                           html-type="submit"
                                                           size="large"
                                                           type="primary">
                                                         确认注册
                                                 </a-button>
 
-                                                <!--                                                <a-button class="mt-3 !text-gray-500" type="link"-->
-                                                <!--                                                          @click="handleBackToForm">-->
-                                                <!--                                                        返回修改信息-->
-                                                <!--                                                </a-button>-->
+                                                <a-button class="!mt-2 !text-gray-500" type="link"
+                                                          @click="handleBackToForm">
+                                                        <!--                                                        <template #icon>-->
+                                                        <!--                                                                <LeftOutlined/>-->
+                                                        <!--                                                        </template>-->
+                                                        返回修改信息
+                                                </a-button>
                                         </a-form>
                                 </div>
                         </template>
@@ -319,16 +322,19 @@ const handleCodeInput = (e) => {
         verifyForm.value.code = e.target.value.replace(/\D/g, '')
 }
 
-// // 返回表单填写阶段
-// const handleBackToForm = () => {
-//         registerStage.value = 'form'
-//         verifyForm.value.code = ''
-//         isFormValid.value = false
-//         if (countdownTimer) {
-//                 clearInterval(countdownTimer)
-//                 countdownTimer = null
-//         }
-// }
+// 返回表单填写阶段
+const handleBackToForm = async () => {
+        registerStage.value = 'form'
+        verifyForm.value.code = ''
+        if (countdownTimer) {
+                clearInterval(countdownTimer)
+                countdownTimer = null
+        }
+        isVerified.value = false
+        captchaRef.value?.resetVerifyStatus()
+        await nextTick()
+        await updateFormValidation()
+}
 
 // 处理公钥获取
 const handleGetPublicKey = async () => {

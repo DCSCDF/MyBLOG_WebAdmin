@@ -16,13 +16,13 @@
 <template>
         <div class="pt-2">
                 <!-- 返回登录链接 -->
-                <div class="mb-4">
-                        <a class="text-blue-600 hover:text-blue-700 text-sm flex items-center gap-1" href="#"
-                           @click.prevent="emit('reset-success')">
-                                <LeftOutlined/>
-                                返回登录
-                        </a>
-                </div>
+                <!--                <div class="mb-4">-->
+                <!--                        <a class="text-blue-600 hover:text-blue-700 text-sm flex items-center gap-1" href="#"-->
+                <!--                           @click.prevent="emit('reset-success')">-->
+                <!--                                <LeftOutlined/>-->
+                <!--                                返回登录-->
+                <!--                        </a>-->
+                <!--                </div>-->
 
                 <!-- 阶段1：填写用户信息并发送验证码 -->
                 <template v-if="findPasswordStage === 'form'">
@@ -101,25 +101,33 @@
                                                 </a-input-password>
                                         </a-form-item>
 
-                                        <div class="flex items-center justify-between mb-6">
-                                                <span class="text-gray-500 text-sm">
-                                                                {{
-                                                                        countdown > 0 ? `${countdown}秒后可重新获取` : '未收到验证码？'
-                                                                }}
-                                                </span>
-                                                <a-button :disabled="countdown > 0" class="!p-0" size="small"
-                                                          type="link"
-                                                          @click="handleSendCode">
-                                                                重新获取
-                                                </a-button>
-                                        </div>
+                                        <!--                                        <div class="flex items-center justify-between mb-6">-->
+                                        <!--                                                <span class="text-gray-500 text-sm">-->
+                                        <!--                                                                {{-->
+                                        <!--                                                                        countdown > 0 ? `${countdown}秒后可重新获取` : '未收到验证码？'-->
+                                        <!--                                                                }}-->
+                                        <!--                                                </span>-->
+                                        <!--                                                <a-button :disabled="countdown > 0" class="!p-0" size="small"-->
+                                        <!--                                                          type="link"-->
+                                        <!--                                                          @click="handleSendCode">-->
+                                        <!--                                                                重新获取-->
+                                        <!--                                                </a-button>-->
+                                        <!--                                        </div>-->
 
                                         <a-button :disabled="!isFormValid" :loading="resetLoading"
-                                                  class="w-full h-10 rounded-lg text-base font-semibold flex items-center justify-center"
+                                                  class="w-full h-10 !mt-6 rounded-lg text-base font-semibold flex items-center justify-center"
                                                   html-type="submit"
                                                   size="large"
                                                   type="primary">
                                                 重置密码
+                                        </a-button>
+
+                                        <a-button class="mt-3 !text-gray-500" type="link"
+                                                  @click="handleBackToForm">
+                                                <template #icon>
+                                                        <LeftOutlined/>
+                                                </template>
+                                                返回修改信息
                                         </a-button>
                                 </a-form>
                         </div>
@@ -201,6 +209,22 @@ onUnmounted(() => {
 // 验证码输入处理（只允许数字）
 const handleCodeInput = (e) => {
         resetForm.value.code = e.target.value.replace(/\D/g, '')
+}
+
+// 返回表单填写阶段
+const handleBackToForm = async () => {
+        findPasswordStage.value = 'form'
+        resetForm.value.code = ''
+        resetForm.value.newPassword = ''
+        resetForm.value.confirmPassword = ''
+        if (countdownTimer) {
+                clearInterval(countdownTimer)
+                countdownTimer = null
+        }
+        isVerified.value = false
+        captchaRef.value?.resetVerifyStatus()
+        await nextTick()
+        await updateFormValidation()
 }
 
 // 处理公钥获取
