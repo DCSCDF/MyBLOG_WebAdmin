@@ -1,17 +1,17 @@
 <!--
-  - [RegisterForm.vue]
-  - -------------------------------------------------------------------------------
-  - This software is licensed under the MIT License.
-  - However, any distribution or modification must retain this copyright notice.
-  - See LICENSE for full terms.
-  - -------------------------------------------------------------------------------
-  - author: "Jiu Liu"
-  - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
-  - license: "MIT"
-  - license_exception: "Mandatory attribution retention"
-  - UpdateTime: 2026/4/7 10:18
-  -
-  -->
+ - [RegisterForm.vue]
+ - -------------------------------------------------------------------------------
+ - This software is licensed under the MIT License.
+ - However, any distribution or modification must retain this copyright notice.
+ - See LICENSE for full terms.
+ - -------------------------------------------------------------------------------
+ - author: "Jiu Liu"
+ - author_contact: "QQ: 3209174373, GitHub: https://github.com/DCSCDF"
+ - license: "MIT"
+ - license_exception: "Mandatory attribution retention"
+ - UpdateTime: 2026/4/7 10:18
+ -
+ -->
 
 <template>
         <div class="pt-6">
@@ -256,7 +256,7 @@ const isFormValid = ref(false)
 captchaRef.value = undefined
 
 // 配置相关状态
-const useEmailRegister = ref(false)
+
 const registerStage = ref('form') // form-填写信息 | verify-填写验证码
 const maskedEmail = ref('')
 const countdown = ref(0)
@@ -264,6 +264,7 @@ const codeExpiresIn = ref(300)
 let countdownTimer = null
 
 // 获取邮箱验证注册配置
+const useEmailRegister = ref(false)
 const fetchEmailRegisterConfig = async () => {
         try {
                 const response = await publicConfigApi.getConfig({keys: ['reg.use-email']})
@@ -329,95 +330,119 @@ const handleCodeInput = (e) => {
 //         }
 // }
 
-// 发送注册验证码
-const handleSendCode = async () => {
-        if (sendCodeLoading.value || !isVerified.value || !isFormValid.value) return
-
-        sendCodeLoading.value = true
-
-        try {
-                const captchaVerification = captchaRef.value?.getCaptchaVerification() ?? null
-                logger.log('验证码校验码:', captchaVerification)
-
-                const publicKeyRes = await authApi.publicKey()
-
-                if (publicKeyRes.code !== 200) {
-                        message.error(publicKeyRes.errorMsg || '获取加密参数失败')
-                        sendCodeLoading.value = false
-                        return
-                }
-
-                const encryptedPassword = RsaEncryptor.encrypt(
-                    registerForm.value.password,
-                    publicKeyRes.data.publicKey
-                )
-
-                const payload = {
-                        username: registerForm.value.username.trim(),
-                        email: registerForm.value.email.trim(),
-                        password: encryptedPassword,
-                        tempToken: publicKeyRes.data.tempToken,
-                        captchaVerification: captchaVerification?.captchaVerification
-                }
-
-                logger.log('发送注册验证码请求:', {
-                        username: payload.username,
-                        email: payload.email
-                })
-
-                const response = await authApi.registerCode(payload)
-
-                if (response.success) {
-                        maskedEmail.value = maskEmail(registerForm.value.email)
-                        codeExpiresIn.value = response.data.expiresIn || 300
-                        registerStage.value = 'verify'
-                        startCountdown(codeExpiresIn.value)
-                        message.success(response.data.message || '验证码已发送到您的邮箱')
-                } else {
-                        message.error(response.errorMsg || '发送验证码失败')
-                        captchaRef.value?.resetVerifyStatus()
-                        isVerified.value = false
-                }
-        } catch (error) {
-                logger.error('发送验证码异常:', error)
-                message.error(error.message || '发送验证码失败')
+// 处理公钥获取
+const handleGetPublicKey = async () => {
+        const publicKeyRes = await authApi.publicKey()
+        let result = null
+        if (publicKeyRes.code === 200) {
+                result = publicKeyRes.data
+        } else {
+                message.error(publicKeyRes.errorMsg || '获取加密参数失败')
                 captchaRef.value?.resetVerifyStatus()
                 isVerified.value = false
-        } finally {
-                sendCodeLoading.value = false
+        }
+        return result
+}
+
+// 处理发送验证码请求
+const handleSendCodeRequest = async (payload) => {
+        const response = await authApi.registerCode(payload)
+        let result = null
+        if (response.success) {
+                result = response.data
+        } else {
+                message.error(response.errorMsg || '发送验证码失败')
+                captchaRef.value?.resetVerifyStatus()
+                isVerified.value = false
+        }
+        return result
+}
+
+// 发送注册验证码
+const handleSendCode = async () => {
+        // 检查前置条件
+        const canProceed = sendCodeLoading.value === false && isVerified.value && isFormValid.value
+        if (canProceed) {
+                sendCodeLoading.value = true
+
+                try {
+                        const captchaVerification = captchaRef.value?.getCaptchaVerification() ?? null
+                        logger.log('验证码校验码:', captchaVerification)
+
+                        // 获取公钥
+                        const publicKeyData = await handleGetPublicKey()
+                        if (publicKeyData) {
+                                // 构建请求载荷
+                                const encryptedPassword = RsaEncryptor.encrypt(
+                                    registerForm.value.password,
+                                    publicKeyData.publicKey
+                                )
+
+                                const payload = {
+                                        username: registerForm.value.username.trim(),
+                                        email: registerForm.value.email.trim(),
+                                        password: encryptedPassword,
+                                        tempToken: publicKeyData.tempToken,
+                                        captchaVerification: captchaVerification?.captchaVerification
+                                }
+
+                                logger.log('发送注册验证码请求:', {
+                                        username: payload.username,
+                                        email: payload.email
+                                })
+
+                                // 发送验证码
+                                const responseData = await handleSendCodeRequest(payload)
+                                if (responseData) {
+                                        maskedEmail.value = maskEmail(registerForm.value.email)
+                                        codeExpiresIn.value = responseData.expiresIn || 300
+                                        registerStage.value = 'verify'
+                                        startCountdown(codeExpiresIn.value)
+                                        message.success(responseData.message || '验证码已发送到您的邮箱')
+                                }
+                        }
+                } catch (error) {
+                        logger.error('发送验证码异常:', error)
+                        message.error(error.message || '发送验证码失败')
+                        captchaRef.value?.resetVerifyStatus()
+                        isVerified.value = false
+                } finally {
+                        sendCodeLoading.value = false
+                }
         }
 }
 
 // 确认注册
 const handleConfirmRegister = async () => {
-        if (registerLoading.value) return
+        const canProceed = registerLoading.value === false
+        if (canProceed) {
+                registerLoading.value = true
 
-        registerLoading.value = true
+                try {
+                        const payload = {
+                                email: registerForm.value.email.trim(),
+                                code: verifyForm.value.code.trim()
+                        }
 
-        try {
-                const payload = {
-                        email: registerForm.value.email.trim(),
-                        code: verifyForm.value.code.trim()
-                }
+                        logger.log('确认注册请求:', {email: payload.email, code: '******'})
 
-                logger.log('确认注册请求:', {email: payload.email, code: '******'})
+                        const response = await authApi.registerConfirm(payload)
 
-                const response = await authApi.registerConfirm(payload)
-
-                if (response.success) {
-                        message.success(response.data.message || '注册成功，请登录')
-                        logger.log('注册成功 userId:', response.data.userId)
-                        emit('register-success')
-                } else {
-                        message.error(response.errorMsg || '注册失败')
+                        if (response.success) {
+                                message.success(response.data.message || '注册成功，请登录')
+                                logger.log('注册成功 userId:', response.data.userId)
+                                emit('register-success')
+                        } else {
+                                message.error(response.errorMsg || '注册失败')
+                                resetRegisterState()
+                        }
+                } catch (error) {
+                        logger.error('确认注册异常:', error)
+                        message.error(error.message || '注册失败')
                         resetRegisterState()
+                } finally {
+                        registerLoading.value = false
                 }
-        } catch (error) {
-                logger.error('确认注册异常:', error)
-                message.error(error.message || '注册失败')
-                resetRegisterState()
-        } finally {
-                registerLoading.value = false
         }
 }
 
@@ -725,44 +750,44 @@ function buildRegisterPayload(publicKey, tempToken, captchaVerification) {
 
 // 直接注册流程（不使用邮箱验证）
 async function handleRegister() {
-        if (registerLoading.value) return
-        registerLoading.value = true
+        const canProceed = registerLoading.value === false
+        if (canProceed) {
+                registerLoading.value = true
 
-        try {
-                const captchaVerification = getRegisterCaptchaVerification()
-                if (!captchaVerification) {
-                        message.error('请先完成验证码')
-                        return
-                }
+                try {
+                        const captchaVerification = getRegisterCaptchaVerification()
+                        if (captchaVerification) {
+                                logger.log('注册请求参数（已脱敏）:', {
+                                        username: registerForm.value.username,
+                                        email: registerForm.value.email
+                                })
 
-                logger.log('注册请求参数（已脱敏）:', {
-                        username: registerForm.value.username,
-                        email: registerForm.value.email
-                })
-
-                const publicKeyRes = await authApi.publicKey()
-                if (publicKeyRes.code !== 200) {
-                        message.error(publicKeyRes.errorMsg || '获取加密参数失败')
+                                const publicKeyRes = await authApi.publicKey()
+                                if (publicKeyRes.code === 200) {
+                                        const payload = buildRegisterPayload(publicKeyRes.data.publicKey, publicKeyRes.data.tempToken, captchaVerification)
+                                        const response = await authApi.register(payload)
+                                        if (response.success) {
+                                                message.success(response.data.message || '注册成功，请登录')
+                                                logger.log('注册成功 userId:', response.data.userId)
+                                                emit('register-success')
+                                        } else {
+                                                message.error(response.errorMsg || '注册失败')
+                                                resetRegisterState()
+                                        }
+                                } else {
+                                        message.error(publicKeyRes.errorMsg || '获取加密参数失败')
+                                        resetRegisterState()
+                                }
+                        } else {
+                                message.error('请先完成验证码')
+                        }
+                } catch (error) {
+                        logger.error('注册异常:', error)
+                        message.error(error.message || '注册失败，请稍后再试')
                         resetRegisterState()
-                        return
+                } finally {
+                        registerLoading.value = false
                 }
-
-                const payload = buildRegisterPayload(publicKeyRes.data.publicKey, publicKeyRes.data.tempToken, captchaVerification)
-                const response = await authApi.register(payload)
-                if (response.success) {
-                        message.success(response.data.message || '注册成功，请登录')
-                        logger.log('注册成功 userId:', response.data.userId)
-                        emit('register-success')
-                } else {
-                        message.error(response.errorMsg || '注册失败')
-                        resetRegisterState()
-                }
-        } catch (error) {
-                logger.error('注册异常:', error)
-                message.error(error.message || '注册失败，请稍后再试')
-                resetRegisterState()
-        } finally {
-                registerLoading.value = false
         }
 }
 

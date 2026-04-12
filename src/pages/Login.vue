@@ -52,7 +52,7 @@
 
                         <a-card class="!overflow-hidden !bg-white/80 !backdrop-blur-md mt-10">
                                 <!-- 标签页切换 -->
-                                <a-tabs v-model:activeKey="activeTab" class="form-tabs md:!px-5 !pb-5"
+                                <a-tabs v-model:activeKey="activeTab" class="form-tabs !px-2 md:!px-6 !pb-5"
                                         @change="handleTabChange">
                                         <!-- 登陆标签页 -->
                                         <a-tab-pane key="login" tab="登陆">

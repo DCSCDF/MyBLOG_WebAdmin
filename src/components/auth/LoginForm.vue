@@ -41,7 +41,7 @@
                                 <a-checkbox v-model:checked="loginForm.remember">
                                         记住我
                                 </a-checkbox>
-                                <a class="text-blue-600 hover:text-blue-700 text-sm" href="#">
+                                <a v-if="useEmailRegister" class="text-blue-600 hover:text-blue-700 text-sm" href="#">
                                         忘记密码?
                                 </a>
                         </div>
@@ -84,6 +84,26 @@ const isVerified = ref(false)
 const isFormValid = ref(false)
 const isRedirectUrlValid = ref(false) // redirect_url 是否有效
 captchaRef.value = undefined;
+
+// 获取邮箱验证注册配置
+const useEmailRegister = ref(false)
+const fetchEmailRegisterConfig = async () => {
+        try {
+                const response = await publicConfigApi.getConfig({keys: ['reg.use-email']})
+                if (response.success && response.data && response.data.length > 0) {
+                        const config = response.data.find(item => item.configKey === 'reg.use-email')
+                        useEmailRegister.value = config?.configValue === 'true'
+                        logger.log('邮箱验证注册模式:', useEmailRegister.value)
+                }
+        } catch (error) {
+                logger.error('获取注册配置失败:', error)
+                useEmailRegister.value = false
+        }
+}
+// 组件挂载时获取配置
+onMounted(() => {
+        fetchEmailRegisterConfig()
+})
 
 // 检查 redirect_url 是否有效
 const checkRedirectUrl = async () => {
