@@ -94,11 +94,30 @@ export const authApi = {
 	},
 
 	/**
-	 * 修改邮箱
+	 * 修改邮箱（直接模式，无需验证码）
+	 * 当系统配置 reg.use-email=false 时使用
 	 * @param {Object} data - { email }
 	 */
 	updateEmail: (data) => {
 		return request.post(`${AUTH_BASE_PATH}/update-email`, data);
+	},
+
+	/**
+	 * 发送邮箱变更验证码
+	 * 当系统配置 reg.use-email=true 时使用
+	 * @param {Object} data - { email }
+	 */
+	changeEmailCode: (data) => {
+		return request.post(`${AUTH_BASE_PATH}/change-email/code`, data);
+	},
+
+	/**
+	 * 确认邮箱变更（验证邮箱验证码）
+	 * 当系统配置 reg.use-email=true 时使用
+	 * @param {Object} data - { email, code }
+	 */
+	changeEmailConfirm: (data) => {
+		return request.post(`${AUTH_BASE_PATH}/change-email/confirm`, data);
 	},
 
 	/**
@@ -108,6 +127,23 @@ export const authApi = {
 	 */
 	getPermissions: () => {
 		return request.post(`${AUTH_BASE_PATH}/permissions`);
+	},
+
+	/**
+	 * 发送找回密码验证码
+	 * 当系统配置 reg.use-email=true 时可用
+	 * @param {Object} data - { usernameOrEmail, tempToken, captchaVerification }
+	 */
+	findPasswordCode: (data) => {
+		return request.post(`${AUTH_BASE_PATH}/find-password/code`, data);
+	},
+
+	/**
+	 * 确认找回密码（重置密码）
+	 * @param {Object} data - { usernameOrEmail, code, newPassword }
+	 */
+	findPasswordConfirm: (data) => {
+		return request.post(`${AUTH_BASE_PATH}/find-password/confirm`, data);
 	},
 
 };

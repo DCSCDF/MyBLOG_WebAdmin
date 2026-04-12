@@ -50,11 +50,11 @@
                                                                     :value="userProfile.email || '-'"
                                                                     disabled
                                                                 />
-                                                                <!--                                                                <a-button class="!text-gray-600 "-->
-                                                                <!--                                                                          @click="openEmailDrawer">-->
-                                                                <!--                                                                        <SettingOutlined/>-->
-                                                                <!--                                                                        修改-->
-                                                                <!--                                                                </a-button>-->
+                                                                <a-button class="!text-gray-600"
+                                                                          @click="openEmailDrawer">
+                                                                        <SettingOutlined/>
+                                                                        修改
+                                                                </a-button>
                                                         </a-input-group>
                                                 </div>
                                         </div>
@@ -163,8 +163,11 @@
                     :destroy-on-close="true"
                     :width="drawerWidth"
                     title="修改邮箱"
+                    @close="resetEmailState"
                 >
+                        <!-- 输入邮箱阶段 -->
                         <a-form
+                            v-if="emailStage === 'input'"
                             ref="emailFormRef"
                             :model="emailForm"
                             :rules="emailRules"
@@ -186,7 +189,44 @@
                                             type="primary"
                                             @click="handleEmailSubmit"
                                         >
-                                                保存
+                                                {{ useEmailVerify ? '发送验证码' : '保存' }}
+                                        </a-button>
+                                </div>
+                        </a-form>
+
+                        <!-- 填写验证码阶段 -->
+                        <a-form
+                            v-else-if="emailStage === 'verify'"
+                            layout="vertical"
+                        >
+                                <a-form-item>
+                                        <div class="text-gray-600">
+                                                <p>验证码已发送至：<span class="font-medium">{{ maskedEmail }}</span></p>
+                                                <p class="text-xs text-gray-400 mt-1">
+                                                        验证码有效期：{{ emailCountdown > 0 ? `${emailCountdown}秒后可重新获取` : '已过期' }}
+                                                </p>
+                                        </div>
+                                </a-form-item>
+
+                                <a-form-item label="验证码">
+                                        <a-input
+                                            v-model:value="emailCode"
+                                            :maxlength="6"
+                                            placeholder="请输入6位验证码"
+                                            @input="handleEmailCodeInput"
+                                        />
+                                </a-form-item>
+
+                                <div class="flex justify-end gap-2 mt-4">
+                                        <a-button @click="handleBackToEmailInput">
+                                                返回
+                                        </a-button>
+                                        <a-button
+                                            :loading="emailSubmitting"
+                                            type="primary"
+                                            @click="handleEmailVerifySubmit"
+                                        >
+                                                确认修改
                                         </a-button>
                                 </div>
                         </a-form>
@@ -244,10 +284,11 @@
 </template>
 
 <script setup>
-import {computed, ref} from 'vue';
+import {computed, onMounted, ref} from 'vue';
 import {message} from 'ant-design-vue';
 import {useAuthStore} from '../../../stores/auth.js';
 import {authApi} from '../../../api/user/auth/authApi.js';
+import {publicConfigApi} from '../../../api/system/publicConfigApi.js';
 import RsaEncryptor from '../../../utils/RsaUtils.js';
 import {useRouter} from 'vue-router';
 import {useDrawerWidth} from '../../../utils/useDrawerWidth.js';
@@ -327,6 +368,15 @@ const emailForm = ref({
         email: ''
 });
 
+// 邮箱验证模式相关状态
+const emailStage = ref('input'); // input-输入邮箱 | verify-填写验证码
+const maskedEmail = ref('');
+const emailCode = ref('');
+const emailCountdown = ref(0);
+const emailCountdownTimer = ref(null);
+const emailExpiresIn = ref(300);
+const useEmailVerify = ref(false); // 是否启用邮箱验证码模式
+
 const emailRules = {
         email: [
                 {required: true, message: '请输入邮箱', trigger: 'blur'},
@@ -334,48 +384,162 @@ const emailRules = {
         ]
 };
 
-// function openEmailDrawer() {
-//         emailForm.value.email = userProfile.value.email || '';
-//         emailDrawerVisible.value = true;
-// }
+const emailVerifyRules = {
+        code: [
+                {required: true, message: '请输入验证码', trigger: 'blur'},
+                {len: 6, message: '验证码为6位数字', trigger: 'blur'}
+        ]
+};
+
+// 获取邮箱验证模式配置
+async function fetchEmailVerifyConfig() {
+        try {
+                const response = await publicConfigApi.getConfig({keys: ['reg.use-email']});
+                if (response.success && response.data && response.data.length > 0) {
+                        const config = response.data.find(item => item.configKey === 'reg.use-email');
+                        useEmailVerify.value = config?.configValue === 'true';
+                }
+        } catch (error) {
+                console.error('获取邮箱验证配置失败:', error);
+                useEmailVerify.value = false;
+        }
+}
+
+// 掩码邮箱显示
+function maskEmail(email) {
+        if (!email) return '';
+        const parts = email.split('@');
+        if (parts.length !== 2 || !parts[1]) return email;
+        return parts[0].slice(0, 2) + '***@' + parts[1];
+}
+
+// 开始倒计时
+function startEmailCountdown(seconds) {
+        if (emailCountdownTimer.value) clearInterval(emailCountdownTimer.value);
+        emailCountdown.value = seconds;
+        emailCountdownTimer.value = setInterval(() => {
+                emailCountdown.value--;
+                if (emailCountdown.value <= 0) {
+                        clearInterval(emailCountdownTimer.value);
+                        emailCountdownTimer.value = null;
+                }
+        }, 1000);
+}
+
+function openEmailDrawer() {
+        emailForm.value.email = userProfile.value.email || '';
+        emailCode.value = '';
+        emailStage.value = 'input';
+        emailDrawerVisible.value = true;
+}
 
 function handleEmailCancel() {
         emailDrawerVisible.value = false;
+        resetEmailState();
+}
+
+function resetEmailState() {
+        emailForm.value.email = '';
+        emailCode.value = '';
+        emailStage.value = 'input';
+        if (emailCountdownTimer.value) {
+                clearInterval(emailCountdownTimer.value);
+                emailCountdownTimer.value = null;
+        }
+        emailCountdown.value = 0;
 }
 
 async function handleEmailSubmit() {
-        let result = null;
-
         if (!emailFormRef.value) {
-                result = {success: false, error: '表单引用不存在'};
-        } else {
-                try {
-                        emailSubmitting.value = true;
-                        await emailFormRef.value.validate();
-                        const email = emailForm.value.email.trim();
-
-                        const res = await authApi.updateEmail({email});
-                        message.success(res?.data?.message || '邮箱修改成功');
-
-                        const current = authStore.getUserProfile() || {};
-                        authStore.updateUserProfile({
-                                ...current,
-                                email
-                        });
-
-                        emailDrawerVisible.value = false;
-                        result = {success: true};
-                } catch (e) {
-                        if (e instanceof Error) {
-                                message.error(e.message || '邮箱修改失败');
-                        }
-                        result = {success: false, error: e.message || '邮箱修改失败'};
-                } finally {
-                        emailSubmitting.value = false;
-                }
+                return;
         }
 
-        return result;
+        try {
+                await emailFormRef.value.validate();
+                const email = emailForm.value.email.trim();
+
+                if (useEmailVerify.value) {
+                        // 验证码模式：先发送验证码
+                        emailSubmitting.value = true;
+                        try {
+                                const res = await authApi.changeEmailCode({email});
+                                emailStage.value = 'verify';
+                                maskedEmail.value = maskEmail(email);
+                                emailExpiresIn.value = res?.data?.expiresIn || 300;
+                                startEmailCountdown(emailExpiresIn.value);
+                                message.success(res?.data?.message || '验证码已发送到您的新邮箱');
+                        } catch (e) {
+                                message.error(e?.message || '发送验证码失败');
+                        } finally {
+                                emailSubmitting.value = false;
+                        }
+                } else {
+                        // 直接模式：直接修改邮箱
+                        emailSubmitting.value = true;
+                        try {
+                                const res = await authApi.updateEmail({email});
+                                message.success(res?.data?.message || '邮箱修改成功');
+
+                                const current = authStore.getUserProfile() || {};
+                                authStore.updateUserProfile({
+                                        ...current,
+                                        email
+                                });
+
+                                emailDrawerVisible.value = false;
+                                resetEmailState();
+                        } catch (e) {
+                                message.error(e?.message || '邮箱修改失败');
+                        } finally {
+                                emailSubmitting.value = false;
+                        }
+                }
+        } catch (e) {
+                // 表单验证失败
+        }
+}
+
+async function handleEmailVerifySubmit() {
+        if (!emailCode.value || emailCode.value.length !== 6) {
+                message.warning('请输入6位验证码');
+                return;
+        }
+
+        emailSubmitting.value = true;
+        try {
+                const res = await authApi.changeEmailConfirm({
+                        email: emailForm.value.email.trim(),
+                        code: emailCode.value
+                });
+                message.success(res?.data?.message || '邮箱修改成功');
+
+                const current = authStore.getUserProfile() || {};
+                authStore.updateUserProfile({
+                        ...current,
+                        email: emailForm.value.email.trim()
+                });
+
+                emailDrawerVisible.value = false;
+                resetEmailState();
+        } catch (e) {
+                message.error(e?.message || '邮箱修改失败');
+        } finally {
+                emailSubmitting.value = false;
+        }
+}
+
+function handleEmailCodeInput(e) {
+        emailCode.value = e.target.value.replace(/\D/g, '');
+}
+
+function handleBackToEmailInput() {
+        emailStage.value = 'input';
+        emailCode.value = '';
+        if (emailCountdownTimer.value) {
+                clearInterval(emailCountdownTimer.value);
+                emailCountdownTimer.value = null;
+        }
+        emailCountdown.value = 0;
 }
 
 // 修改密码
@@ -469,4 +633,8 @@ async function handlePasswordSubmit() {
 
         return result;
 }
+
+onMounted(() => {
+        fetchEmailVerifyConfig();
+});
 </script>

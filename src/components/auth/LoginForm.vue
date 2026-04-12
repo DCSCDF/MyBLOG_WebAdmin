@@ -41,7 +41,8 @@
                                 <a-checkbox v-model:checked="loginForm.remember">
                                         记住我
                                 </a-checkbox>
-                                <a v-if="useEmailRegister" class="text-blue-600 hover:text-blue-700 text-sm" href="#">
+                                <a v-if="useEmailRegister" class="text-blue-600 hover:text-blue-700 text-sm" href="#"
+                                   @click.prevent="handleForgotPassword">
                                         忘记密码?
                                 </a>
                         </div>
@@ -68,6 +69,8 @@ import RsaEncryptor from "../../utils/RsaUtils.js";
 import {useRouter} from 'vue-router';
 import {useAuthStore} from '../../stores/auth.js';
 import {publicConfigApi} from "../../api/system/publicConfigApi.js";
+
+const emit = defineEmits(['switch-to-find-password'])
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -516,6 +519,11 @@ const handleNetworkError = (error) => {
 
         handleError('网络异常', errorMessage);
 };
+
+// 跳转到找回密码页面
+const handleForgotPassword = () => {
+        emit('switch-to-find-password')
+}
 
 // 重置登录状态的函数
 const resetLoginState = () => {

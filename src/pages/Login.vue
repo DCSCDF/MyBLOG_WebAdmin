@@ -56,13 +56,20 @@
                                         @change="handleTabChange">
                                         <!-- 登陆标签页 -->
                                         <a-tab-pane key="login" tab="登陆">
-                                                <LoginForm/>
+                                                <LoginForm @switch-to-find-password="activeTab = 'find-password'"/>
                                         </a-tab-pane>
                                         <!-- 注册标签页 -->
                                         <a-tab-pane key="register" tab="注册">
                                                 <RegisterForm @register-success="activeTab = 'login'"/>
                                         </a-tab-pane>
+
                                 </a-tabs>
+                                <div v-if="activeTab === 'find-password'" class="form-tabs !px-2 md:!px-6 !pb-5">
+                                        <!-- 找回密码表单（不作为tab，直接显示在tab区域下方） -->
+                                        <FindPasswordForm
+                                            @reset-success="activeTab = 'login'"/>
+                                </div>
+
                         </a-card>
                 </div>
         </div>
@@ -73,6 +80,7 @@ import {onMounted, ref} from 'vue'
 import {LeftOutlined} from '@ant-design/icons-vue'
 import LoginForm from '../components/auth/LoginForm.vue'
 import RegisterForm from '../components/auth/RegisterForm.vue'
+import FindPasswordForm from '../components/auth/FindPasswordForm.vue'
 import {publicConfigApi} from '../api/system/publicConfigApi.js'
 
 const activeTab = ref('login')
