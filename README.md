@@ -1,5 +1,11 @@
 # MyBLOG 后台项目结构文档
 
+## 部署改项目：
+
+如果想部署该项目，请跳转到下方链接根据文档安装发行版。
+> https://github.com/DCSCDF/MYBLOG-Distribution
+---
+
 这是一个基于 Vue 3 + Vite 构建的博客管理系统后台。
 
 ![img.png](Document/docimg/img.png)
