@@ -83,19 +83,38 @@
                                                 {{ record.description || '-' }}
                                         </template>
                                         <template v-else-if="column.key === 'action'">
-                                                <a-space>
-                                                        <a-button size="small" type="link"
-                                                                  @click="openEditModal(record)">修改
-                                                        </a-button>
-                                                        <a-popconfirm
-                                                            cancel-text="取消"
-                                                            ok-text="确定"
-                                                            title="确定删除此配置项吗？"
-                                                            @confirm="deleteConfig(record.id)">
-                                                                <a-button danger size="small" type="link">删除
+                                                <template v-if="isBelowLg">
+                                                        <a-dropdown>
+                                                                <a-button size="small" type="link">
+                                                                        操作
+                                                                        <DownOutlined/>
                                                                 </a-button>
-                                                        </a-popconfirm>
-                                                </a-space>
+                                                                <template #overlay>
+                                                                        <a-menu
+                                                                            @click="({key}) => handleActionClick(record, key)">
+                                                                                <a-menu-item key="edit">修改</a-menu-item>
+                                                                                <a-menu-item key="delete">
+                                                                                        <span class="text-red-500">删除</span>
+                                                                                </a-menu-item>
+                                                                        </a-menu>
+                                                                </template>
+                                                        </a-dropdown>
+                                                </template>
+                                                <template v-else>
+                                                        <a-space>
+                                                                <a-button size="small" type="link"
+                                                                          @click="openEditModal(record)">修改
+                                                                </a-button>
+                                                                <a-popconfirm
+                                                                    cancel-text="取消"
+                                                                    ok-text="确定"
+                                                                    title="确定删除此配置项吗？"
+                                                                    @confirm="deleteConfig(record.id)">
+                                                                        <a-button danger size="small" type="link">删除
+                                                                        </a-button>
+                                                                </a-popconfirm>
+                                                        </a-space>
+                                                </template>
                                         </template>
                                 </template>
                         </a-table>
@@ -199,14 +218,23 @@
 </template>
 
 <script setup>
-import {computed, onMounted, reactive, ref} from 'vue';
-import {message} from 'ant-design-vue';
-import {PlusOutlined, SearchOutlined} from '@ant-design/icons-vue';
+import {computed, onMounted, reactive, ref, h} from 'vue';
+import {message, Modal} from 'ant-design-vue';
+import {DownOutlined, PlusOutlined, SearchOutlined} from '@ant-design/icons-vue';
 import {configApi} from '../../../api/system/configApi.js';
 
 const configList = ref([]);
 const loading = ref(false);
 const searchKeyword = ref('');
+
+// LG断点检测（1024px）
+const isBelowLg = ref(window.innerWidth < 1024);
+if (typeof window !== 'undefined') {
+        const handleResize = () => {
+                isBelowLg.value = window.innerWidth < 1024;
+        };
+        window.addEventListener('resize', handleResize);
+}
 
 const pagination = reactive({
         current: 1,
@@ -224,7 +252,7 @@ const tablePagination = computed(() => ({
         showTotal: pagination.showTotal
 }));
 
-const columns = [
+const columns = computed(() => [
         {
                 title: 'ID',
                 dataIndex: 'id',
@@ -263,10 +291,10 @@ const columns = [
         {
                 title: '操作',
                 key: 'action',
-                width: 120,
+                width: isBelowLg.value ? 100 : 120,
                 fixed: 'right'
         }
-];
+]);
 
 const editModalVisible = ref(false);
 const editingConfig = ref(null);
@@ -343,6 +371,24 @@ function openEditModal(record) {
         editingConfig.value = record;
         editForm.configValue = record?.configValue ?? '';
         editModalVisible.value = true;
+}
+
+/**
+ * 处理移动端操作列点击
+ * @param {Object} record - 记录
+ * @param {string} key - 菜单项key
+ */
+function handleActionClick(record, key) {
+        if (key === 'edit') {
+                openEditModal(record);
+        } else if (key === 'delete') {
+                Modal.confirm({
+                        title: () => h('span', {style: {fontWeight: 'normal'}}, '确定删除此配置项吗？'),
+                        cancelText: '取消',
+                        okText: '确定',
+                        onOk: () => deleteConfig(record.id)
+                });
+        }
 }
 
 function handleEditCancel() {

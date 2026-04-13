@@ -83,34 +83,58 @@
                                         </a-tag>
                                 </template>
                                 <template v-else-if="column.key === 'action'">
-                                        <a-space>
-                                                <a-button size="small" type="link" @click="openDetail(record)">查看
-                                                </a-button>
-                                                <a-button size="small" type="link" @click="openRolePermission(record)">
-                                                        角色权限
-                                                </a-button>
-                                                <a-button size="small" type="link" @click="openEdit(record)">编辑
-                                                </a-button>
-                                                <a-button
-                                                    v-if="record.status === 1"
-                                                    size="small"
-                                                    type="link"
-                                                    @click="handleDisable(record)">禁用
-                                                </a-button>
-                                                <a-button
-                                                    v-else
-                                                    size="small"
-                                                    type="link"
-                                                    @click="handleEnable(record)">启用
-                                                </a-button>
-                                                <a-popconfirm
-                                                    cancel-text="取消"
-                                                    ok-text="确定"
-                                                    title="确定删除该用户吗？删除后用户将无法登录。"
-                                                    @confirm="onDelete(record)">
-                                                        <a-button danger size="small" type="link">删除</a-button>
-                                                </a-popconfirm>
-                                        </a-space>
+                                        <template v-if="isBelowLg">
+                                                <a-dropdown>
+                                                        <a-button size="small" type="link">
+                                                                操作
+                                                                <DownOutlined/>
+                                                        </a-button>
+                                                        <template #overlay>
+                                                                <a-menu
+                                                                    @click="({key}) => handleActionClick(record, key)">
+                                                                        <a-menu-item key="detail">查看</a-menu-item>
+                                                                        <a-menu-item key="role-permission">角色权限</a-menu-item>
+                                                                        <a-menu-item key="edit">编辑</a-menu-item>
+                                                                        <a-menu-item :key="record.status === 1 ? 'disable' : 'enable'">
+                                                                                {{ record.status === 1 ? '禁用' : '启用' }}
+                                                                        </a-menu-item>
+                                                                        <a-menu-item key="delete">
+                                                                                <span class="text-red-500">删除</span>
+                                                                        </a-menu-item>
+                                                                </a-menu>
+                                                        </template>
+                                                </a-dropdown>
+                                        </template>
+                                        <template v-else>
+                                                <a-space>
+                                                        <a-button size="small" type="link" @click="openDetail(record)">查看
+                                                        </a-button>
+                                                        <a-button size="small" type="link" @click="openRolePermission(record)">
+                                                                角色权限
+                                                        </a-button>
+                                                        <a-button size="small" type="link" @click="openEdit(record)">编辑
+                                                        </a-button>
+                                                        <a-button
+                                                            v-if="record.status === 1"
+                                                            size="small"
+                                                            type="link"
+                                                            @click="handleDisable(record)">禁用
+                                                        </a-button>
+                                                        <a-button
+                                                            v-else
+                                                            size="small"
+                                                            type="link"
+                                                            @click="handleEnable(record)">启用
+                                                        </a-button>
+                                                        <a-popconfirm
+                                                            cancel-text="取消"
+                                                            ok-text="确定"
+                                                            title="确定删除该用户吗？删除后用户将无法登录。"
+                                                            @confirm="onDelete(record)">
+                                                                <a-button danger size="small" type="link">删除</a-button>
+                                                        </a-popconfirm>
+                                                </a-space>
+                                        </template>
                                 </template>
                         </template>
                 </a-table>
@@ -139,9 +163,9 @@
 </template>
 
 <script setup>
-import {computed, onMounted, ref} from 'vue';
-import {message} from 'ant-design-vue';
-import {SearchOutlined} from '@ant-design/icons-vue';
+import {computed, onMounted, ref, h} from 'vue';
+import {message, Modal} from 'ant-design-vue';
+import {DownOutlined, SearchOutlined} from '@ant-design/icons-vue';
 import {useUserStore} from '../../../../stores/user.js';
 import UserDetailDrawer from '../../../../components/Website/System/UserDetailDrawer.vue';
 import UserEditModal from '../../../../components/Website/System/UserEditModal.vue';
@@ -149,6 +173,15 @@ import UserRolePermissionDrawer from '../../../../components/Website/System/User
 import {getSmallImageUrl} from '../../../../utils/imageUrl.js';
 
 const userStore = useUserStore();
+
+// LG断点检测（1024px）
+const isBelowLg = ref(window.innerWidth < 1024);
+if (typeof window !== 'undefined') {
+        const handleResize = () => {
+                isBelowLg.value = window.innerWidth < 1024;
+        };
+        window.addEventListener('resize', handleResize);
+}
 
 // 搜索与筛选（keyword 传接口，status 传 0/1；'' 表示不传该筛选）
 const searchKeyword = ref('');
@@ -160,8 +193,8 @@ const statusFilterOptions = computed(() => {
         return fromApi && fromApi.length > 0 ? fromApi : [{value: 0, label: '禁用'}, {value: 1, label: '启用'}];
 });
 
-// 表格列定义
-const columns = [
+// 表格列定义（操作列宽度根据屏幕响应式）
+const columns = computed(() => [
         {title: 'ID', dataIndex: 'id', key: 'id', width: 80},
         {title: '头像', key: 'avatar', width: 80},
         {title: '用户名', dataIndex: 'username', key: 'username', width: 120},
@@ -169,8 +202,8 @@ const columns = [
         {title: '邮箱', dataIndex: 'email', key: 'email', width: 180, ellipsis: true},
         {title: '状态', key: 'status', width: 80},
         {title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 180},
-        {title: '操作', key: 'action', width: 300, fixed: 'right'}
-];
+        {title: '操作', key: 'action', width: isBelowLg.value ? 100 : 300, fixed: 'right'}
+]);
 
 // 表格分页配置
 const tablePagination = computed(() => ({
@@ -242,6 +275,32 @@ const handleReset = () => {
         userStore.updatePagination({current: 1});
         userStore.updateQueryParams({keyword: '', status: undefined});
         loadUsers();
+};
+
+/**
+ * 处理移动端操作列点击
+ * @param {Object} record - 记录
+ * @param {string} key - 菜单项key
+ */
+const handleActionClick = (record, key) => {
+        if (key === 'detail') {
+                openDetail(record);
+        } else if (key === 'role-permission') {
+                openRolePermission(record);
+        } else if (key === 'edit') {
+                openEdit(record);
+        } else if (key === 'enable') {
+                handleEnable(record);
+        } else if (key === 'disable') {
+                handleDisable(record);
+        } else if (key === 'delete') {
+                Modal.confirm({
+                        title: () => h('span', {style: {fontWeight: 'normal'}}, '确定删除该用户吗？删除后用户将无法登录。'),
+                        cancelText: '取消',
+                        okText: '确定',
+                        onOk: () => onDelete(record)
+                });
+        }
 };
 
 /**

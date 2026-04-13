@@ -85,23 +85,44 @@
                                         </a-tag>
                                 </template>
                                 <template v-else-if="column.key === 'action'">
-                                        <a-space>
-                                                <a-button size="small" type="link" @click="openDetail(record)">查看
-                                                </a-button>
-                                                <a-button size="small" type="link" @click="openEdit(record)">编辑
-                                                </a-button>
-                                                <a-popconfirm
-                                                    v-if="record.isSystem === false"
-                                                    cancel-text="取消"
-                                                    ok-text="确定"
-                                                    title="确定删除该SEO配置吗？"
-                                                    @confirm="onDelete(record)">
-                                                        <a-button danger size="small" type="link">删除</a-button>
-                                                </a-popconfirm>
-                                                <a-tooltip v-else title="系统内置SEO配置不可删除">
-                                                        <a-button disabled danger size="small" type="link">删除</a-button>
-                                                </a-tooltip>
-                                        </a-space>
+                                        <template v-if="isBelowLg">
+                                                <a-dropdown>
+                                                        <a-button size="small" type="link">
+                                                                操作
+                                                                <DownOutlined/>
+                                                        </a-button>
+                                                        <template #overlay>
+                                                                <a-menu
+                                                                    @click="({key}) => handleActionClick(record, key)">
+                                                                        <a-menu-item key="detail">查看</a-menu-item>
+                                                                        <a-menu-item key="edit">编辑</a-menu-item>
+                                                                        <a-menu-item v-if="record.isSystem === false"
+                                                                                     key="delete">
+                                                                                <span class="text-red-500">删除</span>
+                                                                        </a-menu-item>
+                                                                </a-menu>
+                                                        </template>
+                                                </a-dropdown>
+                                        </template>
+                                        <template v-else>
+                                                <a-space>
+                                                        <a-button size="small" type="link" @click="openDetail(record)">查看
+                                                        </a-button>
+                                                        <a-button size="small" type="link" @click="openEdit(record)">编辑
+                                                        </a-button>
+                                                        <a-popconfirm
+                                                            v-if="record.isSystem === false"
+                                                            cancel-text="取消"
+                                                            ok-text="确定"
+                                                            title="确定删除该SEO配置吗？"
+                                                            @confirm="onDelete(record)">
+                                                                <a-button danger size="small" type="link">删除</a-button>
+                                                        </a-popconfirm>
+                                                        <a-tooltip v-else title="系统内置SEO配置不可删除">
+                                                                <a-button disabled danger size="small" type="link">删除</a-button>
+                                                        </a-tooltip>
+                                                </a-space>
+                                        </template>
                                 </template>
                         </template>
                 </a-table>
@@ -124,14 +145,23 @@
 </template>
 
 <script setup>
-import {computed, onMounted, ref} from 'vue';
-import {message} from 'ant-design-vue';
-import {PlusOutlined, SearchOutlined} from '@ant-design/icons-vue';
+import {computed, onMounted, ref, h} from 'vue';
+import {message, Modal} from 'ant-design-vue';
+import {DownOutlined, PlusOutlined, SearchOutlined} from '@ant-design/icons-vue';
 import {useSeoStore} from '../../../../stores/seo.js';
 import SeoDetailDrawer from '../../../../components/Website/System/SeoDetailDrawer.vue';
 import SeoEditModal from '../../../../components/Website/System/SeoEditModal.vue';
 
 const seoStore = useSeoStore();
+
+// LG断点检测（1024px）
+const isBelowLg = ref(window.innerWidth < 1024);
+if (typeof window !== 'undefined') {
+        const handleResize = () => {
+                isBelowLg.value = window.innerWidth < 1024;
+        };
+        window.addEventListener('resize', handleResize);
+}
 
 // 搜索与筛选（仅关键词 + 是否系统内置）
 const searchKeyword = ref('');
@@ -146,8 +176,8 @@ const isSystemFilterOptions = computed(() => {
         ];
 });
 
-// 表格列定义
-const columns = [
+// 表格列定义（操作列宽度根据屏幕响应式）
+const columns = computed(() => [
         {title: 'ID', dataIndex: 'id', key: 'id', width: 80},
         {title: '页面类型', key: 'pageType', width: 100},
         {title: '页面ID', dataIndex: 'pageId', key: 'pageId', width: 100, ellipsis: true},
@@ -156,8 +186,8 @@ const columns = [
         {title: '描述', dataIndex: 'description', key: 'description', width: 250, ellipsis: true},
         {title: '是否系统内置', key: 'isSystem', width: 120},
         {title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 180},
-        {title: '操作', key: 'action', width: 200, fixed: 'right'}
-];
+        {title: '操作', key: 'action', width: isBelowLg.value ? 100 : 200, fixed: 'right'}
+]);
 
 // 表格分页配置
 const tablePagination = computed(() => ({
@@ -174,6 +204,26 @@ const editVisible = ref(false);
 const selectedSeo = ref(null);
 const isCreate = ref(false);
 const seoEditModalRef = ref(null);
+
+/**
+ * 处理移动端操作列点击
+ * @param {Object} record - 记录
+ * @param {string} key - 菜单项key
+ */
+const handleActionClick = (record, key) => {
+        if (key === 'detail') {
+                openDetail(record);
+        } else if (key === 'edit') {
+                openEdit(record);
+        } else if (key === 'delete') {
+                Modal.confirm({
+                        title: () => h('span', {style: {fontWeight: 'normal'}}, '确定删除该SEO配置吗？'),
+                        cancelText: '取消',
+                        okText: '确定',
+                        onOk: () => onDelete(record)
+                });
+        }
+};
 
 /**
  * 加载SEO配置列表

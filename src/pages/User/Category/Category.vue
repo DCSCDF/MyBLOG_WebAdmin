@@ -75,17 +75,36 @@
                                         </a-tag>
                                 </template>
                                 <template v-else-if="column.key === 'action'">
-                                        <a-space>
-                                                <a-button size="small" type="link" @click="openEdit(record)">编辑
-                                                </a-button>
-                                                <a-popconfirm
-                                                    cancel-text="取消"
-                                                    ok-text="确定"
-                                                    title="确定删除该分类吗？删除后将无法恢复。"
-                                                    @confirm="onDelete(record)">
-                                                        <a-button danger size="small" type="link">删除</a-button>
-                                                </a-popconfirm>
-                                        </a-space>
+                                        <template v-if="isBelowLg">
+                                                <a-dropdown>
+                                                        <a-button size="small" type="link">
+                                                                操作
+                                                                <DownOutlined/>
+                                                        </a-button>
+                                                        <template #overlay>
+                                                                <a-menu
+                                                                    @click="({key}) => handleActionClick(record, key)">
+                                                                        <a-menu-item key="edit">编辑</a-menu-item>
+                                                                        <a-menu-item key="delete">
+                                                                                <span class="text-red-500">删除</span>
+                                                                        </a-menu-item>
+                                                                </a-menu>
+                                                        </template>
+                                                </a-dropdown>
+                                        </template>
+                                        <template v-else>
+                                                <a-space>
+                                                        <a-button size="small" type="link" @click="openEdit(record)">编辑
+                                                        </a-button>
+                                                        <a-popconfirm
+                                                            cancel-text="取消"
+                                                            ok-text="确定"
+                                                            title="确定删除该分类吗？删除后将无法恢复。"
+                                                            @confirm="onDelete(record)">
+                                                                <a-button danger size="small" type="link">删除</a-button>
+                                                        </a-popconfirm>
+                                                </a-space>
+                                        </template>
                                 </template>
                         </template>
                 </a-table>
@@ -159,12 +178,21 @@
 </template>
 
 <script setup>
-import {computed, onMounted, ref} from 'vue';
-import {message} from 'ant-design-vue';
-import {SearchOutlined} from '@ant-design/icons-vue';
+import {computed, onMounted, ref, h} from 'vue';
+import {message, Modal} from 'ant-design-vue';
+import {DownOutlined, SearchOutlined} from '@ant-design/icons-vue';
 import {useCategoryStore} from '../../../stores/category.js';
 
 const categoryStore = useCategoryStore();
+
+// LG断点检测（1024px）
+const isBelowLg = ref(window.innerWidth < 1024);
+if (typeof window !== 'undefined') {
+        const handleResize = () => {
+                isBelowLg.value = window.innerWidth < 1024;
+        };
+        window.addEventListener('resize', handleResize);
+}
 
 // 搜索与筛选（keyword 传接口，hidden 传 0/1 或 true/false；'' 表示不传该筛选）
 const searchKeyword = ref('');
@@ -182,8 +210,8 @@ const hiddenFilterOptions = computed(() => {
         return useApiOptions ? options : defaultHiddenOptions;
 });
 
-// 表格列定义
-const columns = [
+// 表格列定义（操作列宽度根据屏幕响应式）
+const columns = computed(() => [
         {title: 'ID', dataIndex: 'id', key: 'id', width: 70},
         {title: '名称', dataIndex: 'name', key: 'name', width: 160, ellipsis: true},
         {title: '描述', dataIndex: 'description', key: 'description', width: 220, ellipsis: true},
@@ -191,8 +219,8 @@ const columns = [
         {title: '是否隐藏', key: 'hidden', width: 90},
         {title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 180},
         {title: '更新时间', dataIndex: 'updateTime', key: 'updateTime', width: 180},
-        {title: '操作', key: 'action', width: 220, fixed: 'right'}
-];
+        {title: '操作', key: 'action', width: isBelowLg.value ? 100 : 220, fixed: 'right'}
+]);
 
 // 表格分页配置
 const tablePagination = computed(() => ({
@@ -422,6 +450,24 @@ const submitEdit = async () => {
                 }
         } else if (errorMessage) {
                 message.warning(errorMessage);
+        }
+};
+
+/**
+ * 处理移动端操作列点击
+ * @param {Object} record - 记录
+ * @param {string} key - 菜单项key
+ */
+const handleActionClick = (record, key) => {
+        if (key === 'edit') {
+                openEdit(record);
+        } else if (key === 'delete') {
+                Modal.confirm({
+                        title: () => h('span', {style: {fontWeight: 'normal'}}, '确定删除该分类吗？删除后将无法恢复。'),
+                        cancelText: '取消',
+                        okText: '确定',
+                        onOk: () => onDelete(record)
+                });
         }
 };
 

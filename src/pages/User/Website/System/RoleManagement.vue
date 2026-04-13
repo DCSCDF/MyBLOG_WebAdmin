@@ -93,29 +93,50 @@
                                         </a-tag>
                                 </template>
                                 <template v-else-if="column.key === 'action'">
-                                        <a-space>
-                                                <a-button size="small" type="link" @click="openDetail(record)">
-                                                        查看
-                                                </a-button>
-                                                <a-button size="small" type="link"
-                                                          @click="openPermissionDrawer(record)">权限
-                                                </a-button>
-                                                <a-button
-                                                    v-if="!record.isSystem"
-                                                    size="small"
-                                                    type="link"
-                                                    @click="openEdit(record)">编辑
-                                                </a-button>
-                                                <a-popconfirm
-                                                    v-if="!record.isSystem"
-                                                    cancel-text="取消"
-                                                    ok-text="确定"
-                                                    title="确定删除该角色吗？将级联删除用户-角色、角色-权限、角色-权限组关联。"
-                                                    @confirm="onDelete(record)">
-                                                        <a-button danger size="small" type="link">删除
+                                        <template v-if="isBelowLg">
+                                                <a-dropdown>
+                                                        <a-button size="small" type="link">
+                                                                操作
+                                                                <DownOutlined/>
                                                         </a-button>
-                                                </a-popconfirm>
-                                        </a-space>
+                                                        <template #overlay>
+                                                                <a-menu
+                                                                    @click="({key}) => handleActionClick(record, key)">
+                                                                        <a-menu-item key="detail">查看</a-menu-item>
+                                                                        <a-menu-item key="permission">权限</a-menu-item>
+                                                                        <a-menu-item v-if="!record.isSystem" key="edit">编辑</a-menu-item>
+                                                                        <a-menu-item v-if="!record.isSystem" key="delete">
+                                                                                <span class="text-red-500">删除</span>
+                                                                        </a-menu-item>
+                                                                </a-menu>
+                                                        </template>
+                                                </a-dropdown>
+                                        </template>
+                                        <template v-else>
+                                                <a-space>
+                                                        <a-button size="small" type="link" @click="openDetail(record)">
+                                                                查看
+                                                        </a-button>
+                                                        <a-button size="small" type="link"
+                                                                  @click="openPermissionDrawer(record)">权限
+                                                        </a-button>
+                                                        <a-button
+                                                            v-if="!record.isSystem"
+                                                            size="small"
+                                                            type="link"
+                                                            @click="openEdit(record)">编辑
+                                                        </a-button>
+                                                        <a-popconfirm
+                                                            v-if="!record.isSystem"
+                                                            cancel-text="取消"
+                                                            ok-text="确定"
+                                                            title="确定删除该角色吗？将级联删除用户-角色、角色-权限、角色-权限组关联。"
+                                                            @confirm="onDelete(record)">
+                                                                <a-button danger size="small" type="link">删除
+                                                                </a-button>
+                                                        </a-popconfirm>
+                                                </a-space>
+                                        </template>
                                 </template>
                         </template>
                 </a-table>
@@ -362,9 +383,9 @@
 </template>
 
 <script setup>
-import {computed, ref, watch} from 'vue';
-import {message} from 'ant-design-vue';
-import {InfoCircleOutlined, SearchOutlined} from '@ant-design/icons-vue';
+import {computed, ref, watch, h} from 'vue';
+import {message, Modal} from 'ant-design-vue';
+import {DownOutlined, InfoCircleOutlined, SearchOutlined} from '@ant-design/icons-vue';
 import {useDrawerWidth} from '../../../../utils/useDrawerWidth.js';
 import {useRoleStore} from '../../../../stores/role.js';
 import {usePermissionStore} from '../../../../stores/permission.js';
@@ -378,6 +399,15 @@ const permissionStore = usePermissionStore();
 const permissionGroupStore = usePermissionGroupStore();
 
 const {drawerWidth} = useDrawerWidth();
+
+// LG断点检测（1024px）
+const isBelowLg = ref(window.innerWidth < 1024);
+if (typeof window !== 'undefined') {
+        const handleResize = () => {
+                isBelowLg.value = window.innerWidth < 1024;
+        };
+        window.addEventListener('resize', handleResize);
+}
 
 // 表格分页配置（与后端 current/size 对应）
 const tablePagination = computed(() => ({
@@ -404,7 +434,7 @@ const isSystemFilterOptions = computed(() => {
         return fromApi && fromApi.length > 0 ? fromApi : [{value: 0, label: '否'}, {value: 1, label: '是'}];
 });
 
-const columns = [
+const columns = computed(() => [
         {title: '编码', dataIndex: 'code', key: 'code', width: 140, ellipsis: true},
         {title: '名称', dataIndex: 'name', key: 'name', width: 120},
         {title: '描述', dataIndex: 'description', key: 'description', width: 180, ellipsis: true},
@@ -412,8 +442,8 @@ const columns = [
         {title: '系统内置', dataIndex: 'isSystem', key: 'isSystem', width: 100},
         {title: '排序', dataIndex: 'sortOrder', key: 'sortOrder', width: 80},
         {title: '状态', dataIndex: 'status', key: 'status', width: 80},
-        {title: '操作', key: 'action', width: 220, fixed: 'right'}
-];
+        {title: '操作', key: 'action', width: isBelowLg.value ? 100 : 220, fixed: 'right'}
+]);
 
 // 存储所有权限组中的权限ID集合
 const permissionIdsFromGroups = ref(new Set());
@@ -727,6 +757,28 @@ async function submitCreate() {
 function openDetail(record) {
         selectedRole.value = record;
         detailVisible.value = true;
+}
+
+/**
+ * 处理移动端操作列点击
+ * @param {Object} record - 记录
+ * @param {string} key - 菜单项key
+ */
+function handleActionClick(record, key) {
+        if (key === 'detail') {
+                openDetail(record);
+        } else if (key === 'permission') {
+                openPermissionDrawer(record);
+        } else if (key === 'edit') {
+                openEdit(record);
+        } else if (key === 'delete') {
+                Modal.confirm({
+                        title: () => h('span', {style: {fontWeight: 'normal'}}, '确定删除该角色吗？将级联删除用户-角色、角色-权限、角色-权限组关联。'),
+                        cancelText: '取消',
+                        okText: '确定',
+                        onOk: () => onDelete(record)
+                });
+        }
 }
 
 function openEdit(record) {
