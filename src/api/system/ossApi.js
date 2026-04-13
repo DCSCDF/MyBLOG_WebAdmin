@@ -14,6 +14,7 @@
  */
 
 import request from '../../utils/request.js';
+import {VITE_API_BASE_URL} from '../../config/runtimeEnv.js';
 
 const OSS_BASE_PATH = '/api/oss';
 
@@ -73,7 +74,7 @@ export const ossApi = {
 
 			xhr.onerror = () => reject(new Error('网络错误'));
 
-			const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+			const baseUrl = VITE_API_BASE_URL() || '';
 			xhr.open('POST', `${baseUrl}${OSS_BASE_PATH}/upload`);
 			xhr.setRequestHeader('token', localStorage.getItem('token') || '');
 			xhr.send(formData);

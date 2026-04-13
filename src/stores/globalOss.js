@@ -18,6 +18,7 @@ import {computed, ref} from 'vue';
 import {globalOssApi} from '../api/system/globalOssApi.js';
 import logger from '../utils/logger.js';
 import {getSmallImageUrl} from '../utils/imageUrl.js';
+import {VITE_API_BASE_URL} from '../config/runtimeEnv.js';
 
 export const useGlobalOssStore = defineStore('globalOss', () => {
 	// 图片列表
@@ -152,7 +153,7 @@ export const useGlobalOssStore = defineStore('globalOss', () => {
 	 * 获取图片预览 URL（缩略图，小尺寸）
 	 */
 	const getImageUrl = (hash) => {
-		const baseUrl = `${import.meta.env.VITE_API_BASE_URL || ''}/api/images/${hash}`;
+		const baseUrl = `${VITE_API_BASE_URL() || ''}/api/images/${hash}`;
 		return getSmallImageUrl(baseUrl);
 	};
 
@@ -160,7 +161,7 @@ export const useGlobalOssStore = defineStore('globalOss', () => {
 	 * 获取图片原始 URL（用于预览等需要高清图的场景）
 	 */
 	const getOriginalImageUrl = (hash) => {
-		return `${import.meta.env.VITE_API_BASE_URL || ''}/api/images/${hash}`;
+		return `${VITE_API_BASE_URL() || ''}/api/images/${hash}`;
 	};
 
 	/**

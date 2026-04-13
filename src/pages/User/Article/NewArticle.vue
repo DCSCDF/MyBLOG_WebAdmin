@@ -95,9 +95,10 @@ import {blogApi} from '../../../api/blog/blogApi.js';
 import {ossApi} from '../../../api/system/ossApi.js';
 import {useArticleStore} from '../../../stores/article.js';
 import {useCategoryStore} from '../../../stores/category.js';
+import {VITE_API_BASE_URL} from '../../../config/runtimeEnv.js';
 
 // 获取后端基础地址
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+const API_BASE_URL = VITE_API_BASE_URL() || '';
 
 const articleStore = useArticleStore();
 const categoryStore = useCategoryStore();

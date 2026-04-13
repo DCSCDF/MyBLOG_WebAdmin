@@ -257,9 +257,10 @@ import {useBlogStore} from '../../../stores/blog.js';
 import {useCategoryStore} from '../../../stores/category.js';
 import {ossApi} from '../../../api/system/ossApi.js';
 import {getSmallImageUrl} from '../../../utils/imageUrl.js';
+import {VITE_API_BASE_URL} from '../../../config/runtimeEnv.js';
 
 // 获取后端基础地址
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+const API_BASE_URL = VITE_API_BASE_URL() || '';
 
 const router = useRouter();
 const blogStore = useBlogStore();
