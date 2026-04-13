@@ -27,10 +27,10 @@
 import axios from 'axios';
 import {handleApi} from '../config/apiInterceptor.js';
 import {useAuthStore} from '../stores/auth.js';
-// 使用环境变量设置请求的基础URL，支持不同环境下的API地址配置
-/* eslint-disable no-undef */
-// 从环境变量获取API基础URL，如果未定义则使用相对路径（配合代理使用）
-const baseURL = import.meta.env.VITE_API_BASE_URL;
+import {VITE_API_BASE_URL} from '../config/runtimeEnv.js';
+
+// 从运行时配置获取API基础URL
+const baseURL = VITE_API_BASE_URL() || '';
 axios.defaults.baseURL = baseURL;
 
 
