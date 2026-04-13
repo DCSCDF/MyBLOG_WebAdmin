@@ -91,12 +91,19 @@
                                                                 <DownOutlined/>
                                                         </a-button>
                                                         <template #overlay>
-                                                                <a-menu @click="({key}) => handleActionClick(record, key)">
+                                                                <a-menu
+                                                                    @click="({key}) => handleActionClick(record, key)">
                                                                         <a-menu-item key="detail">查看</a-menu-item>
                                                                         <a-menu-item key="edit">编辑</a-menu-item>
-                                                                        <a-menu-item v-if="record.status !== 3" key="status-1">通过</a-menu-item>
-                                                                        <a-menu-item v-if="record.status !== 3" key="status-2">拒绝</a-menu-item>
-                                                                        <a-menu-item v-if="record.status !== 3" key="status-0">待审核</a-menu-item>
+                                                                        <a-menu-item v-if="record.status !== 3"
+                                                                                     key="status-1">通过
+                                                                        </a-menu-item>
+                                                                        <a-menu-item v-if="record.status !== 3"
+                                                                                     key="status-2">拒绝
+                                                                        </a-menu-item>
+                                                                        <a-menu-item v-if="record.status !== 3"
+                                                                                     key="status-0">待审核
+                                                                        </a-menu-item>
                                                                         <a-menu-item key="delete">
                                                                                 <span class="text-red-500">删除</span>
                                                                         </a-menu-item>
@@ -106,7 +113,8 @@
                                         </template>
                                         <template v-else>
                                                 <a-space>
-                                                        <a-button size="small" type="link" @click="openDetail(record)">查看
+                                                        <a-button size="small" type="link" @click="openDetail(record)">
+                                                                查看
                                                         </a-button>
                                                         <a-button size="small" type="link" @click="openEdit(record)">编辑
                                                         </a-button>
@@ -135,7 +143,8 @@
                                                             ok-text="确定"
                                                             title="确定删除该友情链接吗？删除后为逻辑删除，状态将标记为已删除。"
                                                             @confirm="onDelete(record)">
-                                                                <a-button danger size="small" type="link">删除</a-button>
+                                                                <a-button danger size="small" type="link">删除
+                                                                </a-button>
                                                         </a-popconfirm>
                                                 </a-space>
                                         </template>
@@ -288,7 +297,7 @@
 </template>
 
 <script setup>
-import {computed, onMounted, ref, watch} from 'vue';
+import {computed, onMounted, ref} from 'vue';
 import {message} from 'ant-design-vue';
 import {DownOutlined, SearchOutlined} from '@ant-design/icons-vue';
 import {useFriendLinkStore} from '../../../stores/friendLink.js';
