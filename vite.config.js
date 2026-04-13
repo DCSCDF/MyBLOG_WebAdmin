@@ -19,6 +19,32 @@ import tailwindcss from '@tailwindcss/vite'
 import fs from 'fs'
 import path from 'path'
 
+// 手动加载 .env 文件
+function loadEnvFile(envPath) {
+	if (fs.existsSync(envPath)) {
+		const content = fs.readFileSync(envPath, 'utf-8')
+		const lines = content.split('\n')
+		lines.forEach(line => {
+			line = line.trim()
+			if (!line || line.startsWith('#')) return
+			const equalIndex = line.indexOf('=')
+			if (equalIndex > 0) {
+				const key = line.substring(0, equalIndex).trim()
+				let value = line.substring(equalIndex + 1).trim()
+				// 移除引号
+				if ((value.startsWith('"') && value.endsWith('"')) ||
+					(value.startsWith("'") && value.endsWith("'"))) {
+					value = value.slice(1, -1)
+				}
+				process.env[key] = value
+			}
+		})
+	}
+}
+
+// 加载 .env 文件（确保在读取环境变量之前）
+loadEnvFile(path.resolve(process.cwd(), '.env'))
+
 
 // 加载所有环境变量
 const allEnvVars = {}
@@ -91,6 +117,29 @@ const jsonConfig = {
 	env: configurableEnv
 }
 
+// 开发模式插件 - 提供 /env-config.json 并注入脚本
+const devPlugin = {
+	name: 'dev-env-config',
+	apply: 'serve',
+	configureServer(server) {
+		// 提供 /env-config.json 端点
+		server.middlewares.use((req, res, next) => {
+			if (req.url === '/env-config.json') {
+				res.setHeader('Content-Type', 'application/json')
+				res.setHeader('Cache-Control', 'no-store')
+				res.end(JSON.stringify(jsonConfig))
+				return
+			}
+			next()
+		})
+	},
+	transformIndexHtml(html) {
+		// 注入脚本到 index.html
+		const scriptTag = `<script>${inlineScript}</script>\n<script>${asyncScript}</script>`
+		return html.replace('</head>', `  ${scriptTag}\n</head>`)
+	}
+}
+
 // @ts-expect-error closeBundle 是 Vite 插件钩子
 const configPlugin = {
 	name: 'generate-config-file',
@@ -123,6 +172,7 @@ export default defineConfig({
 	plugins: [
 		tailwindcss(),
 		vue(),
+		devPlugin,
 		configPlugin
 	]
 })
