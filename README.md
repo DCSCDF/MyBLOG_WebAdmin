@@ -82,9 +82,3 @@ npm run dev
 ```bash
 npm run build
 ```
-
-### 代码检查
-
-```bash
-npm run lint
-```
