@@ -68,6 +68,7 @@
                     :pagination="tablePagination"
                     :scroll="{ x: 1100 }"
                     row-key="id"
+                    size="small"
                     @change="onTableChange">
                         <template #bodyCell="{ column, record }">
                                 <template v-if="column.key === 'imageUrl'">

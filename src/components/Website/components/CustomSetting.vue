@@ -67,6 +67,7 @@
                             :scroll="{ x: 1100 }"
                             class="rounded-lg overflow-hidden mt-4"
                             row-key="id"
+                            size="small"
                             @change="onTableChange">
                                 <template #bodyCell="{ column, record }">
                                         <template v-if="column.key === 'configKey'">
@@ -92,9 +93,11 @@
                                                                 <template #overlay>
                                                                         <a-menu
                                                                             @click="({key}) => handleActionClick(record, key)">
-                                                                                <a-menu-item key="edit">修改</a-menu-item>
+                                                                                <a-menu-item key="edit">修改
+                                                                                </a-menu-item>
                                                                                 <a-menu-item key="delete">
-                                                                                        <span class="text-red-500">删除</span>
+                                                                                        <span
+                                                                                            class="text-red-500">删除</span>
                                                                                 </a-menu-item>
                                                                         </a-menu>
                                                                 </template>
@@ -218,7 +221,7 @@
 </template>
 
 <script setup>
-import {computed, onMounted, reactive, ref, h} from 'vue';
+import {computed, h, onMounted, reactive, ref} from 'vue';
 import {message, Modal} from 'ant-design-vue';
 import {DownOutlined, PlusOutlined, SearchOutlined} from '@ant-design/icons-vue';
 import {configApi} from '../../../api/system/configApi.js';
@@ -473,11 +476,11 @@ function handleCreateCancel() {
 // 验证表单基础条件
 function validateFormBasics() {
         let isValid = true;
-        
+
         if (!createFormRef.value) {
                 isValid = false;
         }
-        
+
         if (isValid && createForm.dataType === DATA_TYPE_CUSTOM) {
                 const customType = String(createForm.dataTypeCustom ?? '').trim();
                 if (!customType) {
@@ -485,7 +488,7 @@ function validateFormBasics() {
                         isValid = false;
                 }
         }
-        
+
         return isValid;
 }
 
@@ -495,7 +498,7 @@ function buildRequestBody() {
                 configKey: String(createForm.configKey ?? '').trim(),
                 configValue: String(createForm.configValue ?? '').trim()
         };
-        
+
         // 处理数据类型
         let dataTypeToSend = null;
         if (createForm.dataType === DATA_TYPE_CUSTOM) {
@@ -506,7 +509,7 @@ function buildRequestBody() {
         if (dataTypeToSend) {
                 body.dataType = dataTypeToSend;
         }
-        
+
         // 处理可选字段
         if (createForm.validationRule) {
                 body.validationRule = String(createForm.validationRule).trim();
@@ -514,7 +517,7 @@ function buildRequestBody() {
         if (createForm.description) {
                 body.description = String(createForm.description).trim();
         }
-        
+
         return body;
 }
 
@@ -529,18 +532,18 @@ async function executeCreateOperation(body) {
 
 async function handleCreateOk() {
         let canProceed = validateFormBasics();
-        
+
         if (canProceed) {
                 try {
                         createSubmitting.value = true;
                         await createFormRef.value.validate();
-                        
+
                         // 构建请求数据
                         const body = buildRequestBody();
-                        
+
                         // 执行创建
                         await executeCreateOperation(body);
-                        
+
                 } catch (e) {
                         if (!e?.errorFields) {
                                 message.error(e?.message || '添加失败');

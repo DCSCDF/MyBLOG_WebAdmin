@@ -90,6 +90,7 @@
                     :pagination="tablePagination"
                     :scroll="{ x: 1100 }"
                     row-key="id"
+                    size="small"
                     @change="onTableChange">
                         <template #bodyCell="{ column, record }">
                                 <template v-if="column.key === 'title'">
@@ -162,10 +163,14 @@
                                                                                 {{ record.isHidden ? '显示' : '隐藏' }}
                                                                         </a-menu-item>
                                                                         <a-menu-item key="toggle-top">
-                                                                                {{ record.isTop ? '取消置顶' : '设为置顶' }}
+                                                                                {{
+                                                                                        record.isTop ? '取消置顶' : '设为置顶'
+                                                                                }}
                                                                         </a-menu-item>
                                                                         <a-menu-item key="toggle-recommend">
-                                                                                {{ record.isRecommend ? '取消推荐' : '设为推荐' }}
+                                                                                {{
+                                                                                        record.isRecommend ? '取消推荐' : '设为推荐'
+                                                                                }}
                                                                         </a-menu-item>
                                                                         <a-menu-item key="delete">
                                                                                 <span class="text-red-500">删除</span>
@@ -176,13 +181,15 @@
                                         </template>
                                         <template v-else>
                                                 <a-space>
-                                                        <a-button size="small" type="link" @click="toggleHidden(record)">
+                                                        <a-button size="small" type="link"
+                                                                  @click="toggleHidden(record)">
                                                                 {{ record.isHidden ? '显示' : '隐藏' }}
                                                         </a-button>
                                                         <a-button size="small" type="link" @click="toggleTop(record)">
                                                                 {{ record.isTop ? '取消置顶' : '设为置顶' }}
                                                         </a-button>
-                                                        <a-button size="small" type="link" @click="toggleRecommend(record)">
+                                                        <a-button size="small" type="link"
+                                                                  @click="toggleRecommend(record)">
                                                                 {{ record.isRecommend ? '取消推荐' : '设为推荐' }}
                                                         </a-button>
                                                         <a-popconfirm
@@ -190,7 +197,8 @@
                                                             ok-text="确定"
                                                             title="确定删除该文章吗？删除后将无法恢复。"
                                                             @confirm="onDelete(record)">
-                                                                <a-button danger size="small" type="link">删除</a-button>
+                                                                <a-button danger size="small" type="link">删除
+                                                                </a-button>
                                                         </a-popconfirm>
                                                 </a-space>
                                         </template>
@@ -201,7 +209,7 @@
 </template>
 
 <script setup>
-import {computed, onMounted, ref, h} from 'vue';
+import {computed, h, onMounted, ref} from 'vue';
 import {message, Modal} from 'ant-design-vue';
 import {DownOutlined, FileTextOutlined, SearchOutlined} from '@ant-design/icons-vue';
 import {useGlobalArticleStore} from '../../../../stores/globalArticle.js';

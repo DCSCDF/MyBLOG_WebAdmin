@@ -78,6 +78,7 @@
                     :pagination="tablePagination"
                     :scroll="{ x: 1000 }"
                     row-key="id"
+                    size="small"
                     @change="onTableChange">
                         <template #bodyCell="{ column, record }">
                                 <template v-if="column.key === 'thumbnail'">
@@ -137,7 +138,8 @@
                                                             ok-text="确定"
                                                             title="确定删除该图片吗？删除后将无法恢复。"
                                                             @confirm="onDelete(record)">
-                                                                <a-button danger size="small" type="link">删除</a-button>
+                                                                <a-button danger size="small" type="link">删除
+                                                                </a-button>
                                                         </a-popconfirm>
                                                 </a-space>
                                         </template>
@@ -196,7 +198,7 @@
 </template>
 
 <script setup>
-import {computed, onMounted, ref, h} from 'vue';
+import {computed, h, onMounted, ref} from 'vue';
 import {message, Modal} from 'ant-design-vue';
 import {CloudUploadOutlined, DownOutlined, FileImageOutlined, SearchOutlined} from '@ant-design/icons-vue';
 import {useOssStore} from '../../../stores/oss.js';
@@ -292,48 +294,48 @@ const truncateHash = (hash) => {
  * 自定义上传方法
  */
 const handleCustomUpload = async ({file, onSuccess, onError}) => {
-	const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
-	const maxSize = 10 * 1024 * 1024;
-	const fileType = file.type;
-	const isAllowed = allowedTypes.includes(fileType);
-	const isSizeAllowed = file.size <= maxSize;
-	const errorMessages = {
-		type: '不支持的图片格式，支持的格式：jpg、jpeg、png、gif、bmp、webp',
-		size: '图片大小不能超过 10MB'
-	};
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
+        const maxSize = 10 * 1024 * 1024;
+        const fileType = file.type;
+        const isAllowed = allowedTypes.includes(fileType);
+        const isSizeAllowed = file.size <= maxSize;
+        const errorMessages = {
+                type: '不支持的图片格式，支持的格式：jpg、jpeg、png、gif、bmp、webp',
+                size: '图片大小不能超过 10MB'
+        };
 
-	let errorType = '';
-	if (!isAllowed) {
-		errorType = 'type';
-	} else if (!isSizeAllowed) {
-		errorType = 'size';
-	}
+        let errorType = '';
+        if (!isAllowed) {
+                errorType = 'type';
+        } else if (!isSizeAllowed) {
+                errorType = 'size';
+        }
 
-	let shouldUpload = true;
-	if (errorType) {
-		const msg = errorMessages[errorType];
-		onError(new Error(msg));
-		message.error(msg);
-		shouldUpload = false;
-	}
+        let shouldUpload = true;
+        if (errorType) {
+                const msg = errorMessages[errorType];
+                onError(new Error(msg));
+                message.error(msg);
+                shouldUpload = false;
+        }
 
-	if (shouldUpload) {
-		// 重置进度
-		uploadProgress.value = 0;
-		try {
-			const result = await ossStore.uploadImage(file, (percent) => {
-				uploadProgress.value = percent;
-			});
-			fileList.value = [];
-			loadImages();
-			message.success('上传成功');
-			onSuccess(result);
-		} catch (e) {
-			uploadProgress.value = 0;
-			onError(e);
-			message.error(e?.message || '上传失败');
-		}
-	}
+        if (shouldUpload) {
+                // 重置进度
+                uploadProgress.value = 0;
+                try {
+                        const result = await ossStore.uploadImage(file, (percent) => {
+                                uploadProgress.value = percent;
+                        });
+                        fileList.value = [];
+                        loadImages();
+                        message.success('上传成功');
+                        onSuccess(result);
+                } catch (e) {
+                        uploadProgress.value = 0;
+                        onError(e);
+                        message.error(e?.message || '上传失败');
+                }
+        }
 };
 
 /**

@@ -67,6 +67,7 @@
                     :pagination="tablePagination"
                     :scroll="{ x: 900 }"
                     row-key="id"
+                    size="small"
                     @change="onTableChange">
                         <template #bodyCell="{ column, record }">
                                 <template v-if="column.key === 'hidden'">
@@ -101,7 +102,8 @@
                                                             ok-text="确定"
                                                             title="确定删除该分类吗？删除后将无法恢复。"
                                                             @confirm="onDelete(record)">
-                                                                <a-button danger size="small" type="link">删除</a-button>
+                                                                <a-button danger size="small" type="link">删除
+                                                                </a-button>
                                                         </a-popconfirm>
                                                 </a-space>
                                         </template>
@@ -178,7 +180,7 @@
 </template>
 
 <script setup>
-import {computed, onMounted, ref, h} from 'vue';
+import {computed, h, onMounted, ref} from 'vue';
 import {message, Modal} from 'ant-design-vue';
 import {DownOutlined, SearchOutlined} from '@ant-design/icons-vue';
 import {useCategoryStore} from '../../../stores/category.js';
@@ -255,21 +257,21 @@ const loadCategories = () => {
                 currentPage: categoryStore.pagination.current,
                 pageSize: categoryStore.pagination.pageSize
         };
-        
+
         // 处理关键词参数
         const keywordRaw = searchKeyword.value;
         const hasKeyword = keywordRaw != null && String(keywordRaw).trim().length > 0;
         if (hasKeyword) {
                 params.keyword = String(keywordRaw).trim();
         }
-        
+
         // 处理隐藏状态参数
         const hiddenRaw = searchHidden.value;
         const isHiddenValueValid = hiddenRaw != null && hiddenRaw !== '';
         if (isHiddenValueValid) {
                 params.hidden = hiddenRaw;
         }
-        
+
         categoryStore.fetchCategories(params).catch((e) => {
                 message.error(e?.message || '加载分类列表失败');
         });
@@ -293,7 +295,7 @@ const handleSearch = () => {
         const hiddenVal = searchHidden.value;
         const isHiddenValueValid = hiddenVal != null && hiddenVal !== '';
         const hiddenParam = isHiddenValueValid ? hiddenVal : undefined;
-        
+
         categoryStore.updatePagination({current: 1});
         categoryStore.updateQueryParams({
                 keyword: searchKeyword.value.trim(),

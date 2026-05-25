@@ -49,6 +49,7 @@
                     :pagination="paginationConfig"
                     :scroll="{ x: 800 }"
                     row-key="id"
+                    size="small"
                     table-layout="fixed"
                     @change="handleTableChange">
                         <template #bodyCell="{ column, record }">

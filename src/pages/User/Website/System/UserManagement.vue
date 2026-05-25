@@ -67,6 +67,7 @@
                     :pagination="tablePagination"
                     :scroll="{ x: 1000 }"
                     row-key="id"
+                    size="small"
                     @change="onTableChange">
                         <template #bodyCell="{ column, record }">
                                 <template v-if="column.key === 'avatar'">
@@ -93,10 +94,14 @@
                                                                 <a-menu
                                                                     @click="({key}) => handleActionClick(record, key)">
                                                                         <a-menu-item key="detail">查看</a-menu-item>
-                                                                        <a-menu-item key="role-permission">角色权限</a-menu-item>
+                                                                        <a-menu-item key="role-permission">角色权限
+                                                                        </a-menu-item>
                                                                         <a-menu-item key="edit">编辑</a-menu-item>
-                                                                        <a-menu-item :key="record.status === 1 ? 'disable' : 'enable'">
-                                                                                {{ record.status === 1 ? '禁用' : '启用' }}
+                                                                        <a-menu-item
+                                                                            :key="record.status === 1 ? 'disable' : 'enable'">
+                                                                                {{
+                                                                                        record.status === 1 ? '禁用' : '启用'
+                                                                                }}
                                                                         </a-menu-item>
                                                                         <a-menu-item key="delete">
                                                                                 <span class="text-red-500">删除</span>
@@ -107,9 +112,11 @@
                                         </template>
                                         <template v-else>
                                                 <a-space>
-                                                        <a-button size="small" type="link" @click="openDetail(record)">查看
+                                                        <a-button size="small" type="link" @click="openDetail(record)">
+                                                                查看
                                                         </a-button>
-                                                        <a-button size="small" type="link" @click="openRolePermission(record)">
+                                                        <a-button size="small" type="link"
+                                                                  @click="openRolePermission(record)">
                                                                 角色权限
                                                         </a-button>
                                                         <a-button size="small" type="link" @click="openEdit(record)">编辑
@@ -131,7 +138,8 @@
                                                             ok-text="确定"
                                                             title="确定删除该用户吗？删除后用户将无法登录。"
                                                             @confirm="onDelete(record)">
-                                                                <a-button danger size="small" type="link">删除</a-button>
+                                                                <a-button danger size="small" type="link">删除
+                                                                </a-button>
                                                         </a-popconfirm>
                                                 </a-space>
                                         </template>
@@ -163,7 +171,7 @@
 </template>
 
 <script setup>
-import {computed, onMounted, ref, h} from 'vue';
+import {computed, h, onMounted, ref} from 'vue';
 import {message, Modal} from 'ant-design-vue';
 import {DownOutlined, SearchOutlined} from '@ant-design/icons-vue';
 import {useUserStore} from '../../../../stores/user.js';

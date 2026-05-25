@@ -67,6 +67,7 @@
                     :pagination="tablePagination"
                     :scroll="{ x: 1100 }"
                     row-key="id"
+                    size="small"
                     @change="onTableChange">
                         <template #bodyCell="{ column, record }">
                                 <template v-if="column.key === 'title'">
@@ -136,7 +137,8 @@
                                         </template>
                                         <template v-else>
                                                 <a-space>
-                                                        <a-button size="small" type="link" @click="toggleHidden(record)">
+                                                        <a-button size="small" type="link"
+                                                                  @click="toggleHidden(record)">
                                                                 {{ record.isHidden ? '显示' : '隐藏' }}
                                                         </a-button>
                                                         <a-button size="small" type="link" @click="openEdit(record)">编辑
@@ -146,7 +148,8 @@
                                                             ok-text="确定"
                                                             title="确定删除该文章吗？删除后将无法恢复。"
                                                             @confirm="onDelete(record)">
-                                                                <a-button danger size="small" type="link">删除</a-button>
+                                                                <a-button danger size="small" type="link">删除
+                                                                </a-button>
                                                         </a-popconfirm>
                                                 </a-space>
                                         </template>
@@ -172,13 +175,13 @@
 
                         <!-- MD编辑器 -->
 
-<MdEditor
-	v-model="editForm.content"
-	:toolbars="toolbars"
-	language="zh-CN"
-	preview
-	@onHtmlChanged="handleHtmlChange"
-	@onUploadImg="onUploadImg"/>
+                        <MdEditor
+                            v-model="editForm.content"
+                            :toolbars="toolbars"
+                            language="zh-CN"
+                            preview
+                            @onHtmlChanged="handleHtmlChange"
+                            @onUploadImg="onUploadImg"/>
 
 
                         <!-- 按钮 -->
@@ -247,7 +250,7 @@
 </template>
 
 <script setup>
-import {computed, onMounted, ref, h} from 'vue';
+import {computed, h, onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {message, Modal} from 'ant-design-vue';
 import {DownOutlined, FileTextOutlined, SearchOutlined} from '@ant-design/icons-vue';
@@ -294,14 +297,14 @@ const hiddenFilterOptions = computed(() => {
 
 // 表格列定义（操作列宽度根据屏幕响应式）
 const columns = computed(() => [
-        {title: 'ID', dataIndex: 'id', key: 'id', width: 70},
+        {title: 'ID', dataIndex: 'id', key: 'id', width: 40},
         {title: '文章', key: 'title', width: 280},
         {title: '标签', key: 'tags', width: 160},
         {title: '评论数', key: 'commentCount', width: 80},
 
         {title: '隐藏', key: 'isHidden', width: 70},
 
-        {title: '操作', key: 'action', width: isBelowLg.value ? 100 : 150, fixed: 'right'}
+        {title: '操作', key: 'action', width: isBelowLg.value ? 60 : 150, fixed: 'right'}
 ]);
 
 // 表格分页配置
@@ -321,36 +324,36 @@ const editForm = ref(null);
 
 // 编辑器工具栏配置
 const toolbars = [
-	'bold',
-	'underline',
-	'italic',
-	'-',
-	'title',
-	'strikeThrough',
-	'sub',
-	'sup',
-	'quote',
-	'unorderedList',
-	'orderedList',
-	'task',
-	'-',
-	'codeRow',
-	'code',
-	'link',
-	'image',
-	'table',
-	'mermaid',
-	'katex',
-	'-',
-	'revoke',
-	'next',
-	'=',
-	'pageFullscreen',
-	'fullscreen',
-	'preview',
-	'previewOnly',
-	'htmlPreview',
-	'catalog',
+        'bold',
+        'underline',
+        'italic',
+        '-',
+        'title',
+        'strikeThrough',
+        'sub',
+        'sup',
+        'quote',
+        'unorderedList',
+        'orderedList',
+        'task',
+        '-',
+        'codeRow',
+        'code',
+        'link',
+        'image',
+        'table',
+        'mermaid',
+        'katex',
+        '-',
+        'revoke',
+        'next',
+        '=',
+        'pageFullscreen',
+        'fullscreen',
+        'preview',
+        'previewOnly',
+        'htmlPreview',
+        'catalog',
 ];
 
 /**
@@ -359,24 +362,24 @@ const toolbars = [
  * @param {Function} callback - 回调函数，传入上传后的 URL 列表
  */
 const onUploadImg = async (files, callback) => {
-	const res = await Promise.all(
-		files.map((file) => {
-			return new Promise((resolve, reject) => {
-				ossApi
-					.uploadImage(file)
-					.then((res) => resolve(res))
-					.catch((error) => reject(error));
-			});
-		})
-	);
+        const res = await Promise.all(
+            files.map((file) => {
+                    return new Promise((resolve, reject) => {
+                            ossApi
+                                .uploadImage(file)
+                                .then((res) => resolve(res))
+                                .catch((error) => reject(error));
+                    });
+            })
+        );
 
-	// 拼接图片 URL：后端地址 + /api/images/ + hash
-	const urls = res.map((item) => {
-		const hash = item.data?.hash;
-		return hash ? `${API_BASE_URL}/api/images/${hash}` : '';
-	}).filter(Boolean);
+        // 拼接图片 URL：后端地址 + /api/images/ + hash
+        const urls = res.map((item) => {
+                const hash = item.data?.hash;
+                return hash ? `${API_BASE_URL}/api/images/${hash}` : '';
+        }).filter(Boolean);
 
-	callback(urls);
+        callback(urls);
 };
 
 // 分类列表

@@ -74,6 +74,7 @@
                     :pagination="tablePagination"
                     :scroll="{ x: 1000 }"
                     row-key="id"
+                    size="small"
                     @change="onTableChange">
                         <template #bodyCell="{ column, record }">
                                 <template v-if="column.key === 'superAdmin'">
@@ -104,8 +105,11 @@
                                                                     @click="({key}) => handleActionClick(record, key)">
                                                                         <a-menu-item key="detail">查看</a-menu-item>
                                                                         <a-menu-item key="permission">权限</a-menu-item>
-                                                                        <a-menu-item v-if="!record.isSystem" key="edit">编辑</a-menu-item>
-                                                                        <a-menu-item v-if="!record.isSystem" key="delete">
+                                                                        <a-menu-item v-if="!record.isSystem" key="edit">
+                                                                                编辑
+                                                                        </a-menu-item>
+                                                                        <a-menu-item v-if="!record.isSystem"
+                                                                                     key="delete">
                                                                                 <span class="text-red-500">删除</span>
                                                                         </a-menu-item>
                                                                 </a-menu>
@@ -358,7 +362,8 @@
                     show-search
                     style="width: 100%;"
                     tree-node-filter-prop="name"/>
-                <div class="mt-2 text-xs text-gray-500">最好是添加父权限，除非你是有特殊需求需要单独给予按钮级别的权限。</div>
+                <div class="mt-2 text-xs text-gray-500">最好是添加父权限，除非你是有特殊需求需要单独给予按钮级别的权限。
+                </div>
         </a-modal>
 
         <!-- 添加权限组弹窗 -->
@@ -383,7 +388,7 @@
 </template>
 
 <script setup>
-import {computed, ref, watch, h} from 'vue';
+import {computed, h, ref, watch} from 'vue';
 import {message, Modal} from 'ant-design-vue';
 import {DownOutlined, InfoCircleOutlined, SearchOutlined} from '@ant-design/icons-vue';
 import {useDrawerWidth} from '../../../../utils/useDrawerWidth.js';
@@ -1074,39 +1079,39 @@ function buildPermissionStructure() {
 
 // 处理权限添加结果
 async function handleAddPermissionResult(validationResult, permissionData) {
-	if (validationResult.valid) {
-		try {
-			// 检查权限冲突
-			const conflictResult = await checkPermissionConflicts(
-				permissionData.selectedNode,
-				permissionData.tree,
-				permissionData.codeMap
-			);
+        if (validationResult.valid) {
+                try {
+                        // 检查权限冲突
+                        const conflictResult = await checkPermissionConflicts(
+                            permissionData.selectedNode,
+                            permissionData.tree,
+                            permissionData.codeMap
+                        );
 
-			if (conflictResult.hasConflict) {
-				message.warning(conflictResult.reason);
-			} else {
-				addPermissionLoading.value = true;
-				await roleStore.addPermissionToRole(permissionRole.value.id, selectedPermissionId.value);
-				message.success('添加成功');
-				showAddPermissionModal.value = false;
-				selectedPermissionId.value = null;
-				await roleStore.fetchPermissionsDetail(permissionRole.value.id);
-				await loadGroupPermissions();
-			}
-		} catch (e) {
-			message.error(e?.message || '添加失败');
-		} finally {
-			addPermissionLoading.value = false;
-		}
-	} else {
-		const isWarningType = validationResult.type === 'warning';
-		if (isWarningType) {
-			message.warning(validationResult.message);
-		} else {
-			message.error(validationResult.message);
-		}
-	}
+                        if (conflictResult.hasConflict) {
+                                message.warning(conflictResult.reason);
+                        } else {
+                                addPermissionLoading.value = true;
+                                await roleStore.addPermissionToRole(permissionRole.value.id, selectedPermissionId.value);
+                                message.success('添加成功');
+                                showAddPermissionModal.value = false;
+                                selectedPermissionId.value = null;
+                                await roleStore.fetchPermissionsDetail(permissionRole.value.id);
+                                await loadGroupPermissions();
+                        }
+                } catch (e) {
+                        message.error(e?.message || '添加失败');
+                } finally {
+                        addPermissionLoading.value = false;
+                }
+        } else {
+                const isWarningType = validationResult.type === 'warning';
+                if (isWarningType) {
+                        message.warning(validationResult.message);
+                } else {
+                        message.error(validationResult.message);
+                }
+        }
 }
 
 async function doAddPermission() {
@@ -1357,20 +1362,20 @@ function checkGroupPermissionConflicts(groupPermissionsFlat, directPermissions) 
 
 // 执行添加权限组操作
 async function executeAddGroup() {
-	addGroupLoading.value = true;
-	try {
-		await roleStore.addPermissionGroupToRole(permissionRole.value.id, selectedGroupId.value);
-		message.success('添加成功');
-		showAddGroupModal.value = false;
-		selectedGroupId.value = null;
-		await roleStore.fetchPermissionsDetail(permissionRole.value.id);
-		await loadGroupPermissions();
-	} catch (e) {
-		console.error('executeAddGroup 捕获到错误:', e);
-		message.error(e?.message || '添加失败');
-	} finally {
-		addGroupLoading.value = false;
-	}
+        addGroupLoading.value = true;
+        try {
+                await roleStore.addPermissionGroupToRole(permissionRole.value.id, selectedGroupId.value);
+                message.success('添加成功');
+                showAddGroupModal.value = false;
+                selectedGroupId.value = null;
+                await roleStore.fetchPermissionsDetail(permissionRole.value.id);
+                await loadGroupPermissions();
+        } catch (e) {
+                console.error('executeAddGroup 捕获到错误:', e);
+                message.error(e?.message || '添加失败');
+        } finally {
+                addGroupLoading.value = false;
+        }
 }
 
 async function doAddGroup() {

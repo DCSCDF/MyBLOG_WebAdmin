@@ -70,6 +70,7 @@
                     :pagination="paginationConfig"
                     :scroll="{ x: 900 }"
                     row-key="id"
+                    size="small"
                     table-layout="fixed"
                     @change="handleTableChange">
                         <template #bodyCell="{ column, record }">
@@ -85,8 +86,11 @@
                                                                     @click="({key}) => handleActionClick(record, key)">
                                                                         <a-menu-item key="view">查看</a-menu-item>
                                                                         <a-menu-item key="permission">权限</a-menu-item>
-                                                                        <a-menu-item v-if="!record.isSystem" key="edit">编辑</a-menu-item>
-                                                                        <a-menu-item v-if="!record.isSystem" key="delete">
+                                                                        <a-menu-item v-if="!record.isSystem" key="edit">
+                                                                                编辑
+                                                                        </a-menu-item>
+                                                                        <a-menu-item v-if="!record.isSystem"
+                                                                                     key="delete">
                                                                                 <span class="text-red-500">删除</span>
                                                                         </a-menu-item>
                                                                 </a-menu>
@@ -334,16 +338,17 @@
                             show-search
                             style="width: 100%;"
                             tree-node-filter-prop="name"/>
-                        <div class="mt-2 text-xs text-gray-500">最好是添加父权限，除非你是有特殊需求需要单独给予按钮级别的权限。</div>
+                        <div class="mt-2 text-xs text-gray-500">
+                                最好是添加父权限，除非你是有特殊需求需要单独给予按钮级别的权限。
+                        </div>
                 </a-modal>
         </a-card>
 </template>
 
 <script setup>
 
-import {computed, onMounted, ref, watch, h} from 'vue';
-import {SearchOutlined} from '@ant-design/icons-vue';
-import {DownOutlined} from '@ant-design/icons-vue';
+import {computed, h, onMounted, ref, watch} from 'vue';
+import {DownOutlined, SearchOutlined} from '@ant-design/icons-vue';
 import {message, Modal} from 'ant-design-vue';
 import {useDrawerWidth} from '../../../utils/useDrawerWidth.js';
 import {usePermissionGroupStore} from '../../../stores/permissiongroup.js';

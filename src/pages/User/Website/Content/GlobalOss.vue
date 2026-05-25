@@ -52,6 +52,7 @@
                     :pagination="tablePagination"
                     :scroll="{ x: 1200 }"
                     row-key="id"
+                    size="small"
                     @change="onTableChange">
                         <template #bodyCell="{ column, record }">
                                 <template v-if="column.key === 'thumbnail'">
@@ -97,7 +98,8 @@
                                                         <template #overlay>
                                                                 <a-menu
                                                                     @click="({key}) => handleActionClick(record, key)">
-                                                                        <a-menu-item key="preview">查看详情</a-menu-item>
+                                                                        <a-menu-item key="preview">查看详情
+                                                                        </a-menu-item>
                                                                         <a-menu-item key="delete">
                                                                                 <span class="text-red-500">删除</span>
                                                                         </a-menu-item>
@@ -115,7 +117,8 @@
                                                             ok-text="确定"
                                                             title="确定删除该图片吗？删除后将无法恢复。"
                                                             @confirm="onDelete(record)">
-                                                                <a-button danger size="small" type="link">删除</a-button>
+                                                                <a-button danger size="small" type="link">删除
+                                                                </a-button>
                                                         </a-popconfirm>
                                                 </a-space>
                                         </template>
@@ -185,7 +188,7 @@
 </template>
 
 <script setup>
-import {computed, onMounted, ref, h} from 'vue';
+import {computed, h, onMounted, ref} from 'vue';
 import {message, Modal} from 'ant-design-vue';
 import {DownOutlined, FileImageOutlined, SearchOutlined} from '@ant-design/icons-vue';
 import {useGlobalOssStore} from '../../../../stores/globalOss.js';
@@ -231,29 +234,29 @@ const currentRecord = ref(null);
  * 格式化文件大小
  */
 const formatFileSize = (bytes) => {
-	const units = ['B', 'KB', 'MB', 'GB'];
-	let result = '-';
-	let size = bytes;
-	let unitIndex = 0;
-	if (bytes || bytes === 0) {
-		while (size >= 1024 && unitIndex < units.length - 1) {
-			size /= 1024;
-			unitIndex++;
-		}
-		result = `${size.toFixed(unitIndex > 0 ? 2 : 0)} ${units[unitIndex]}`;
-	}
-	return result;
+        const units = ['B', 'KB', 'MB', 'GB'];
+        let result = '-';
+        let size = bytes;
+        let unitIndex = 0;
+        if (bytes || bytes === 0) {
+                while (size >= 1024 && unitIndex < units.length - 1) {
+                        size /= 1024;
+                        unitIndex++;
+                }
+                result = `${size.toFixed(unitIndex > 0 ? 2 : 0)} ${units[unitIndex]}`;
+        }
+        return result;
 };
 
 /**
  * 截断哈希值显示
  */
 const truncateHash = (hash) => {
-	let result = '-';
-	if (hash) {
-		result = hash.length > 16 ? `${hash.substring(0, 8)}...${hash.substring(hash.length - 8)}` : hash;
-	}
-	return result;
+        let result = '-';
+        if (hash) {
+                result = hash.length > 16 ? `${hash.substring(0, 8)}...${hash.substring(hash.length - 8)}` : hash;
+        }
+        return result;
 };
 
 // /**
@@ -364,20 +367,20 @@ const handlePreviewClose = () => {
  * 复制图片链接
  */
 const copyImageUrl = async () => {
-	let hasRecord = false;
-	let url = '';
-	if (currentRecord.value) {
-		hasRecord = true;
-		url = ossStore.getOriginalImageUrl(currentRecord.value.hash);
-	}
-	if (hasRecord) {
-		try {
-			await navigator.clipboard.writeText(url);
-			message.success('链接已复制到剪贴板');
-		} catch (e) {
-			message.error('复制失败，请手动复制');
-		}
-	}
+        let hasRecord = false;
+        let url = '';
+        if (currentRecord.value) {
+                hasRecord = true;
+                url = ossStore.getOriginalImageUrl(currentRecord.value.hash);
+        }
+        if (hasRecord) {
+                try {
+                        await navigator.clipboard.writeText(url);
+                        message.success('链接已复制到剪贴板');
+                } catch (e) {
+                        message.error('复制失败，请手动复制');
+                }
+        }
 };
 
 /**

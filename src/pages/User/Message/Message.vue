@@ -66,6 +66,7 @@
                     :pagination="tablePagination"
                     :scroll="{ x: 1000 }"
                     row-key="id"
+                    size="small"
                     @change="onTableChange">
                         <template #bodyCell="{ column, record }">
                                 <template v-if="column.key === 'blogTitle'">
@@ -124,7 +125,8 @@
                                                             ok-text="确定"
                                                             title="确定删除该评论吗？删除后将无法恢复。"
                                                             @confirm="onDelete(record)">
-                                                                <a-button danger size="small" type="link">删除</a-button>
+                                                                <a-button danger size="small" type="link">删除
+                                                                </a-button>
                                                         </a-popconfirm>
                                                 </a-space>
                                         </template>
@@ -163,7 +165,7 @@
 </template>
 
 <script setup>
-import {computed, onMounted, ref, h} from 'vue';
+import {computed, h, onMounted, ref} from 'vue';
 import {message, Modal} from 'ant-design-vue';
 import {DownOutlined, SearchOutlined, UserOutlined} from '@ant-design/icons-vue';
 import {useCommentStore} from '../../../stores/comment.js';

@@ -66,6 +66,7 @@
                     :pagination="tablePagination"
                     :scroll="{ x: 1200 }"
                     row-key="id"
+                    size="small"
                     @change="onTableChange">
                         <template #bodyCell="{ column, record }">
                                 <template v-if="column.key === 'blogTitle'">
@@ -115,9 +116,12 @@
                                                         <template #overlay>
                                                                 <a-menu
                                                                     @click="({key}) => handleActionClick(record, key)">
-                                                                        <a-menu-item key="approve-0">设为待审核</a-menu-item>
-                                                                        <a-menu-item key="approve-1">设为已通过</a-menu-item>
-                                                                        <a-menu-item key="approve-2">设为垃圾评论</a-menu-item>
+                                                                        <a-menu-item key="approve-0">设为待审核
+                                                                        </a-menu-item>
+                                                                        <a-menu-item key="approve-1">设为已通过
+                                                                        </a-menu-item>
+                                                                        <a-menu-item key="approve-2">设为垃圾评论
+                                                                        </a-menu-item>
                                                                         <a-menu-item key="edit">编辑</a-menu-item>
                                                                         <a-menu-item key="delete">
                                                                                 <span class="text-red-500">删除</span>
@@ -134,10 +138,14 @@
                                                                         <DownOutlined/>
                                                                 </a-button>
                                                                 <template #overlay>
-                                                                        <a-menu @click="({key}) => handleApprove(record, key)">
-                                                                                <a-menu-item key="0">设为待审核</a-menu-item>
-                                                                                <a-menu-item key="1">设为已通过</a-menu-item>
-                                                                                <a-menu-item key="2">设为垃圾评论</a-menu-item>
+                                                                        <a-menu
+                                                                            @click="({key}) => handleApprove(record, key)">
+                                                                                <a-menu-item key="0">设为待审核
+                                                                                </a-menu-item>
+                                                                                <a-menu-item key="1">设为已通过
+                                                                                </a-menu-item>
+                                                                                <a-menu-item key="2">设为垃圾评论
+                                                                                </a-menu-item>
                                                                         </a-menu>
                                                                 </template>
                                                         </a-dropdown>
@@ -148,7 +156,8 @@
                                                             ok-text="确定"
                                                             title="确定删除该评论吗？删除后将无法恢复。"
                                                             @confirm="onDelete(record)">
-                                                                <a-button danger size="small" type="link">删除</a-button>
+                                                                <a-button danger size="small" type="link">删除
+                                                                </a-button>
                                                         </a-popconfirm>
                                                 </a-space>
                                         </template>
@@ -187,7 +196,7 @@
 </template>
 
 <script setup>
-import {computed, onMounted, ref, h} from 'vue';
+import {computed, h, onMounted, ref} from 'vue';
 import {message, Modal} from 'ant-design-vue';
 import {DownOutlined, SearchOutlined, UserOutlined} from '@ant-design/icons-vue';
 import {useGlobalCommentStore} from '../../../../stores/globalComment.js';

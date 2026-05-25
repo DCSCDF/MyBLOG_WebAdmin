@@ -13,7 +13,7 @@
     "@tailwindcss/vite": "^4.1.18",
     "aj-captcha": "^1.0.0",
     "ant-design-vue": "^4.2.6",
-    "axios": "1.13.5",
+    "axios": "1.15.0",
     "crypto-js": "^4.2.0",
     "dayjs": "^1.11.19",
     "eslint": "^9.39.2",
@@ -31,6 +31,6 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",
     "less": "^4.5.1",
-    "vite": "^7.2.4"
+    "vite": "8.0.5"
   }
 }
