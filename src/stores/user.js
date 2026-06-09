@@ -40,6 +40,9 @@ export const useUserStore = defineStore('user', () => {
 	/** 列表接口返回的筛选项，用于渲染状态下拉等（filterOptions.status） */
 	const filterOptions = ref({});
 
+	/** 当前用户是否已登录状态 */
+	const isLoggedIn = ref(false);
+
 	// 当前选中的用户详情
 	const userDetail = ref(null);
 	const userDetailLoading = ref(false);
@@ -91,12 +94,14 @@ export const useUserStore = defineStore('user', () => {
 			current = 1,
 			size = pageSize,
 			pages = 0,
-			filterOptions: options = {}
+			filterOptions: options = {},
+			isLoggedIn: loggedIn = false
 		} = response.data;
 
 		users.value = records.map((item) => ({...item, key: item.id}));
 		pagination.value = {current, pageSize: size, total, pages};
 		filterOptions.value = options;
+		isLoggedIn.value = loggedIn;
 
 		logger.log('用户列表获取成功，总数:', total);
 	};
@@ -339,6 +344,7 @@ export const useUserStore = defineStore('user', () => {
 		pagination,
 		queryParams,
 		filterOptions,
+		isLoggedIn,
 		userDetail,
 		userDetailLoading,
 		userRoles,

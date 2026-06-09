@@ -66,7 +66,7 @@
                                         <breadcrumb></breadcrumb>
 
                                         <!-- 限制内容宽度防止撑开 -->
-                                        <div class="w-full mt-12">
+                                        <div class="w-full mt-6">
                                                 <RouterView/>
                                         </div>
 

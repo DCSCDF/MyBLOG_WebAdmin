@@ -83,6 +83,11 @@
                                                 {{ record.status === 1 ? '启用' : '禁用' }}
                                         </a-tag>
                                 </template>
+                                <template v-else-if="column.key === 'isLoggedIn'">
+                                        <a-tag :bordered="false" :color="record.isLoggedIn ? 'green' : 'gray'">
+                                                {{ record.isLoggedIn ? '已登录' : '未登录' }}
+                                        </a-tag>
+                                </template>
                                 <template v-else-if="column.key === 'action'">
                                         <template v-if="isBelowLg">
                                                 <a-dropdown>
@@ -209,6 +214,7 @@ const columns = computed(() => [
         {title: '昵称', dataIndex: 'nickname', key: 'nickname', width: 120},
         {title: '邮箱', dataIndex: 'email', key: 'email', width: 180, ellipsis: true},
         {title: '状态', key: 'status', width: 80},
+        { title: '登录状态', key: 'isLoggedIn', width: 100 },
         {title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 180},
         {title: '操作', key: 'action', width: isBelowLg.value ? 100 : 300, fixed: 'right'}
 ]);

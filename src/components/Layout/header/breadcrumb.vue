@@ -15,7 +15,7 @@
 
 <template>
         <div class="mx-2">
-                <div class="mb-6">
+                <div class="mb-4">
                         <a-breadcrumb>
                                 <a-breadcrumb-item>首页</a-breadcrumb-item>
                                 <a-breadcrumb-item
@@ -29,7 +29,7 @@
 
                 <div>
                         <h1 class="text-2xl !mb-2 text-gray-800 font-medium">{{ currentTitle }}</h1>
-                        <p class="text-gray-500 mb-6">{{ currentDescription }}</p>
+                        <p class="text-gray-500">{{ currentDescription }}</p>
                 </div>
         </div>
 </template>
