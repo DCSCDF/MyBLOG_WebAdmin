@@ -48,11 +48,13 @@
 
         <!--        <a-empty :description="null"/>-->
 
-
+        <MyRecentMessage></MyRecentMessage>
+        
 </template>
 
 <script setup>
 import cardBgImg from '../../../assets/img/card_bg.png';
+import MyRecentMessage from "../../../components/MyRecentMessage.vue";
 </script>
 
 <style scoped>

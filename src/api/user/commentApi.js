@@ -56,6 +56,16 @@ export const commentApi = {
 	 */
 	delete: (id) => {
 		return request.delete(`${COMMENT_BASE_PATH}/${id}`);
+	},
+
+	/**
+	 * 获取当前用户收到的回复评论列表
+	 * 需要权限: comment:list
+	 * @param {number} limit - 返回条数，最大100条，默认10条
+	 * @returns {Promise<{ data: Array }>}
+	 */
+	getReplies: (limit = 10) => {
+		return request.get(`${COMMENT_BASE_PATH}/replies`, { params: { limit } });
 	}
 };
 
