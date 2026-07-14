@@ -180,6 +180,7 @@ onMounted(async () => {
                                 nickname: response.data.nickname,
                                 email: response.data.email,
                                 avatarUrl: response.data.avatarUrl,
+                                bio: response.data.bio,
                                 status: response.data.status,
                                 createTime: response.data.createTime,
                                 updateTime: response.data.updateTime

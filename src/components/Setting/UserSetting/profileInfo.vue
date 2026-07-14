@@ -81,6 +81,29 @@
                                         </div>
                                 </a-form-item>
 
+                                <a-form-item class="!my-4">
+                                        <div class="md:flex items-start text-gray-500">
+                                                <div class="mb-1 py-1 md:mb-0 md:mx-4 w-26">
+                                                        简介
+                                                </div>
+                                                <div class="w-full">
+                                                        <a-input-group class="max-w-md !px-0 !flex flex-col" compact>
+                                                                <a-textarea
+                                                                    :value="userProfile.bio || '还没有填写简介~'"
+                                                                    disabled
+                                                                    :rows="3"
+                                                                    :maxlength="500"
+                                                                />
+                                                        </a-input-group>
+                                                        <a-button class="!text-gray-600 mt-2"
+                                                                  @click="openBioDrawer">
+                                                                <SettingOutlined/>
+                                                                修改
+                                                        </a-button>
+                                                </div>
+                                        </div>
+                                </a-form-item>
+
                                 <a-form-item>
                                         <div class="md:flex items-start text-gray-500">
                                                 <div class="mb-1 py-1 md:mb-0 md:mx-4 w-26">
@@ -150,6 +173,44 @@
                                             :loading="nicknameSubmitting"
                                             type="primary"
                                             @click="handleNicknameSubmit"
+                                        >
+                                                保存
+                                        </a-button>
+                                </div>
+                        </a-form>
+                </a-drawer>
+
+                <!-- 修改简介抽屉 -->
+                <a-drawer
+                    v-model:open="bioDrawerVisible"
+                    :destroy-on-close="true"
+                    :width="drawerWidth"
+                    title="修改简介"
+                >
+                        <a-form
+                            ref="bioFormRef"
+                            :model="bioForm"
+                            :rules="bioRules"
+                            layout="vertical"
+                        >
+                                <a-form-item label="新简介" name="bio">
+                                        <a-textarea
+                                            v-model:value="bioForm.bio"
+                                            :rows="5"
+                                            :maxlength="500"
+                                            placeholder="请输入新简介（1-500字符）"
+                                            show-count
+                                        />
+                                </a-form-item>
+
+                                <div class="flex justify-end gap-2 mt-4">
+                                        <a-button @click="handleBioCancel">
+                                                取消
+                                        </a-button>
+                                        <a-button
+                                            :loading="bioSubmitting"
+                                            type="primary"
+                                            @click="handleBioSubmit"
                                         >
                                                 保存
                                         </a-button>
@@ -354,6 +415,65 @@ async function handleNicknameSubmit() {
                         result = {success: false, error: e.message || '昵称修改失败'};
                 } finally {
                         nicknameSubmitting.value = false;
+                }
+        }
+
+        return result;
+}
+
+// 修改简介
+const bioDrawerVisible = ref(false);
+const bioFormRef = ref(null);
+const bioSubmitting = ref(false);
+const bioForm = ref({
+        bio: ''
+});
+
+const bioRules = {
+        bio: [
+                {required: true, message: '请输入简介', trigger: 'blur'},
+                {min: 1, max: 500, message: '简介长度为 1-500 个字符', trigger: 'blur'}
+        ]
+};
+
+function openBioDrawer() {
+        bioForm.value.bio = userProfile.value.bio || '';
+        bioDrawerVisible.value = true;
+}
+
+function handleBioCancel() {
+        bioDrawerVisible.value = false;
+}
+
+async function handleBioSubmit() {
+        let result = null;
+
+        if (!bioFormRef.value) {
+                result = {success: false, error: '表单引用不存在'};
+        } else {
+                try {
+                        bioSubmitting.value = true;
+                        await bioFormRef.value.validate();
+                        const bio = bioForm.value.bio.trim();
+
+                        const res = await authApi.updateBio({bio});
+                        message.success(res?.data?.message || '简介修改成功');
+
+                        const current = authStore.getUserProfile() || {};
+                        authStore.updateUserProfile({
+                                ...current,
+                                bio
+                        });
+
+                        bioDrawerVisible.value = false;
+                        result = {success: true};
+                } catch (e) {
+                        if (e instanceof Error) {
+                                message.error(e.message || '简介修改失败');
+                        }
+                        result = {success: false, error: e.message || '简介修改失败'};
+                } finally {
+                        bioSubmitting.value = false;
                 }
         }
 

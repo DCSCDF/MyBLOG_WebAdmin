@@ -94,6 +94,14 @@ export const authApi = {
 	},
 
 	/**
+	 * 修改用户简介
+	 * @param {Object} data - { bio }
+	 */
+	updateBio: (data) => {
+		return request.post(`${AUTH_BASE_PATH}/update-bio`, data);
+	},
+
+	/**
 	 * 修改邮箱（直接模式，无需验证码）
 	 * 当系统配置 reg.use-email=false 时使用
 	 * @param {Object} data - { email }

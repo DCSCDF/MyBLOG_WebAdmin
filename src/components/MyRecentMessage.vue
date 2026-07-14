@@ -34,9 +34,9 @@
                                                 <a class="flex-shrink-0" :href="reply.website || '#'"
                                                         :target="reply.website ? '_blank' : undefined"
                                                         rel="noopener noreferrer">
-                                                        <img :alt="reply.username"
-                                                                class="w-10 h-10 rounded-full object-cover hover:opacity-80 transition-opacity cursor-pointer"
-                                                                :src="reply.avatarUrl || '/default-avatar.png'" />
+                                                       <a-avatar :size="40" :src="reply.avatarUrl">
+                                                                {{ (reply.username || '').charAt(0) }}
+                                                        </a-avatar>
                                                 </a>
 
                                                 <div class="flex flex-col flex-1 min-w-0 ml-4">
