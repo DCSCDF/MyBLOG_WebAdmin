@@ -35,7 +35,7 @@
                                                         :target="reply.website ? '_blank' : undefined"
                                                         rel="noopener noreferrer">
                                                        <a-avatar :size="40" :src="reply.avatarUrl">
-                                                                {{ (reply.username || '').charAt(0) }}
+                                                               {{ (reply.username || '').charAt(0).toUpperCase() }}
                                                         </a-avatar>
                                                 </a>
 
