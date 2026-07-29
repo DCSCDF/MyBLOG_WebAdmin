@@ -38,7 +38,7 @@
                         <Captcha ref="captchaRef" @status-change="handleCaptchaStatusChange"></Captcha>
 
                         <div class="flex items-center justify-between mb-6">
-                                <a-checkbox v-model:checked="loginForm.remember">
+                                <a-checkbox v-model:checked="loginForm.rememberMe">
                                         记住我
                                 </a-checkbox>
                                 <a v-if="useEmailRegister" class="text-blue-600 hover:text-blue-700 text-sm" href="#"
@@ -78,7 +78,7 @@ const authStore = useAuthStore();
 const loginForm = ref({
         username: '',
         password: '',
-        remember: false
+        rememberMe: false
 })
 
 const loginLoading = ref(false)
@@ -248,7 +248,7 @@ const handleLogin = async () => {
                 logger.log('Login 表单数据:', {
                         username: loginForm.value.username,
                         password: loginForm.value.password,
-                        checkRemember: loginForm.value.remember,
+                        rememberMe: loginForm.value.rememberMe,
                         captchaVerification
                 });
 
@@ -277,6 +277,7 @@ const handleLogin = async () => {
                         captchaVerification: captchaVerification.captchaVerification,
                         tempToken: publicKeyResponse.data.tempToken,
                         password: password,
+                        rememberMe: loginForm.value.rememberMe,
                         oauthEnabled: isRedirectUrlValid.value
                 };
 
@@ -320,7 +321,7 @@ const handleLoginSuccess = async (response) => {
         logger.log('response:', response);
         logger.log('response.data:', response.data);
         logger.log('response.data.code:', response.data?.code);
-        logger.log('remember 状态:', loginForm.value.remember);
+        logger.log('remember 状态:', loginForm.value.rememberMe);
 
         // 严格检查响应数据是否有效
         if (!response || !response.data) {
@@ -348,13 +349,13 @@ const handleOAuthRedirect = async (code, token) => {
         logger.log(' OAuth 跳转 ');
         logger.log('code:', code);
         logger.log('token:', token);
-        logger.log('remember:', loginForm.value.remember);
+        logger.log('remember:', loginForm.value.rememberMe);
 
         // 先保存 token，避免后续 API 请求因缺少 token 而返回 401
         if (token) {
                 authStore.setToken(
                     token,
-                    loginForm.value.remember,
+                    loginForm.value.rememberMe,
                     {
                             username: loginForm.value.username,
                             loginTime: new Date().toISOString()
@@ -385,7 +386,7 @@ const handleOAuthRedirect = async (code, token) => {
                 }
 
                 const currentUrl = window.location.origin + window.location.pathname;
-                const rememberValue = loginForm.value.remember ? 'true' : 'false';
+                const rememberValue = loginForm.value.rememberMe ? 'true' : 'false';
 
                 if (configResponse.data && configResponse.data.length > 0) {
                         const redirectUrl = configResponse.data.find(item => item.configKey === 'site.redirect_url');
@@ -445,7 +446,7 @@ const handleNormalLogin = async (response) => {
         // 使用 Pinia store 管理 token 和用户状态
         authStore.setToken(
             response.data.token,
-            loginForm.value.remember,
+            loginForm.value.rememberMe,
             {
                     id: response.data.user?.id,
                     username: response.data.user?.username || loginForm.value.username,
@@ -459,7 +460,7 @@ const handleNormalLogin = async (response) => {
             }
         );
 
-        logger.log(`${loginForm.value.remember ? '长期' : '会话'}token 设置完成`);
+        logger.log(`${loginForm.value.rememberMe ? '长期' : '会话'}token 设置完成`);
 
         // 如果有 code，跳转到 redirect_url 并携带 code 和 remember
         if (response.data?.code) {
