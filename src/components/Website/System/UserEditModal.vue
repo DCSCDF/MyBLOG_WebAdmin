@@ -72,6 +72,7 @@ import {message} from 'ant-design-vue';
 import {useRoleStore} from '../../../stores/role.js';
 import {useRouter} from 'vue-router';
 import {getSmallImageUrl} from '../../../utils/imageUrl.js';
+import logger from '../../../utils/logger.js';
 
 const props = defineProps({
         open: {
@@ -155,7 +156,7 @@ const rules = {
 const loadRoles = async () => {
         roleListLoading.value = true;
         try {
-                await roleStore.fetchRoles({currentPage: 1, pageSize: 200});
+                await roleStore.fetchRoles({currentPage: 1, pageSize: 100});
                 const roles = roleStore.currentRoles || [];
                 roleOptions.value = roles.map(role => ({
                         label: role.name,
